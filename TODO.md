@@ -30,9 +30,21 @@ This study is not a native-Indian habitat candidate or a photorealistic producti
 - [x] User approved written preview design, requiring a proper geographically sourced map.
 - [x] Research and select pinned Natural Earth India POV boundary plus actual Cauvery river/lake centerlines; public-domain licence reviewed. Updated design distinguishes generalized real geography from illustrative underwater habitat.
 - [x] Write and self-review `docs/superpowers/plans/2026-10-14-e2e-experience-preview.md` with shared contracts, source validation, and independent world/fish/camera/map/UI-audio ownership.
-- [ ] User review of written implementation plan; parallel execution method already approved.
-- [ ] Implement the map/dive/habitat/school/follow/story/return journey without removing existing safeguards.
-- [ ] Verify real browser flow, visual previews, and code review; restore development server.
+- [x] User approved written implementation plan: "go ahead please"; prior study checkpointed in b62bfc8.
+- [x] Implement sourced map/dive/habitat/school/follow/story/return with independent parallel ownership and persistent canvas/runtime.
+- [x] Inspect desktop/mobile map and underwater previews; preserve original Blender and GLB assets.
+- [x] Independent combined review, one scoped fix wave, and fix re-review passed. Shader variants/link failures, delayed descent retry, shared swim clock, keyboard focus and provenance corrected with regressions.
+- [x] Final coordinator Node 24 checks passed: typecheck/lint, 190 unit tests, 6 Python map-source tests, production build, and 8 complete-journey/recovery browser checks across desktop and touch. Full 22-case baseline passed before the fix wave; 14 affected browser checks passed during fixes. Expanded full 28-case suite not rerun.
+- [x] Verify development server at http://localhost:3001, HTTP 200; leave unrelated port 3000 untouched.
+
+## Next requested behavior/mobile pass
+
+Requested after completing the experience preview; not implemented yet.
+
+- [ ] Design minimal species-specific behavior profiles for territorial, schooling and hiding behavior; allow contextual combinations rather than one behavior for every fish.
+- [ ] Source behavior evidence for each actual species; distinguish illustrative study presets from verified wild behavior.
+- [ ] Integrate behavior with territory, schoolmates and habitat cover while preserving selected identity, follow camera, pause and quality safeguards.
+- [ ] Extend mobile usability checks for portrait/landscape, touch targets, navigation and story readability. Existing responsive/touch-emulated preview coverage is not physical-device certification.
 
 ## Next production milestones
 

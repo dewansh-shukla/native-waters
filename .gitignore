@@ -10,6 +10,7 @@ playwright/.cache/
 .cache/
 .superpowers/
 *.tsbuildinfo
+__pycache__/
 next-env.d.ts
 .env*
 !.env.example

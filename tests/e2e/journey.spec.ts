@@ -1,0 +1,38 @@
+import { expect, test } from "@playwright/test";
+
+test("complete keyboard journey preserves canvas and cached school asset", async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  let models = 0;
+  page.on("request", request => { if (request.url().includes("polar-parrot-study-v1.glb")) models++; });
+  await page.goto("/");
+  const enter = page.getByRole("button", { name: "Enter Water", exact: true });
+  await expect(enter).toBeEnabled({ timeout: 60_000 });
+  const canvas = await page.locator("canvas").elementHandle();
+  const mapImage = await page.locator("canvas").screenshot();
+  await enter.focus(); await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");
+  await expect(page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option")).toHaveCount(testInfo.project.name === "touch-chromium" ? 6 : 10);
+  await page.getByRole("combobox", { name: "Quality", exact: true }).selectOption("HIGH");
+  await page.getByRole("combobox", { name: "Select fish", exact: true }).selectOption("fish-9");
+  await page.getByRole("button", { name: "Follow fish", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "following");
+  await page.getByRole("combobox", { name: "Quality", exact: true }).selectOption("LOW");
+  await expect(page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option[value='fish-9']")).toHaveCount(1);
+  const explore = page.getByRole("button", { name: "Explore Species" });
+  await explore.focus(); await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape"); await expect(explore).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog").getByRole("button", { name: "Back to Water" }).click();
+  await expect(page.getByRole("button", { name: "Follow fish" })).toBeFocused();
+  await page.getByRole("button", { name: "Return to Map" }).click();
+  await expect(enter).toBeEnabled();
+  await page.waitForTimeout(300);
+  expect((await page.locator("canvas").screenshot()).byteLength).toBeGreaterThan(mapImage.byteLength * .5);
+  await enter.click();
+  await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");
+  expect(await canvas!.evaluate(node => node === document.querySelector("canvas"))).toBe(true);
+  expect(models).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

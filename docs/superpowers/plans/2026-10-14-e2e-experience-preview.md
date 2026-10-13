@@ -1,5 +1,7 @@
 # Native Waters End-to-End Experience Preview Implementation Plan
 
+**Execution status: complete.** The original planned checklists below are retained as approved; completed execution tracking is in `TODO.md`. The sourced-map journey, independent review and scoped recovery fixes are implemented. Final coordinator verification: Node 24 typecheck/lint, 190 unit tests, 6 map-source tests, production build, and 8 desktop/touch journey/recovery tests passed. All 22 baseline browser cases passed before final fixes; 14 affected cases passed during fixes, rather than rerunning the expanded full 28-case suite. Development server verified at http://localhost:3001. Physical-device performance, remote CI and production biological/artistic acceptance remain unverified. The later requested species-behavior/mobile pass is separate and pending.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver the complete map → dive → living school → follow → story → return experience using the existing polar-parrot study and a proper sourced India/Cauvery map.
@@ -169,4 +171,4 @@ Prop types live in the shared contracts module; coordinator fixes interface drif
 
 Every journey/map/world/interaction/audio/accessibility/failure requirement maps to a task. Five risk classes have explicit tests. Shared types/current/obstacles/sources precede workers; camera/clock/integration have single owners. Geographic source and underwater illustration are separate facts. Optional relief failure is bounded; required geometry is not faked. Production artwork/science/physical-device acceptance are honestly deferred.
 
-Execution method is already selected: **parallel agents with nonoverlapping ownership**, then coordinator integration and one independent combined review. Review this written plan before implementation begins.
+Execution method is already selected: **parallel agents with nonoverlapping ownership**, then coordinator integration and one independent combined review. User approved this written plan with "go ahead please"; execution and local verification are complete.

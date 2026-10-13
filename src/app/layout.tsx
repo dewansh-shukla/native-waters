@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Native Waters — Foundation",
-  description: "A web and animated-asset pipeline foundation for Native Waters.",
+  title: "Native Waters — Experience preview",
+  description: "A geographic river overview and an illustrative underwater fish study."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

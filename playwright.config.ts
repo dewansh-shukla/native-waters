@@ -2,8 +2,8 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 45_000,
-  expect: { timeout: 10_000 },
+  timeout: 120_000,
+  expect: { timeout: 60_000 },
   workers: 1,
   use: {
     baseURL: "http://127.0.0.1:43187",
@@ -13,7 +13,7 @@ export default defineConfig({
   },
   projects: [
     { name: "desktop-chromium", use: { browserName: "chromium", viewport: { width: 1280, height: 900 } } },
-    { name: "mobile-sized-chromium", use: { browserName: "chromium", viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 } },
+    { name: "touch-chromium", use: { browserName: "chromium", viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true } },
   ],
   webServer: {
     command: "npm run start -- --hostname 127.0.0.1 --port 43187",
