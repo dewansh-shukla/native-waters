@@ -11,6 +11,29 @@
 - [x] Scaffold shared configuration, then implement content, GLB viewer, and accessible controls with three parallel agents.
 - [x] Verify clean npm installation, typecheck, lint, 72 unit tests, production build, and 14 Chromium browser checks on Node 24.21.0. Independent review and scoped fixes passed.
 
+## Polar parrot visual study
+
+- [x] User identified the supplied reference as a polar parrot and approved a visual study.
+- [x] Model/texture/rig work and viewer integration completed with separate parallel-agent ownership; original fixture preserved.
+- [x] Fresh Blender script regeneration and GLB validation passed: five-bone rig, five embedded textures, 41,772 triangles, approximately 1.9 MB.
+- [x] Inspect desktop/mobile-sized browser previews; correct glTF axis conversion and framing.
+- [x] Node 24 typecheck/lint, 73 unit tests, production build, and 14 browser tests passed. Independent review found no blockers.
+- [x] Restore development server at http://localhost:3001 and verify the active study response.
+
+This study is not a native-Indian habitat candidate or a photorealistic production asset.
+
+## Complete end-to-end experience preview
+
+- [x] User approved the full journey using the polar-parrot study and an illustrative Indian water location.
+- [x] Research journey architecture and world/asset scope in parallel.
+- [x] Write and self-review `docs/superpowers/specs/2026-10-14-e2e-experience-preview-design.md`.
+- [x] User approved written preview design, requiring a proper geographically sourced map.
+- [x] Research and select pinned Natural Earth India POV boundary plus actual Cauvery river/lake centerlines; public-domain licence reviewed. Updated design distinguishes generalized real geography from illustrative underwater habitat.
+- [x] Write and self-review `docs/superpowers/plans/2026-10-14-e2e-experience-preview.md` with shared contracts, source validation, and independent world/fish/camera/map/UI-audio ownership.
+- [ ] User review of written implementation plan; parallel execution method already approved.
+- [ ] Implement the map/dive/habitat/school/follow/story/return journey without removing existing safeguards.
+- [ ] Verify real browser flow, visual previews, and code review; restore development server.
+
 ## Next production milestones
 
 - [ ] Research and approve a sourced habitat–hero-species pairing.

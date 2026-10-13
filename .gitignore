@@ -18,3 +18,4 @@ next-env.d.ts
 credentials*.json
 .DS_Store
 npm-debug.log*
+*.blend[0-9]

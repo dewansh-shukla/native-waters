@@ -1,6 +1,6 @@
 {
-  "id": "pipeline-test",
-  "label": "Pipeline test — not a real species",
-  "disclaimer": "Demonstrates asset loading and animation, not verified anatomy or ecology.",
-  "modelUrl": "/models/pipeline-test.glb"
+  "id": "polar-parrot-study",
+  "label": "Polar parrot — reference study",
+  "disclaimer": "Visual study based on a supplied reference; not a verified native Indian species or production asset.",
+  "modelUrl": "/models/polar-parrot-study-v1.glb"
 }

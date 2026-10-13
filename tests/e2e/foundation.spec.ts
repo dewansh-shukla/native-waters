@@ -1,4 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import fixture from "../../content/fixtures/pipeline-test.json" with { type: "json" };
+
+const modelRoute = `**${fixture.modelUrl}`;
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -15,8 +18,8 @@ function watchErrors(page: Page) {
 
 async function content(page: Page) {
   await expect(page.getByRole("heading", { name: "Native Waters", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Pipeline test — not a real species", exact: true })).toBeVisible();
-  await expect(page.getByText("Demonstrates asset loading and animation, not verified anatomy or ecology.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: fixture.label, exact: true })).toBeVisible();
+  await expect(page.getByText(fixture.disclaimer, { exact: true })).toBeVisible();
 }
 
 async function ready(page: Page) {
@@ -36,7 +39,7 @@ async function changed(page: Page, before: Buffer) {
 
 test("semantic content, real GLB playback, keyboard pause and persistent resume", async ({ page }) => {
   const errors = watchErrors(page);
-  const model = page.waitForResponse("**/models/pipeline-test.glb");
+  const model = page.waitForResponse(modelRoute);
   await page.goto("/");
   await content(page);
   expect((await model).ok()).toBe(true);
@@ -80,7 +83,7 @@ test("delayed asset shows DOM loading status", async ({ page }) => {
   const errors = watchErrors(page);
   let release!: () => void;
   const gate = new Promise<void>((resolve) => { release = resolve; });
-  await page.route("**/models/pipeline-test.glb", async (route) => {
+  await page.route(modelRoute, async (route) => {
     await gate;
     await route.continue();
   });
@@ -103,7 +106,7 @@ test("failed viewer module preserves DOM and reload recovers", async ({ page }) 
   let failedChunk = "";
   await page.route("**/_next/static/**/*.js", async (route) => {
     const response = await route.fetch();
-    if ((await response.text()).includes("Animated pipeline test model")) {
+    if ((await response.text()).includes("Animated fish reference model")) {
       failedChunk = route.request().url();
       await route.abort("failed");
     } else {
@@ -129,20 +132,20 @@ test("failed viewer module preserves DOM and reload recovers", async ({ page }) 
 
 test("failed asset preserves DOM and retry recovers", async ({ page }) => {
   const errors = watchErrors(page);
-  await page.route("**/models/pipeline-test.glb", (route) => route.fulfill({ status: 503, body: "Unavailable" }));
+  await page.route(modelRoute, (route) => route.fulfill({ status: 503, body: "Unavailable" }));
   await page.goto("/");
   await expect(page.getByRole("region").getByRole("alert")).toContainText("The 3D viewer could not load");
   await content(page);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
-  await page.unroute("**/models/pipeline-test.glb");
-  const model = page.waitForResponse("**/models/pipeline-test.glb");
+  await page.unroute(modelRoute);
+  const model = page.waitForResponse(modelRoute);
   await page.getByRole("button", { name: "Retry", exact: true }).focus();
   await page.keyboard.press("Enter");
   expect((await model).ok()).toBe(true);
   await ready(page);
   await expect(page.getByRole("button", { name: "Resume", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("region").getByRole("alert")).toHaveCount(0);
-  expect(errors.filter((error) => !/503|pipeline-test\.glb|Could not load/i.test(error))).toEqual([]);
+  expect(errors.filter((error) => !(error.includes(fixture.modelUrl) || /503|Could not load/i.test(error)))).toEqual([]);
 });
 
 test("denied WebGL leaves content and keyboard controls usable", async ({ page }) => {

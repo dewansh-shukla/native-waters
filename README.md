@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. Dependencies are pinned in `package-lock.json`. No credentials, external asset service, database, or network fonts are required.
+Open http://localhost:3000. The agent-started session uses http://localhost:3001 because another project occupies port 3000. Dependencies are pinned in `package-lock.json`. No credentials, external asset service, database, or network fonts are required.
 
 ## Checks
 
@@ -26,13 +26,15 @@ npm run test:e2e
 
 Playwright starts the **production build**, not the dev server, on dedicated `127.0.0.1:43187`; leave that port free. It runs desktop and 390×844 mobile-sized Chromium checks with one worker. Run build before browser tests. CI installs Chromium with system dependencies and runs the same checks on Node 24. Failure traces/screenshots are saved in `test-results/` and uploaded by CI.
 
-Verified locally: clean `npm ci`, typecheck, lint, **72 unit tests**, production build, and **14 browser tests** passed on Node 24.21.0. Independent code review passed after fixing viewer-module failure recovery. GitHub CI has not run.
+Latest polar-parrot checks: typecheck, lint, **73 unit tests**, production build, and **14 browser tests** passed on Node 24.21.0. Clean `npm ci` was verified during foundation setup; dependencies have not changed. Independent reviews passed. GitHub CI has not run.
 
 Browser checks compare actual canvas screenshots for animation, settled Pause equality, reduced-motion stability, and Resume movement on the same canvas; a real AnimationMixer lifecycle regression also proves playback does not reset on pause. They exercise keyboard focus/activation, loading delay, viewer-module failure/reload, asset failure/retry, denied WebGL, real context loss/retry, and overflow. Headless Chromium permits SwiftShader software WebGL. This proves functionality, **not physical mobile GPU performance, FPS, or visual realism**. Context-loss checks explicitly skip if the extension is unavailable.
 
 ## Fixture and accessibility
 
-The page validates local JSON in `content/fixtures/pipeline-test.json` at build time. Its `/models/pipeline-test.glb` is an unchanged copy of `artifacts/blender-probe/pipeline-test.glb`. The exact label is **Pipeline test — not a real species**: anatomy, ecology, and species–river associations are not scientifically verified.
+The page validates local JSON in `content/fixtures/pipeline-test.json` at build time. The active asset is `/models/polar-parrot-study-v1.glb`, labelled **Polar parrot — reference study**. It is an original procedural visual study based on the user-supplied photo, not a verified native Indian species or a production asset. The original `/models/pipeline-test.glb` and Blender probe remain unchanged.
+
+The study includes a rounded body, six dark bars, layered eyes, fin membranes/rays, five-bone swim animation, and five embedded textures; approximately 41,772 triangles and 1.9 MB. Source, browser previews, regeneration instructions, and remaining artistic limits are in [the asset notes](artifacts/polar-parrot-study/NOTES.md).
 
 Text and native Pause/Resume controls remain outside the graphics error boundary. Reduced-motion users start paused and may explicitly Resume. Loading and failure messages are ordinary DOM; Retry reloads the asset/renderer rather than silently suppressing an error.
 

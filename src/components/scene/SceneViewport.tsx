@@ -71,14 +71,15 @@ export default function SceneViewport({ modelUrl, paused }: { modelUrl: string; 
         <Suspense fallback={<p role="status">Loading 3D model…</p>}>
           {loadedUrl !== modelUrl && <p role="status">Loading 3D model…</p>}
           <Canvas
-            camera={{ position: [3, 1.6, 6], fov: 40, near: 0.1, far: 100 }}
+            camera={{ position: [0.45, 0.25, 4.65], up: [0, 1, 0], fov: 35, near: 0.1, far: 100 }}
             dpr={[1, 2]}
             fallback={<SceneFailure onRetry={retry} />}
-            aria-label="Animated pipeline test model"
+            aria-label="Animated fish reference model"
           >
-            <color attach="background" args={["#102c38"]} />
-            <ambientLight intensity={1.5} />
-            <directionalLight position={[3, 5, 4]} intensity={3} />
+            <color attach="background" args={["#17191c"]} />
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[-3, 4, 5]} intensity={2} />
+            <directionalLight position={[2, 2, -3]} intensity={0.6} />
             <RendererGuard />
             <Suspense fallback={null}>
               <AnimatedModel modelUrl={modelUrl} paused={paused} onReady={onReady} />

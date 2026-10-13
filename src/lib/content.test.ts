@@ -62,9 +62,14 @@ describe("parsePipelineFixture", () => {
 });
 
 describe("loadPipelineFixture", () => {
-  it("loads the committed non-species demonstration fixture", () => {
+  it("loads the reference study without claiming verified species or habitat", () => {
     const fixture = loadPipelineFixture();
-    expect(fixture).toEqual(validFixture);
+    expect(fixture).toEqual({
+      id: "polar-parrot-study",
+      label: "Polar parrot — reference study",
+      disclaimer: "Visual study based on a supplied reference; not a verified native Indian species or production asset.",
+      modelUrl: "/models/polar-parrot-study-v1.glb",
+    });
     expect(parsePipelineFixture(fixture)).toEqual(fixture);
   });
 });
