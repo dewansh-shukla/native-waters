@@ -25,11 +25,12 @@
 - Live listener verified as `127.0.0.1:9876`.
 - Created `Native Waters - Pipeline Test`, a separate scene with a simple 102-vertex fixture, three deform bones, and keyed swim motion. Original scene retained its cube, camera, and light. The test scene is not saved as a .blend file.
 - Exported `artifacts/blender-probe/pipeline-test.glb` (10,836 bytes). Independent binary/JSON assertions passed: GLB v2 header, file length, skin attributes, three joints, and animation channels. Mesh inspected through MCP multi-angle visual feedback.
-- Browser playback and visual production quality remain untested; add-on telemetry consent has not been independently inspected.
+- Browser playback now passes desktop/mobile-sized Chromium checks: actual rendered swim motion, persistent Pause/Resume, reduced-motion pause, loading, module/asset failure recovery, and renderer/context-loss fallback. Real AnimationMixer lifecycle assertions prove clip time survives pause/resume. Final Node 24.21.0 verification passed 72 unit tests and 14 browser tests.
+- Software WebGL does not establish physical-device performance or visual production quality; add-on telemetry consent has not been independently inspected.
 
 ## Next probe
 
-The Blender/export portion passed. Next, check the exported GLB and animation in the browser after the web foundation exists. This is not a scientifically representative fish or visual acceptance milestone.
+The Blender/export/browser probe passed. Next, establish sourced fish references and the production asset contract, then model the real hero fish. This is not a scientifically representative fish or visual acceptance milestone.
 
 ## Safety and limits
 

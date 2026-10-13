@@ -1,0 +1,6 @@
+{
+  "id": "pipeline-test",
+  "label": "Pipeline test — not a real species",
+  "disclaimer": "Demonstrates asset loading and animation, not verified anatomy or ecology.",
+  "modelUrl": "/models/pipeline-test.glb"
+}
