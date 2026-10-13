@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "blender": {
+      "command": "/Users/dewanshshukla/.local/bin/uvx",
+      "args": ["--python", "3.11", "mcp-for-blender==2.1.9"],
+      "env": {
+        "BLENDER_HOST": "127.0.0.1",
+        "BLENDER_PORT": "9876",
+        "BLENDER_MCP_SAFE_MODE": "1",
+        "DISABLE_TELEMETRY": "true"
+      },
+      "description": "Local Blender scene inspection and safe-mode Python asset authoring for Native Waters.",
+      "exposure": "hidden",
+      "toolExposure": {
+        "get_scene_info": "direct",
+        "look": "direct",
+        "execute_blender_code": "direct"
+      }
+    }
+  }
+}
