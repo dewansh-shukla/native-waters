@@ -39,7 +39,11 @@ This study is not a native-Indian habitat candidate or a photorealistic producti
 
 ## Next requested behavior/mobile pass
 
-Requested after completing the experience preview; not implemented yet.
+Requested after completing the experience preview; species-specific behaviors are not implemented yet. User clarified that the polar-parrot demonstration should use territorial pairs around caves/suitable shells, not a universal school.
+
+- [x] Diagnose unwanted body rotations: shortest-arc orientation could roll almost 180° on a small direction change; wall/rock velocity reflections caused separate abrupt turns.
+- [x] Correct upright orientation and source steering with bounded yaw/pitch and one anticipatory interior safety course; preserve physics/heading alignment and existing collision guards.
+- [x] Unmasked 200-second and mixed/stalled-frame regressions passed; Node 24 typecheck/lint, all 194 unit tests, production build, and 4 desktop/touch playback/journey checks passed. Scoped review found no blockers.
 
 - [ ] Design minimal species-specific behavior profiles for territorial, schooling and hiding behavior; allow contextual combinations rather than one behavior for every fish.
 - [ ] Source behavior evidence for each actual species; distinguish illustrative study presets from verified wild behavior.

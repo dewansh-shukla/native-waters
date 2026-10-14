@@ -61,6 +61,93 @@ it("separates coincident neighbors without NaNs and repairs wall/rock penetratio
   for (const f of school) expect([...f.position.toArray(), ...f.heading.toArray() ].every(Number.isFinite)).toBe(true);
 });
 
+it("keeps the model upright through signed X reversals and near +X zero-Z crossings", () => {
+  const fish = createSchool().slice(0, 1);
+  let previous = fish[0].heading.clone();
+  const headings = [
+    [-0.4, 0, 0], [-0.2, 0.01, 0.3], [0, 0.01, 0.4], [0.2, 0.01, 0.3],
+    ...Array.from({ length: 201 }, (_, i) => [0.4, 0.01, (100 - i) * 0.0001]),
+    [0.2, 0.01, -0.3], [0, 0.01, -0.4], [-0.2, 0.01, -0.3], [-0.4, 0, 0],
+  ];
+  for (const [index, velocity] of headings.entries()) {
+    fish[0].position.set(0, -1.4, -2);
+    fish[0].velocity.set(...velocity as [number, number, number]);
+    stepSchool(fish, 1e-12, 0);
+    const f = fish[0];
+    const forward = f.velocity.clone().normalize();
+    const up = new Vector3(0, 1, 0).applyQuaternion(f.heading);
+    expect(new Vector3(-1, 0, 0).applyQuaternion(f.heading).dot(forward)).toBeCloseTo(1, 10);
+    expect(up.dot(new Vector3(0, 1, 0).addScaledVector(forward, -forward.y).normalize())).toBeCloseTo(1, 10);
+    if (index > 0) expect(f.heading.angleTo(previous)).toBeLessThan(Math.PI / 3);
+    previous = f.heading.clone();
+  }
+});
+
+it("bounds GLOBAL heading on every frame of the actual 200-second trajectory", () => {
+  const fish = createSchool();
+  let minUp = 1;
+  let maxTurn = 0;
+  let maxSlide = 0;
+  let xReversals = 0;
+  let zCrossings = 0;
+  for (let frame = 0; frame < 12000; frame++) {
+    const previous = fish.map(f => ({ heading: f.heading.clone(), direction: f.velocity.clone().normalize(), position: f.position.clone() }));
+    stepSchool(fish, 1 / 60, frame / 60);
+    fish.forEach((f, i) => {
+      const forward = f.velocity.clone().normalize();
+      minUp = Math.min(minUp, new Vector3(0, 1, 0).applyQuaternion(f.heading).y);
+      const old = previous[i];
+      if (old.direction.x * forward.x < 0) xReversals++;
+      if (old.direction.z * forward.z < 0) zCrossings++;
+      maxTurn = Math.max(maxTurn, old.heading.angleTo(f.heading));
+      maxSlide = Math.max(maxSlide, f.position.clone().sub(old.position).addScaledVector(f.velocity, -1 / 60).length());
+      expect(new Vector3(-1, 0, 0).applyQuaternion(f.heading).dot(forward)).toBeCloseTo(1, 10);
+      for (const axis of ["x", "y", "z"] as const) {
+        expect(f.position[axis]).toBeGreaterThanOrEqual(HABITAT.school[axis][0]);
+        expect(f.position[axis]).toBeLessThanOrEqual(HABITAT.school[axis][1]);
+      }
+      for (const o of OBSTACLES) expect(f.position.distanceTo(new Vector3(...o.center))).toBeGreaterThanOrEqual(o.radius + 0.219);
+      expect(f.velocity.length()).toBeGreaterThanOrEqual(0.2999);
+      expect(f.velocity.length()).toBeLessThanOrEqual(0.6001);
+    });
+  }
+  expect(minUp).toBeGreaterThanOrEqual(Math.cos(Math.PI / 9) - 1e-10);
+  expect(maxTurn).toBeLessThanOrEqual(2 / 60 + 1e-7);
+  expect(maxSlide).toBeLessThan(1e-10);
+  expect(xReversals).toBeGreaterThan(0);
+  expect(zCrossings).toBeGreaterThan(0);
+});
+
+it("retains bounded turns and collision-free displacement through mixed and stalled frame deltas", () => {
+  const fish = createSchool();
+  let time = 0;
+  for (let frame = 0; frame < 3000; frame++) {
+    const delta = [1 / 120, 1 / 30, 1 / 20, 2][frame % 4];
+    const dt = Math.min(delta, 0.05);
+    time += dt;
+    const previous = fish.map(f => ({ heading: f.heading.clone(), position: f.position.clone() }));
+    stepSchool(fish, delta, time);
+    fish.forEach((f, i) => {
+      expect(f.heading.angleTo(previous[i].heading)).toBeLessThanOrEqual(2 * dt + 1e-7);
+      expect(f.position.clone().sub(previous[i].position).addScaledVector(f.velocity, -dt).length()).toBeLessThan(1e-10);
+      expect(new Vector3(0, 1, 0).applyQuaternion(f.heading).y).toBeGreaterThanOrEqual(Math.cos(Math.PI / 9) - 1e-10);
+      for (const o of OBSTACLES) expect(f.position.distanceTo(new Vector3(...o.center))).toBeGreaterThanOrEqual(o.radius + 0.219);
+    });
+  }
+});
+
+it("produces finite normalized headings for level, vertical and stopped velocities", () => {
+  for (const velocity of [[-0.4, 0, 0], [0.4, 0, 0], [0, 0.4, 0], [0, -0.4, 0], [0, 0, 0]]) {
+    const fish = createSchool().slice(0, 1);
+    fish[0].position.set(0, -1.4, -2);
+    fish[0].velocity.set(...velocity as [number, number, number]);
+    stepSchool(fish, 1e-12, 0);
+    expect(fish[0].heading.toArray().every(Number.isFinite)).toBe(true);
+    expect(fish[0].heading.length()).toBeCloseTo(1, 10);
+    expect(new Vector3(-1, 0, 0).applyQuaternion(fish[0].heading).dot(fish[0].velocity.clone().normalize())).toBeCloseTo(1, 10);
+  }
+});
+
 it("zero delta and a coordinator pause leave school state unchanged", () => {
   const fish = createSchool();
   const snapshot = JSON.stringify(fish);
