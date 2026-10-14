@@ -47,6 +47,14 @@ This study is not a native-Indian habitat candidate or a photorealistic producti
 - [x] Save v2 `.blend` separately; preserve live Blender scene and safe mode. MCP correctly rejected library loading; no workaround or disabling performed.
 - [x] User preferred v1: restore its active fixture and expectation, retaining v2 and all movement fixes. Node 24 typecheck/lint, 194 units, build, 13 asset checks and four desktop/touch playback/journey checks passed. Dev HTML confirms v1; full 28-case browser suite not rerun for this small rollback.
 
+## V1 natural-style anatomical motion
+
+- [x] User requested gill/tail/fin motion; preserve preferred v1 appearance rather than redesigning it.
+- [x] Separate rig/export and TDD playback workers; original v1/v2 assets remain intact. New variant has 13 weighted joints and three disjoint clips: Swim, Breathing, FinIdle.
+- [x] Exact geometry/UV/normal/material/image preservation assertions and fresh factory regeneration passed; animated GLB is byte-identical across regeneration, 41,772 source triangles / 11 batches / 1,967,696 bytes.
+- [x] Independent asset checks verify named nonconstant disjoint channels and weighted joints. Real desktop/mobile browser skin evaluation confirms opening gills and independent breathing/idle fins at zero swim speed.
+- [x] Integrate active v1-animated fixture and preserve legacy single-clip loading, pause/resume, reduced motion, action identity, shared clock, cache and cleanup. Node 24 typecheck/lint, all 196 units, build, all 28 browser cases, 14 asset checks and six map checks passed. Scoped independent review found no blockers.
+
 ## Next requested behavior/mobile pass
 
 Requested after completing the experience preview; species-specific behaviors are not implemented yet. User clarified that the polar-parrot demonstration should use territorial pairs around caves/suitable shells, not a universal school.

@@ -82,6 +82,61 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(facts['axis'], {'head': '-X', 'dorsal': '+Y'})
         self.assertGreater(len(facts['materials']), 0)
 
+    def test_animated_v1_preserves_materials_and_has_disjoint_weighted_motion(self):
+        data = (ROOT / 'public/models/polar-parrot-study-v1-animated.glb').read_bytes()
+        code, facts = self.run_cli(data)
+        self.assertEqual(code, 0, facts)
+        self.assertEqual((facts['triangles'], facts['primitives']), (41772, 11))
+        old, old_binary = unpack(self.original)
+        doc, binary = unpack(data)
+        self.assertEqual(doc['materials'], old['materials'])
+        self.assertEqual(doc['textures'], old['textures'])
+        def image_hashes(document, buffer):
+            result = []
+            for image in document['images']:
+                view = document['bufferViews'][image['bufferView']]
+                start = view.get('byteOffset', 0)
+                result.append(hashlib.sha256(buffer[start:start + view['byteLength']]).hexdigest())
+            return result
+        self.assertEqual(image_hashes(doc, binary), image_hashes(old, old_binary))
+        expected = {
+            'Swim': {'Spine', 'Tail', 'TailTip'},
+            'Breathing': {'Gill.L', 'Gill.R', 'Jaw'},
+            'FinIdle': {'Pectoral.L', 'Pectoral.R', 'Dorsal', 'Anal', 'Pelvic.L', 'Pelvic.R'},
+        }
+        self.assertEqual({clip['name'] for clip in doc['animations']}, set(expected))
+        properties = set()
+        for clip in doc['animations']:
+            targets = set()
+            for channel in clip['channels']:
+                target = channel['target']
+                name = doc['nodes'][target['node']]['name']
+                key = (target['node'], target['path'])
+                self.assertNotIn(key, properties)
+                properties.add(key)
+                self.assertEqual(target['path'], 'rotation')
+                targets.add(name)
+                output = clip['samplers'][channel['sampler']]['output']
+                self.assertEqual(doc['accessors'][output]['componentType'], 5126)
+                poses = [struct.unpack_from('<4f', binary, address(doc, output, row))
+                         for row in range(doc['accessors'][output]['count'])]
+                self.assertGreater(max(abs(a - b) for pose in poses for a, b in zip(pose, poses[0])), 1e-4)
+            self.assertEqual(targets, expected[clip['name']])
+        weighted = set()
+        for mesh in doc['meshes']:
+            for primitive in mesh['primitives']:
+                attributes = primitive['attributes']
+                joints, weights = attributes['JOINTS_0'], attributes['WEIGHTS_0']
+                fmt = {5121: '<4B', 5123: '<4H'}[doc['accessors'][joints]['componentType']]
+                self.assertEqual(doc['accessors'][weights]['componentType'], 5126)
+                for row in range(doc['accessors'][joints]['count']):
+                    indices = struct.unpack_from(fmt, binary, address(doc, joints, row))
+                    values = struct.unpack_from('<4f', binary, address(doc, weights, row))
+                    weighted.update(index for index, weight in zip(indices, values) if weight > 0)
+        joint_names = {doc['nodes'][doc['skins'][0]['joints'][index]]['name'] for index in weighted}
+        self.assertTrue(set().union(*expected.values()).issubset(joint_names))
+        self.assertNotIn('Head', {doc['nodes'][node]['name'] for node, _ in properties})
+
     def test_corrupt_container_length(self):
         data = bytearray(self.original)
         struct.pack_into('<I', data, 8, len(data) - 4)

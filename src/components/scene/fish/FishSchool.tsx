@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, SkinnedMesh, SphereGeometry, Vector3, type AnimationClip, type Object3D } from "three";
+import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
 
@@ -36,6 +36,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     return { root, rig, hit };
   }, [source, index]);
   const mixer = useRef<AnimationMixer | null>(null);
+  const swim = useRef<AnimationAction | null>(null);
   const lastTime = useRef(runtime.current.time);
   useEffect(() => { lastTime.current = runtime.current.time; }, [paused, runtime]);
   const gesture = useRef({ down: false, x: 0, y: 0, moved: false, pointerId: -1 });
@@ -43,10 +44,13 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
   useEffect(() => {
     const instance = new AnimationMixer(model.rig);
     mixer.current = instance;
-    const clip = animations[0];
-    if (clip) {
+    // Single-clip GLBs keep their legacy action and mixer-driven timing.
+    const clips = animations.length === 1 ? animations : ["Swim", "Breathing", "FinIdle"].flatMap(name =>
+      animations.find(clip => clip.name === name) ?? []);
+    for (const clip of clips) {
       const action = instance.clipAction(clip).play();
       action.time = clip.duration * index / 10;
+      if (animations.length > 1 && clip.name === "Swim") swim.current = action;
     }
     instance.update(0);
     return () => {
@@ -54,6 +58,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
       instance.uncacheRoot(model.rig);
       model.rig.traverse(node => { if (node instanceof SkinnedMesh) node.skeleton.dispose(); });
       mixer.current = null;
+      swim.current = null;
     };
   }, [animations, model, index]);
 
@@ -73,7 +78,13 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     model.root.position.copy(fish.position);
     model.root.quaternion.copy(fish.heading);
     if (!paused && mixer.current) {
-      mixer.current.timeScale = fish.velocity.length() / 0.42 * (0.9 + index * 0.023);
+      const speed = fish.velocity.length() / 0.42 * (0.9 + index * 0.023);
+      if (swim.current) {
+        mixer.current.timeScale = 1;
+        swim.current.timeScale = speed;
+      } else {
+        mixer.current.timeScale = speed;
+      }
       mixer.current.update(delta);
     }
   });

@@ -68,7 +68,7 @@ describe("loadPipelineFixture", () => {
       id: "polar-parrot-study",
       label: "Polar parrot — reference study",
       disclaimer: "Visual study based on a supplied reference; not a verified native Indian species or production asset.",
-      modelUrl: "/models/polar-parrot-study-v1.glb",
+      modelUrl: "/models/polar-parrot-study-v1-animated.glb",
     });
     expect(parsePipelineFixture(fixture)).toEqual(fixture);
   });
