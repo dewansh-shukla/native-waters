@@ -45,6 +45,7 @@ This study is not a native-Indian habitat candidate or a photorealistic producti
 - [x] Inspect matched neutral desktop/mobile v1/v2 browser views and actual underwater screenshots; integrate the v2 fixture without changing movement.
 - [x] Fresh isolated Blender regeneration is byte-identical; original hashes preserved. Node 24 typecheck/lint, 194 units, build and all 28 desktop/touch browser cases passed, plus 13 asset and six map checks. Independent combined review found no blockers.
 - [x] Save v2 `.blend` separately; preserve live Blender scene and safe mode. MCP correctly rejected library loading; no workaround or disabling performed.
+- [x] User preferred v1: restore its active fixture and expectation, retaining v2 and all movement fixes. Node 24 typecheck/lint, 194 units, build, 13 asset checks and four desktop/touch playback/journey checks passed. Dev HTML confirms v1; full 28-case browser suite not rerun for this small rollback.
 
 ## Next requested behavior/mobile pass
 

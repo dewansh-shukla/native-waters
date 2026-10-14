@@ -1,5 +1,7 @@
 # Polar parrot ornamental hybrid — original realism V2 study
 
+**Status: inactive alternative.** The user preferred v1; the website has returned to `/models/polar-parrot-study-v1.glb`. V2 is retained separately, and the shared movement fixes are unchanged.
+
 ## Outputs / regeneration
 - Source: `tools/blender/create_polar_parrot_v2.py`
 - Web asset: `public/models/polar-parrot-study-v2.glb`
@@ -40,7 +42,7 @@ Actually inspected the first side, three-quarter, and frame-19 render images. On
 
 ## Combined integration verification
 
-The coordinator independently regenerated the asset in factory-startup Blender; GLB SHA-256 remained `f101dbb17da56d1e5f41e8bfd6e2edbe8dee74809752eb240db12eb4ebf0e461`. Independent binary validation passed on those exact bytes, including axes, embedded maps, skin weights and loop endpoints. The active fixture now uses `/models/polar-parrot-study-v2.glb`; v1 and the original probe remain intact.
+The coordinator independently regenerated the asset in factory-startup Blender; GLB SHA-256 remained `f101dbb17da56d1e5f41e8bfd6e2edbe8dee74809752eb240db12eb4ebf0e461`. Independent binary validation passed on those exact bytes, including axes, embedded maps, skin weights and loop endpoints. During v2 integration the fixture used `/models/polar-parrot-study-v2.glb`; it has since returned to v1 at the user's preference. Both versions and the original probe remain intact.
 
 Matched neutral Three.js/GLTFLoader desktop/mobile comparisons are `browser-v1-desktop.png`, `browser-v2-desktop.png`, `browser-v1-mobile.png`, `browser-v2-mobile.png`. Under identical review lighting, v1 rendered 46,004 triangles / 14 draws and v2 rendered 31,102 / 9. These differ from source triangles/material batches because translucent double-sided fins incur additional passes. This is a single-fish review measurement, not full-scene performance or physical-phone certification.
 
