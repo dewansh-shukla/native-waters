@@ -23,6 +23,7 @@ npm run build
 npx playwright install chromium
 npm run test:e2e
 python3 -B -m unittest discover -s tools/maps -p 'test_*.py'
+python3 -B -m unittest discover -s tools/assets -p 'test_*.py'
 ```
 
 Playwright starts the **production build**, not the dev server, on dedicated `127.0.0.1:43187`; leave that port free. It runs desktop and 390×844 mobile-sized Chromium checks with one worker. Run build before browser tests. CI installs Chromium with system dependencies and runs the same checks on Node 24. Failure traces/screenshots are saved in `test-results/` and uploaded by CI.
@@ -35,15 +36,17 @@ Browser checks compare actual canvas screenshots for animation, settled Pause eq
 
 ## Journey and geographic sources
 
-Select Cauvery or use **Enter Water**, encounter the persistent fish school, select or **Follow fish**, then **Explore Species**. Close the story to return underwater; **Return to Map** allows re-entry without resetting fish identity or rebuilding the canvas. HIGH/LOW/AUTO quality controls, touch navigation, keyboard controls and opt-in synthesized ambience are available. HIGH's ten fish alone total approximately 418K triangles and 110 mesh batches before the habitat; this preview does not certify the production draw-call/FPS targets.
+Select Cauvery or use **Enter Water**, encounter the persistent fish school, select or **Follow fish**, then **Explore Species**. Close the story to return underwater; **Return to Map** allows re-entry without resetting fish identity or rebuilding the canvas. HIGH/LOW/AUTO quality controls, touch navigation, keyboard controls and opt-in synthesized ambience are available. HIGH's ten v2 fish alone total approximately 262K source triangles and 70 mesh batches before the habitat (transparent fin passes add rendered triangles/draws); this preview does not certify the production draw-call/FPS targets.
 
 India uses pinned Natural Earth India point-of-view geometry, actual Cauvery river/lake centerlines and georeferenced shaded relief. This is generalized 1:10-million cartography—not ten-metre accuracy or elevation data. Source versions, public-domain licensing and boundary policy appear in the preview dialog and [map provenance](content/maps/README.md). Real geography does not establish polar-parrot occurrence or reconstruct a particular Cauvery reach.
 
 ## Fixture and accessibility
 
-The page validates local JSON in `content/fixtures/pipeline-test.json` at build time. The active asset is `/models/polar-parrot-study-v1.glb`, labelled **Polar parrot — reference study**. It is an original procedural visual study based on the user-supplied photo, not a verified native Indian species or a production asset. The original `/models/pipeline-test.glb` and Blender probe remain unchanged.
+The page validates local JSON in `content/fixtures/pipeline-test.json` at build time. The active asset is `/models/polar-parrot-study-v2.glb`, labelled **Polar parrot — reference study**. It is an original procedural visual study based on the user-supplied photo, not a verified native Indian species or a production asset. The original `/models/pipeline-test.glb` and Blender probe remain unchanged.
 
-The study includes a rounded body, six dark bars, layered eyes, fin membranes/rays, five-bone swim animation, and five embedded textures; approximately 41,772 triangles and 1.9 MB. Source, browser previews, regeneration instructions, and remaining artistic limits are in [the asset notes](artifacts/polar-parrot-study/NOTES.md).
+V2 refines the compressed body, forehead, closed lips and flush eyes; adds irregular bars, 1024² skin/normal maps and mapped roughness; and replaces wire-like fin geometry with softer translucent membranes. It has five bones, six embedded textures, 26,206 source triangles, seven batches and a 2.803 MiB GLB. Neutral browser comparison rendered 31,102 triangles / nine draws versus v1's 46,004 / 14; this is not whole-scene hardware performance. V1's source and assets remain unchanged.
+
+Fresh v2 checks passed on Node 24.21.0: typecheck/lint, 194 unit tests, production build and **all 28 desktop/touch browser tests**. Thirteen independent asset checks and six map-source checks passed. See [v2 source, before/after previews and limits](artifacts/polar-parrot-v2/NOTES.md); [v1 notes](artifacts/polar-parrot-study/NOTES.md) remain available. V2 is an improved procedural study, not a photorealism claim. User-supplied care/lifespan/parentage text was not published as verified science.
 
 Text, study/provenance and native Pause/Resume controls remain outside the graphics error boundary. Reduced-motion users start paused and may explicitly Resume; their entry skips the animated dive without resuming fish. Required asset loading and actual shader-link validation gate entry. Loading and failure messages are ordinary DOM; Retry reloads the asset/renderer rather than silently suppressing an error, including context loss during descent.
 

@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import fixture from "../../content/fixtures/pipeline-test.json" with { type: "json" };
 
 test("complete keyboard journey preserves canvas and cached school asset", async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   let models = 0;
-  page.on("request", request => { if (request.url().includes("polar-parrot-study-v1.glb")) models++; });
+  page.on("request", request => { if (request.url().includes(fixture.modelUrl)) models++; });
   await page.goto("/");
   const enter = page.getByRole("button", { name: "Enter Water", exact: true });
   await expect(enter).toBeEnabled({ timeout: 60_000 });

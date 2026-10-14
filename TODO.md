@@ -37,6 +37,15 @@ This study is not a native-Indian habitat candidate or a photorealistic producti
 - [x] Final coordinator Node 24 checks passed: typecheck/lint, 190 unit tests, 6 Python map-source tests, production build, and 8 complete-journey/recovery browser checks across desktop and touch. Full 22-case baseline passed before the fix wave; 14 affected browser checks passed during fixes. Expanded full 28-case suite not rerun.
 - [x] Verify development server at http://localhost:3001, HTTP 200; leave unrelated port 3000 untouched.
 
+## Polar-parrot realism v2
+
+- [x] User supplied two more reference images and an unattributed care article; approved a bounded v2 asset pass before paired behavior.
+- [x] Separate modelling and independent binary-validation agents; versioned authoring/export outputs preserve v1 and the original probe.
+- [x] Refine anatomy/eyes/skin/bar variation/fins with original baked glTF PBR maps, without reusing photo pixels. V2: 26,206 source triangles, seven batches, five bones, 2.803 MiB.
+- [x] Inspect matched neutral desktop/mobile v1/v2 browser views and actual underwater screenshots; integrate the v2 fixture without changing movement.
+- [x] Fresh isolated Blender regeneration is byte-identical; original hashes preserved. Node 24 typecheck/lint, 194 units, build and all 28 desktop/touch browser cases passed, plus 13 asset and six map checks. Independent combined review found no blockers.
+- [x] Save v2 `.blend` separately; preserve live Blender scene and safe mode. MCP correctly rejected library loading; no workaround or disabling performed.
+
 ## Next requested behavior/mobile pass
 
 Requested after completing the experience preview; species-specific behaviors are not implemented yet. User clarified that the polar-parrot demonstration should use territorial pairs around caves/suitable shells, not a universal school.
