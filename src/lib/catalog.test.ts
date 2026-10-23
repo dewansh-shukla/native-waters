@@ -3,9 +3,9 @@ import { freshwaterCatalog, validateCatalog, type Catalog } from './catalog';
 const copy = (): Catalog => structuredClone(freshwaterCatalog);
 
 describe('freshwater catalog evidence', () => {
-  it('publishes four rivers and eight species separately from illustrative fixtures', () => {
-    expect(freshwaterCatalog.rivers).toHaveLength(4);
-    expect(freshwaterCatalog.species).toHaveLength(8);
+  it('publishes five rivers and thirteen species separately from illustrative fixtures', () => {
+    expect(freshwaterCatalog.rivers).toHaveLength(5);
+    expect(freshwaterCatalog.species).toHaveLength(13);
     expect(freshwaterCatalog.species.some(s => s.id.includes('parrot'))).toBe(false);
   });
   it('does not treat Indian-native as native to every basin', () => {

@@ -27,6 +27,13 @@
       "url": "https://doi.org/10.11609/jott.4820.11.9.14212-14215",
       "published": "2019-07-26",
       "accessed": "2026-10-23"
+    },
+    {
+      "id": "cas-badis-blosyrus",
+      "title": "Eschmeyer’s Catalog of Fishes — Badis blosyrus",
+      "url": "https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=67204",
+      "published": null,
+      "accessed": "2026-10-23"
     }
   ],
   "rivers": [
@@ -40,6 +47,16 @@
       "scope": "Ganga river system; no reach-specific occurrence inferred.",
       "sourceIds": [
         "cifri-ganga"
+      ]
+    },
+    {
+      "id": "brahmaputra",
+      "name": "Brahmaputra",
+      "aliases": [],
+      "summary": "The upper drainage supports small freshwater fishes as well as the life of the main river. Catalog distribution records provide a starting point without implying that every tributary shares the same fauna.",
+      "scope": "Upper Brahmaputra drainage in Assam and Arunachal Pradesh; no precise collection localities published here.",
+      "sourceIds": [
+        "cas-badis-blosyrus"
       ]
     },
     {
@@ -235,6 +252,106 @@
             "godavari-record"
           ],
           "note": "Occurrence is documented. This record alone does not resolve whether the Godavari populations are native or introduced."
+        }
+      ]
+    },
+    {
+      "id": "badis-blosyrus",
+      "scientificName": "Badis blosyrus",
+      "commonName": "Badis blosyrus",
+      "aliases": [],
+      "summary": "A valid badid species whose catalog distribution includes the upper Brahmaputra drainage in northeastern India.",
+      "associations": [
+        {
+          "riverId": "brahmaputra",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Upper Brahmaputra drainage, Assam and Arunachal Pradesh",
+          "evidencePeriod": "Catalog distribution reviewed 2026-10-23; no observation date stated",
+          "sourceIds": [
+            "cas-badis-blosyrus"
+          ],
+          "note": "A regional natural-range summary, not evidence of ubiquitous main-channel occurrence. No microhabitat or basin-endemic claim is made."
+        }
+      ]
+    },
+    {
+      "id": "dawkinsia-rubrotinctus",
+      "scientificName": "Dawkinsia rubrotinctus",
+      "commonName": "Dawkinsia rubrotinctus",
+      "aliases": [],
+      "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": [
+            "cauvery-survey"
+          ],
+          "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
+        }
+      ]
+    },
+    {
+      "id": "hypselobarbus-dubius",
+      "scientificName": "Hypselobarbus dubius",
+      "commonName": "Hypselobarbus dubius",
+      "aliases": [],
+      "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": [
+            "cauvery-survey"
+          ],
+          "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
+        }
+      ]
+    },
+    {
+      "id": "hypselobarbus-micropogon",
+      "scientificName": "Hypselobarbus micropogon",
+      "commonName": "Hypselobarbus micropogon",
+      "aliases": [],
+      "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": [
+            "cauvery-survey"
+          ],
+          "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
+        }
+      ]
+    },
+    {
+      "id": "kantaka-brevidorsalis",
+      "scientificName": "Kantaka brevidorsalis",
+      "commonName": "Kantaka brevidorsalis",
+      "aliases": [],
+      "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": [
+            "cauvery-survey"
+          ],
+          "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
         }
       ]
     }
