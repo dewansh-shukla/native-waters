@@ -15,7 +15,7 @@ function updateHeading(heading: Quaternion, velocity: Vector3): Quaternion {
   return heading.setFromEuler(orientation);
 }
 export function createSchool(): FishState[] {
-  return Array.from({ length: 10 }, (_, i) => {
+  return Array.from({ length: 13 }, (_, i) => {
     const velocity = new Vector3(0.37 + i * 0.006, 0.009 * Math.sin(i), 0.12);
     return {
       id: `fish-${i}`,
@@ -26,7 +26,7 @@ export function createSchool(): FishState[] {
   });
 }
 // Ten-fish scratch storage is reused; the coordinator owns time and stepping.
-const courses = Array.from({ length: 10 }, () => new Vector3());
+const courses = Array.from({ length: 13 }, () => new Vector3());
 const center = new Vector3();
 const flow = new Vector3();
 const offset = new Vector3();

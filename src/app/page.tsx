@@ -9,5 +9,6 @@ export default function Page() {
     { modelUrl: "/models/zebra-danio-golden.glb", fishIds: ["fish-7"], label: "Golden Zebra Danio" },
     { modelUrl: "/models/zebra-danio-wild.glb", fishIds: ["fish-8"], label: "Wild Zebra Danio" },
     { modelUrl: "/models/zebra-danio-albino.glb", fishIds: ["fish-9"], label: "Albino Zebra Danio" },
+    { modelUrl: "/models/arulius-barb.glb", fishIds: ["fish-10","fish-11","fish-12"], label: "Arulius Barb" },
   ]} /></main>;
 }
