@@ -30,7 +30,7 @@
  .panel h1 { margin-top: 28px; }
  .visual :global(.experience-map-intro) { width: calc(100% - 40px); }
  .visual :global(.experience-map-intro h1) { font-size: 1.6rem; }
- .visual :global(.experience-map-intro > p) { display: none; }
+ .visual :global(.experience-map-intro > p:not(.experience-readiness)) { display: none; }
  .visual :global(.experience-map-intro) { bottom: 85px; top: auto; left: 20px; }
  .visual :global(.experience-map-disclaimer) { right: 16px; left: 16px; top: 64px; bottom: auto; width: auto; font-size: .62rem; }
  .visual :global(.experience-follow-card) { top: 100px; right: 16px; padding: 10px; }
