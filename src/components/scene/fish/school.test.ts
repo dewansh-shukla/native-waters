@@ -3,12 +3,12 @@ import { Vector3 } from "three";
 import { HABITAT, OBSTACLES } from "@/experience/habitat";
 import { createSchool, stepSchool } from "./school";
 
-it("creates ten stable identities and deterministic finite lateral courses", () => {
+it("creates thirteen stable identities and deterministic finite lateral courses", () => {
   const a = createSchool();
   const b = createSchool();
-  expect(a).toHaveLength(10);
-  expect(new Set(a.map(f => f.id)).size).toBe(10);
-  expect(a.map(f => f.id)).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-5", "fish-6", "fish-7", "fish-8", "fish-9"]);
+  expect(a).toHaveLength(13);
+  expect(new Set(a.map(f => f.id)).size).toBe(13);
+  expect(a.map(f => f.id)).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-5", "fish-6", "fish-7", "fish-8", "fish-9", "fish-10", "fish-11", "fish-12"]);
   expect(a.map(f => [f.id, f.position.toArray(), f.velocity.toArray()])).toEqual(b.map(f => [f.id, f.position.toArray(), f.velocity.toArray()]));
   for (const f of a) {
     expect(f.position.toArray().every(Number.isFinite)).toBe(true);

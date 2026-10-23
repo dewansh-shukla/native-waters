@@ -13,23 +13,23 @@ describe("quality policy", () => {
 
   it("returns deterministic stable base IDs without sharing mutable arrays", () => {
     expect(visibleFishIds("LOW", null)).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-5"]);
-    expect(visibleFishIds("HIGH", null)).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-5", "fish-6", "fish-7", "fish-8", "fish-9"]);
+    expect(visibleFishIds("HIGH", null)).toEqual(Array.from({ length: 13 }, (_, i) => `fish-${i}`));
     const ids = visibleFishIds("LOW", null);
     ids.pop();
     expect(visibleFishIds("LOW", null)).toHaveLength(6);
   });
 
-  it.each(Array.from({ length: 10 }, (_, i) => `fish-${i}`))("retains %s within either quality budget", (id) => {
+  it.each(Array.from({ length: 13 }, (_, i) => `fish-${i}`))("retains %s within either quality budget", (id) => {
     for (const quality of ["LOW", "HIGH"] as const) {
       const ids = visibleFishIds(quality, id);
       expect(ids).toContain(id);
-      expect(ids).toHaveLength(quality === "LOW" ? 6 : 10);
+      expect(ids).toHaveLength(quality === "LOW" ? 6 : 13);
       expect(new Set(ids).size).toBe(ids.length);
     }
   });
 
   it("replaces only the final low slot for fish-9 and ignores invalid selection", () => {
     expect(visibleFishIds("LOW", "fish-9")).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-9"]);
-    expect(visibleFishIds("LOW", "fish-10")).toEqual(visibleFishIds("LOW", null));
+    expect(visibleFishIds("LOW", "fish-13")).toEqual(visibleFishIds("LOW", null));
   });
 });

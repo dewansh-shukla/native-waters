@@ -13,7 +13,7 @@ export function journeyReducer(state: JourneyState, event: JourneyEvent): Journe
       if (state.phase === "entering" && state.ready) return { ...state, phase: "exploring" };
       break;
     case "SELECT":
-      if ((state.phase === "exploring" || state.phase === "following") && event.id.length === 6 && /^fish-[0-9]$/.test(event.id)) {
+      if ((state.phase === "exploring" || state.phase === "following") && /^fish-[0-9]+$/.test(event.id)) {
         return { ...state, phase: "following", selectedId: event.id };
       }
       break;
