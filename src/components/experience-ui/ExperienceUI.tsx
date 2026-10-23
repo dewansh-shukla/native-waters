@@ -7,10 +7,12 @@ import provenance from "../../../content/maps/provenance.json";
 const DISCLAIMER = "Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.";
 
 function Study({ fixture }: Pick<ExperienceUIProps, "fixture">) {
+  const isPrimary = fixture.label.startsWith("Polar parrot");
   return <div className="experience-study">
-    <p className="experience-disclaimer">{DISCLAIMER}</p>
+    <p className="experience-disclaimer">{isPrimary ? DISCLAIMER : "Aquarium species study in an illustrative environment; no occurrence in this Indian location is asserted."}</p>
     <p className="experience-source-label">Source field label: <span>{fixture.label}</span></p>
-    <section><h3>Markings &amp; model</h3><p>A rounded silhouette, dark bars and layered fins: an original procedural model interpreting the supplied reference, not a biological identification.</p></section>
+    {isPrimary && <section><h3>Markings &amp; model</h3><p>A rounded silhouette, dark bars and layered fins: an original procedural model interpreting the supplied reference, not a biological identification.</p></section>}
+    {!isPrimary && <section><h3>Species note</h3><p>{fixture.disclaimer}</p></section>}
     <section><h3>An illustrative environment</h3><p>The Cauvery overview uses generalized geographic data. The underwater light, plants, movement and school are an artistic preview, not a surveyed reach or a record of natural behaviour.</p></section>
     <p>{fixture.disclaimer}</p>
     <p>Synthesized preview ambience: original filtered noise, not a field recording.</p>
@@ -70,7 +72,14 @@ export function ExperienceUI(props: ExperienceUIProps) {
   const followButton = useRef<HTMLButtonElement>(null);
   const exploreButton = useRef<HTMLButtonElement>(null);
   const storyFocus = useRef<HTMLButtonElement | null>(null);
-  const commonName = fixture.label.split(" — ")[0];
+  const commonName = fixture.label.split(" - ")[0];
+  const selectedFishIndex = state.selectedId ? Number(state.selectedId.split("-")[1]) : -1;
+  const followName = state.selectedId && props.speciesLabels?.[state.selectedId]
+    ? props.speciesLabels[state.selectedId]
+    : commonName;
+  const studyFixture = state.selectedId && props.speciesLabels?.[state.selectedId] && props.speciesLabels[state.selectedId] !== commonName
+    ? { ...fixture, label: props.speciesLabels[state.selectedId], disclaimer: "Aquarium species study; not a verified wild-habitat reconstruction or production asset." }
+    : fixture;
   const selected = visibleFishIds.includes(choice) ? choice : visibleFishIds[0] ?? "";
   const inWater = state.phase === "exploring" || state.phase === "following" || state.phase === "story";
   useEffect(() => {
@@ -103,16 +112,19 @@ export function ExperienceUI(props: ExperienceUIProps) {
     {state.phase === "entering" && <p className="experience-entry-status" role="status">Entering the water…</p>}
     {inWater && <section className="experience-fish-controls" aria-label="Fish study controls">
       <label>Select fish <select value={selected} onChange={event => setChoice(event.target.value)}>
-        {visibleFishIds.map((id, index) => <option key={id} value={id}>{commonName} · {index + 1}</option>)}
+        {visibleFishIds.map((id, index) => {
+          const label = (props.speciesLabels?.[id]) ? props.speciesLabels[id] : commonName;
+          return <option key={id} value={id}>{label} - {index + 1}</option>;
+        })}
       </select></label>
       <button ref={followButton} disabled={!selected} onClick={() => dispatch({ type: "SELECT", id: selected })}>Follow fish</button>
     </section>}
     {(state.phase === "following" || state.phase === "story") && <aside className="experience-follow-card" aria-label="Selected fish">
-      <p className="experience-eyebrow">Reference study</p><h2>{commonName}</h2>
+      <p className="experience-eyebrow">Reference study</p><h2>{followName}</h2>
       <button ref={exploreButton} onClick={() => { storyFocus.current = exploreButton.current; dispatch({ type: "STORY" }); }}>Explore Species</button>
       {state.phase !== "story" && <button onClick={() => { dispatch({ type: "BACK" }); followButton.current?.focus(); }}>Back to Water</button>}
     </aside>}
-    {props.hoveredId && inWater && state.phase === "exploring" && <p className="experience-hover-label">{commonName}</p>}
+    {props.hoveredId && inWater && state.phase === "exploring" && <p className="experience-hover-label">{props.speciesLabels?.[props.hoveredId] ?? commonName}</p>}
     <nav className="experience-controls" aria-label="Experience controls">
       <button aria-pressed={paused} onClick={() => props.onPausedChange(!paused)}>{paused ? "Resume" : "Pause"}</button>
       <button aria-pressed={audio.enabled} onClick={audio.enabled ? audio.disable : audio.enable}>{audio.enabled ? "Sound off" : "Sound on"}</button>
@@ -123,8 +135,8 @@ export function ExperienceUI(props: ExperienceUIProps) {
     </nav>
     {audio.error && <p className="experience-audio-error" role="status">{audio.error}</p>}
     {preview && state.phase !== "story" && <StudyDialog title="Experience preview" onClose={() => setPreview(false)} returnFocus={previewButton}><Study fixture={fixture} /></StudyDialog>}
-    {state.phase === "story" && <StudyDialog title={fixture.label} onClose={() => closeStory(false)} onEscape={() => closeStory(true)} returnFocus={storyFocus}>
-      <Study fixture={fixture} />
+    {state.phase === "story" && <StudyDialog title={followName} onClose={() => closeStory(false)} onEscape={() => closeStory(true)} returnFocus={storyFocus}>
+      <Study fixture={studyFixture} />
     </StudyDialog>}
   </div>;
 }

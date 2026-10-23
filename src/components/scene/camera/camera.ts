@@ -151,6 +151,8 @@ export class CameraController {
       if (fish) {
         // Nose is -X: a fixed +Z viewing side preserves lateral silhouettes; never rotate behind heading.
         pose.target.copy(fish.position);
+        pose.target.x += this.input.lookX;
+        pose.target.y += this.input.lookY;
         pose.position.set(fish.position.x + 0.6, fish.position.y + 0.4, fish.position.z + pose.position.z - HABITAT.school.center[2]);
       }
     }

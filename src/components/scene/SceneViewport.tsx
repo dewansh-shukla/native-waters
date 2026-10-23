@@ -30,11 +30,39 @@ function Scene(props: ExperienceSceneProps) {
   const { gl, scene, camera } = useThree();
   const [loaded, setLoaded] = useState(false);
   const [failure, setFailure] = useState<Error | null>(null);
-  const loadedSchool = useCallback(() => setLoaded(true), []);
+  const loadedSchoolCount = useRef(0);
+  const allSpecies = props.species && props.species.length
+    ? props.species
+    : [{ modelUrl: props.modelUrl, fishIds: [] as string[] }].concat(
+        (props.additionalModelUrls ?? []).map(url => ({ modelUrl: url, fishIds: [] as string[] }))
+      );
+  // If fishIds empty, split the fish evenly across species (backward compat)
+  const fishIds = props.runtime.current.fish.map(f => f.id);
+  const speciesWithIds = allSpecies.map((sp, i) => ({
+    modelUrl: sp.modelUrl,
+    fishIds: sp.fishIds && sp.fishIds.length ? sp.fishIds : fishIds.slice(
+      Math.floor(i * fishIds.length / allSpecies.length),
+      Math.floor((i + 1) * fishIds.length / allSpecies.length)
+    ),
+  }));
+  const allModelUrls = speciesWithIds.map(s => s.modelUrl);
+  const totalSchools = speciesWithIds.length;
+  const loadedSchool = useCallback(() => {
+    loadedSchoolCount.current += 1;
+    if (loadedSchoolCount.current >= totalSchools) setLoaded(true);
+  }, [totalSchools]);
   const { onReady } = props;
-  useFrame((_, delta) => advanceScene(props.runtime.current, delta, props.state.phase, props.paused || !props.state.ready, document.hidden), -100);
+  useFrame((_, delta) => advanceScene(props.runtime.current, delta, props.state.phase, props.paused || !props.state.ready, document.hidden, props.state.selectedId), -100);
   useEffect(() => {
     onReady(false);
+    loadedSchoolCount.current = 0;
+    setLoaded(false);
+    if (!group.current) return;
+    let active = true;
+    // warmScene is called after all schools report ready (handled below via loaded flag)
+    return () => { active = false; onReady(false); };
+  }, [allModelUrls.join("|"), onReady]);
+  useEffect(() => {
     if (!loaded || !group.current) return;
     let active = true;
     warmScene(gl, scene, camera, group.current).then(() => { if (active) onReady(true); }, error => {
@@ -57,9 +85,11 @@ function Scene(props: ExperienceSceneProps) {
     <group name="WaterView" visible={!map}>
     <PreviewWorld runtime={props.runtime} quality={props.quality} visible={!map} />
       <Suspense fallback={null}>
-        <FishSchool modelUrl={props.modelUrl} runtime={props.runtime} paused={props.paused || map || !props.state.ready}
-          visibleIds={props.visibleIds} selectedId={props.state.selectedId} onSelect={props.onSelect}
-          onHover={props.onHover} onReady={loadedSchool} />
+        {speciesWithIds.map((sp, i) => {
+          return <FishSchool key={sp.modelUrl + i} modelUrl={sp.modelUrl} runtime={props.runtime} paused={props.paused || map || !props.state.ready}
+            visibleIds={props.visibleIds} selectedId={props.state.selectedId} onSelect={props.onSelect}
+            onHover={props.onHover} onReady={loadedSchool} fishIds={sp.fishIds} />;
+        })}
       </Suspense>
     </group>
   </group>;
@@ -67,11 +97,11 @@ function Scene(props: ExperienceSceneProps) {
 
 export default function SceneViewport(props: ExperienceSceneProps) {
   const [attempt, setAttempt] = useState(0);
-  const retry = () => { props.onReady(false); useGLTF.clear(props.modelUrl); setAttempt(value => value + 1); };
+  const retry = () => { props.onReady(false); for (const url of [props.modelUrl, ...(props.additionalModelUrls ?? [])]) useGLTF.clear(url); setAttempt(value => value + 1); };
   const { onReady } = props;
   useEffect(() => () => onReady(false), [onReady]);
   return <div className="scene-viewport">
-    <SceneBoundary key={`${props.modelUrl}:${attempt}`} onRetry={retry}>
+    <SceneBoundary key={`${[props.modelUrl, ...(props.additionalModelUrls ?? [])].join("|")}:${attempt}`} onRetry={retry}>
       <Canvas camera={{ position: [0, 30, .01], up: [0, 1, 0], fov: 45, near: .05, far: 120 }}
         dpr={props.quality === "HIGH" ? [1, 1.5] : 1} fallback={<SceneFailure onRetry={retry} />} aria-label="Native Waters scene">
         <color attach="background" args={["#101c1e"]} />

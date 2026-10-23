@@ -124,7 +124,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
   />;
 }
 
-export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady }: FishSchoolProps) {
+export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds }: FishSchoolProps) {
   // One loader/cache entry; ten SkeletonUtils clones share geometry/materials/textures.
   const { scene, animations } = useGLTF(modelUrl);
   const readyScene = useRef<Object3D | null>(null);
@@ -133,7 +133,8 @@ export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, 
     readyScene.current = scene;
     onReady();
   }, [scene, onReady]);
-  return <>{runtime.current.fish.map((fish, index) => <Fish key={fish.id}
+  const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;
+  return <>{fishToRender.map((fish, index) => <Fish key={fish.id}
     source={scene} animations={animations} fish={fish} runtime={runtime} index={index} paused={paused}
     visible={visibleIds.includes(fish.id) || selectedId === fish.id}
     onSelect={onSelect} onHover={onHover}
