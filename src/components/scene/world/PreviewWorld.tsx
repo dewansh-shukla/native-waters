@@ -66,7 +66,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useLayoutEffect(() => {
     fillBatch(rocks.current, placements.rocks, "#6b6055");
     fillBatch(gravel.current, placements.gravel, "#8a7a60");
-    fillBatch(plants.current, placements.plants, "#3a6b3a");
+    fillBatch(plants.current, placements.plants, "#4a7a35");
   }, [placements]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
