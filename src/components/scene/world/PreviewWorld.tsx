@@ -1,13 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { AmbientLight, BufferAttribute, BufferGeometry, Color, DoubleSide, Fog, HemisphereLight, IcosahedronGeometry, InstancedMesh, Object3D, PlaneGeometry, Vector3 } from "three";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere, type Placement } from "./worldMotion";
 import { plantShader, substrateShader, surfaceFragment, surfaceVertex } from "./materials";
-import { RiverRocks } from "./RiverRocks";
 
 function fillBatch(mesh: InstancedMesh | null, placements: Placement[], tint: string) {
   if (!mesh) return;
@@ -137,7 +136,6 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={rocks} args={[rockGeometry, undefined, placements.rocks.length]}>
       <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </instancedMesh>
-    <Suspense fallback={null}><RiverRocks /></Suspense>
     <instancedMesh ref={gravel} args={[undefined, undefined, placements.gravel.length]}>
       <icosahedronGeometry args={[1, 0]} />
       <meshStandardMaterial roughness={1} />
