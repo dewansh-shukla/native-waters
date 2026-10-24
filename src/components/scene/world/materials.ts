@@ -35,8 +35,8 @@ export function plantShader(uniforms: WorldUniforms) {
       float tip = max(position.y, 0.0);
       float rootPhase = instanceMatrix[3].x * 0.7 + instanceMatrix[3].z * 0.4;
       transformed.x *= 1.0 - tip * 0.9;
-      transformed.x += tip * tip * (uFlow.x * 0.7 + sin(uWorldTime * 0.8 + rootPhase) * 0.045);
-      transformed.z += tip * tip * (uFlow.z * 0.55 + sin(uWorldTime * 0.6 + rootPhase) * 0.06);`);
+      transformed.x += tip * tip * (uFlow.x * 0.75 + sin(uWorldTime * 0.9 + rootPhase) * 0.06);
+      transformed.z += tip * tip * (uFlow.z * 0.6 + sin(uWorldTime * 0.7 + rootPhase) * 0.075);`);
   };
 }
 
@@ -65,7 +65,7 @@ export const surfaceFragment = `
     float fresnel = pow(1.0 - abs(dot(eye, normal)), 3.0);
     float glint = 0.0;
     if (uRichness > 0.5) glint = pow(max(0.0, dot(reflect(-normalize(vec3(-0.4, 1.0, 0.25)), normal), eye)), 55.0);
-    vec3 color = mix(vec3(0.08, 0.22, 0.26), vec3(0.32, 0.55, 0.52), fresnel);
+    vec3 color = mix(vec3(0.06, 0.20, 0.24), vec3(0.30, 0.52, 0.48), fresnel);
     if (!gl_FrontFacing) color = mix(vec3(0.12, 0.30, 0.32), vec3(0.40, 0.62, 0.58), fresnel);
     color += glint * vec3(0.9, 0.95, 0.85);
     gl_FragColor = vec4(color, 0.56 + fresnel * 0.35);

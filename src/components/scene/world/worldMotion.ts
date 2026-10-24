@@ -28,7 +28,7 @@ export function createPlacements(): { rocks: Placement[]; gravel: Placement[]; p
     gravel.push({ position: [x, bedHeight(x, z), z], scale: [size * 1.3, size * .55, size], rotation: random() * 6.28 });
   }
   const plants: Placement[] = [];
-  const patches = [[-5, 3], [5, 4], [-6, -5], [6.5, -4], [-8, 0], [8, 1], [1, -7]];
+  const patches = [[-5, 3], [5, 4], [-6, -5], [6.5, -4], [-8, 0], [8, 1], [1, -7], [-3, 6], [3, -6], [-10, -2], [10, 2], [0, 0]];
   for (const [px, pz] of patches) for (let i = 0; i < 38; i++) {
     const x = px + (random() - .5) * 2.5, z = pz + (random() - .5) * 2;
     plants.push({ position: [x, bedHeight(x, z), z], scale: [.6 + random() * .8, .3 + random() * .95, 1], rotation: random() * 6.28 });

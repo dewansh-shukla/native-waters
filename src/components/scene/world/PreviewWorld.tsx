@@ -28,14 +28,14 @@ function fillBatch(mesh: InstancedMesh | null, placements: Placement[], tint: st
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
-  const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null);
+  const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
   const placements = useMemo(() => createPlacements(), []);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
   const plant = useMemo(() => plantShader(uniforms), [uniforms]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#0e3a44", 4, 23), background: new Color("#0a2a33"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog("#0d3846", 4, 23), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
     const particles: Vector3[] = [];
@@ -67,7 +67,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useLayoutEffect(() => {
     fillBatch(rocks.current, placements.rocks, "#6b6055");
     fillBatch(gravel.current, placements.gravel, "#8a7a60");
-    fillBatch(plants.current, placements.plants, "#4a7a35");
+    fillBatch(plants.current, placements.plants, "#3d8b3a");
+    fillBatch(plants2.current, placements.plants, "#2d6b28");
   }, [placements]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
@@ -100,7 +101,14 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     geo.translate(0, 0.5, 0);
     return geo;
   }, []);
+  const plantGeometry2 = useMemo(() => {
+    const geo = new PlaneGeometry(0.16, 1, 1, 8);
+    geo.rotateY(Math.PI / 2);
+    geo.translate(0, 0.5, 0);
+    return geo;
+  }, []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
+  useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
 
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
@@ -125,11 +133,11 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   });
 
   return <group visible={visible} name="PreviewWorld">
-    <ambientLight ref={ambient} name="AboveWaterAmbient" color="#a8c4d8" intensity={.5} />
-    <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#d8eaf0", "#3a4a3a", .85]} />
-    <directionalLight position={[-6, 9, 3]} color="#fff4d6" intensity={2.4} />
-    <directionalLight position={[4, -3, -2]} color="#8ab4c8" intensity={0.6} />
-    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#6a9ab0" intensity={0.7} visible={false} />
+    <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
+    <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
+    <directionalLight position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
+    <directionalLight position={[4, -3, -2]} color="#9ab8cc" intensity={0.6} />
+    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.7} visible={false} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
@@ -141,7 +149,10 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <meshStandardMaterial roughness={1} />
     </instancedMesh>
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
-      <meshStandardMaterial roughness={.8} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
+      <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
+    </instancedMesh>
+    <instancedMesh ref={plants2} args={[plantGeometry2, undefined, placements.plants.length]} frustumCulled={false}>
+      <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
       <mesh>
@@ -162,7 +173,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 : 80 }}>
         <bufferAttribute ref={particleAttribute} attach="attributes-position" args={[motion.positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#b8d4c0" size={.022} transparent opacity={.28} depthWrite={false} sizeAttenuation />
+      <pointsMaterial color="#c8d8b0" size={.022} transparent opacity={.26} depthWrite={false} sizeAttenuation />
     </points>
   </group>;
 }
