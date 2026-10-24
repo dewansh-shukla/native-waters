@@ -45,8 +45,14 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     const instance = new AnimationMixer(model.rig);
     mixer.current = instance;
     // Single-clip GLBs keep their legacy action and mixer-driven timing.
-    const clips = animations.length === 1 ? animations : ["Swim", "Breathing", "FinIdle"].flatMap(name =>
-      animations.find(clip => clip.name === name) ?? []);
+    // Single-clip GLBs play their one clip. Skeletal multi-clip GLBs (Swim/SlowSwim/
+    // FastSwim/Idle) use the Swim clip as the primary locomotion, scaled by speed;
+    // legacy multi-clip GLBs fall back to the Swim/Breathing/FinIdle set.
+    const clips = animations.length === 1
+      ? animations
+      : (animations.some(clip => clip.name === "Breathing")
+          ? ["Swim", "Breathing", "FinIdle"].flatMap(name => animations.find(clip => clip.name === name) ?? [])
+          : [animations.find(clip => clip.name === "Swim") ?? animations[0]]);
     for (const clip of clips) {
       const action = instance.clipAction(clip).play();
       action.time = clip.duration * index / 13;
