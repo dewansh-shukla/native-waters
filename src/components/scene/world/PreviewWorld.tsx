@@ -93,29 +93,11 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, []);
   useEffect(() => () => rockGeometry.dispose(), [rockGeometry]);
 
-  // Cross-plane plant: two perpendicular quads for a bushy look.
+  // Plant: single blade (proven to render). Sway via plantShader.
   const plantGeometry = useMemo(() => {
     const geo = new PlaneGeometry(0.16, 1, 1, 8);
     geo.translate(0, 0.5, 0);
-    const geo2 = new PlaneGeometry(0.16, 1, 1, 8);
-    geo2.rotateY(Math.PI / 2);
-    geo2.translate(0, 0.5, 0);
-    // merge geo2 into geo
-    const pos1 = geo.getAttribute("position"), pos2 = geo2.getAttribute("position");
-    const idx1 = geo.index!, idx2 = geo2.index!;
-    const base = pos1.count;
-    const mergedPos = new Float32Array((pos1.count + pos2.count) * 3);
-    for (let i = 0; i < pos1.count; i++) { mergedPos[i*3]=pos1.getX(i); mergedPos[i*3+1]=pos1.getY(i); mergedPos[i*3+2]=pos1.getZ(i); }
-    for (let i = 0; i < pos2.count; i++) { mergedPos[(base+i)*3]=pos2.getX(i); mergedPos[(base+i)*3+1]=pos2.getY(i); mergedPos[(base+i)*3+2]=pos2.getZ(i); }
-    const mergedIdx = new Uint16Array(idx1.count + idx2.count);
-    for (let i = 0; i < idx1.count; i++) mergedIdx[i] = idx1.getX(i);
-    for (let i = 0; i < idx2.count; i++) mergedIdx[idx1.count+i] = idx2.getX(i) + base;
-    const merged = new BufferGeometry();
-    merged.setAttribute("position", new BufferAttribute(mergedPos, 3));
-    merged.setIndex(new (geo.index!.constructor as any)(mergedIdx));
-    merged.computeVertexNormals();
-    geo2.dispose();
-    return merged;
+    return geo;
   }, []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
 
