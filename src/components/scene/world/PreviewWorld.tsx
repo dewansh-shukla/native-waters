@@ -29,6 +29,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
   const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null);
+  const underwaterAmbient = useRef<AmbientLight>(null);
   const placements = useMemo(() => createPlacements(), []);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
@@ -74,19 +75,19 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [scene, atmosphere, visible]);
   useEffect(() => () => terrain.dispose(), [terrain]);
 
-  // Displaced rock geometry: turns a smooth icosahedron into an irregular boulder.
+  // Displaced rock geometry: multi-octave noise turns the icosahedron into an irregular boulder.
   const rockGeometry = useMemo(() => {
-    const geo = new IcosahedronGeometry(1, 2);
+    const geo = new IcosahedronGeometry(1, 3);
     const pos = geo.getAttribute("position");
-    const v = new Vector3();
     for (let i = 0; i < pos.count; i++) {
-      v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
-      const n = Math.sin(v.x * 3.1 + v.y * 2.7) * Math.cos(v.z * 2.3 + v.x * 1.9) * 0.18
-            + Math.sin(v.y * 5.3) * 0.08;
-      v.normalize().multiplyScalar(1 + n);
-      // re-apply original magnitude-ish: scale along normal
-      const len = Math.sqrt(pos.getX(i) ** 2 + pos.getY(i) ** 2 + pos.getZ(i) ** 2);
-      pos.setXYZ(i, v.x * len, v.y * len, v.z * len);
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const len = Math.sqrt(x * x + y * y + z * z) || 1;
+      const nx = x / len, ny = y / len, nz = z / len;
+      const n1 = Math.sin(nx * 4.1 + ny * 2.7) * Math.cos(nz * 3.3 + nx * 1.9) * 0.22;
+      const n2 = Math.sin(ny * 7.3 + nz * 5.1) * 0.11;
+      const n3 = Math.cos(nx * 9.7 + ny * 8.2 + nz * 6.4) * 0.06;
+      const scale = 1 + n1 + n2 + n3;
+      pos.setXYZ(i, nx * len * scale, ny * len * scale, nz * len * scale);
     }
     geo.computeVertexNormals();
     return geo;
@@ -107,6 +108,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     updateAtmosphere(scene, atmosphere, underwater);
     if (ambient.current) ambient.current.visible = !underwater;
     if (hemisphere.current) hemisphere.current.visible = !underwater;
+    if (underwaterAmbient.current) underwaterAmbient.current.visible = underwater;
     const time = runtime.current.time;
     const { uniforms, motion } = mutable.current;
     uniforms.time.value = time;
@@ -126,6 +128,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#a8c4d8" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#d8eaf0", "#3a4a3a", .85]} />
     <directionalLight position={[-6, 9, 3]} color="#fff4d6" intensity={2.4} />
+    <directionalLight position={[4, -3, -2]} color="#8ab4c8" intensity={0.6} />
+    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#6a9ab0" intensity={0.7} visible={false} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
