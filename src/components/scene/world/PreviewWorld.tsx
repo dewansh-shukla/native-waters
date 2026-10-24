@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, Color, DoubleSide, Fog, HemisphereLight, InstancedMesh, Object3D, PlaneGeometry, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, BufferGeometry, Color, DoubleSide, Fog, HemisphereLight, IcosahedronGeometry, InstancedMesh, Object3D, PlaneGeometry, Vector3 } from "three";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere, type Placement } from "./worldMotion";
@@ -74,6 +74,51 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [scene, atmosphere, visible]);
   useEffect(() => () => terrain.dispose(), [terrain]);
 
+  // Displaced rock geometry: turns a smooth icosahedron into an irregular boulder.
+  const rockGeometry = useMemo(() => {
+    const geo = new IcosahedronGeometry(1, 2);
+    const pos = geo.getAttribute("position");
+    const v = new Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+      const n = Math.sin(v.x * 3.1 + v.y * 2.7) * Math.cos(v.z * 2.3 + v.x * 1.9) * 0.18
+            + Math.sin(v.y * 5.3) * 0.08;
+      v.normalize().multiplyScalar(1 + n);
+      // re-apply original magnitude-ish: scale along normal
+      const len = Math.sqrt(pos.getX(i) ** 2 + pos.getY(i) ** 2 + pos.getZ(i) ** 2);
+      pos.setXYZ(i, v.x * len, v.y * len, v.z * len);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+  useEffect(() => () => rockGeometry.dispose(), [rockGeometry]);
+
+  // Cross-plane plant: two perpendicular quads for a bushy look.
+  const plantGeometry = useMemo(() => {
+    const geo = new PlaneGeometry(0.16, 1, 1, 8);
+    geo.translate(0, 0.5, 0);
+    const geo2 = new PlaneGeometry(0.16, 1, 1, 8);
+    geo2.rotateY(Math.PI / 2);
+    geo2.translate(0, 0.5, 0);
+    // merge geo2 into geo
+    const pos1 = geo.getAttribute("position"), pos2 = geo2.getAttribute("position");
+    const idx1 = geo.index!, idx2 = geo2.index!;
+    const base = pos1.count;
+    const mergedPos = new Float32Array((pos1.count + pos2.count) * 3);
+    for (let i = 0; i < pos1.count; i++) { mergedPos[i*3]=pos1.getX(i); mergedPos[i*3+1]=pos1.getY(i); mergedPos[i*3+2]=pos1.getZ(i); }
+    for (let i = 0; i < pos2.count; i++) { mergedPos[(base+i)*3]=pos2.getX(i); mergedPos[(base+i)*3+1]=pos2.getY(i); mergedPos[(base+i)*3+2]=pos2.getZ(i); }
+    const mergedIdx = new Uint16Array(idx1.count + idx2.count);
+    for (let i = 0; i < idx1.count; i++) mergedIdx[i] = idx1.getX(i);
+    for (let i = 0; i < idx2.count; i++) mergedIdx[idx1.count+i] = idx2.getX(i) + base;
+    const merged = new BufferGeometry();
+    merged.setAttribute("position", new BufferAttribute(mergedPos, 3));
+    merged.setIndex(new (geo.index!.constructor as any)(mergedIdx));
+    merged.computeVertexNormals();
+    geo2.dispose();
+    return merged;
+  }, []);
+  useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
+
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
     const underwater = visible && camera.position.y < -.08;
@@ -102,16 +147,14 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
-    <instancedMesh ref={rocks} args={[undefined, undefined, placements.rocks.length]}>
-      <icosahedronGeometry args={[1, 1]} />
+    <instancedMesh ref={rocks} args={[rockGeometry, undefined, placements.rocks.length]}>
       <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </instancedMesh>
     <instancedMesh ref={gravel} args={[undefined, undefined, placements.gravel.length]}>
       <icosahedronGeometry args={[1, 0]} />
       <meshStandardMaterial roughness={1} />
     </instancedMesh>
-    <instancedMesh ref={plants} args={[undefined, undefined, placements.plants.length]} frustumCulled={false}>
-      <planeGeometry args={[.16, 1, 1, 8]} onUpdate={geometry => geometry.translate(0, .5, 0)} />
+    <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
       <meshStandardMaterial roughness={.8} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
