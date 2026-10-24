@@ -49,7 +49,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
       animations.find(clip => clip.name === name) ?? []);
     for (const clip of clips) {
       const action = instance.clipAction(clip).play();
-      action.time = clip.duration * index / 10;
+      action.time = clip.duration * index / 13;
       if (animations.length > 1 && clip.name === "Swim") swim.current = action;
     }
     instance.update(0);

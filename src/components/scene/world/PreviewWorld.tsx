@@ -34,7 +34,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
   const plant = useMemo(() => plantShader(uniforms), [uniforms]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#59634a", 4, 23), background: new Color("#59634a"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog("#0e3a44", 4, 23), background: new Color("#0a2a33"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
     const particles: Vector3[] = [];
@@ -55,7 +55,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       const x = positions.getX(i), z = positions.getZ(i);
       positions.setY(i, bedHeight(x, z));
       const silt = .5 + .5 * Math.sin(x * .45 + Math.sin(z * .7));
-      color.setRGB(.22 + silt * .10, .19 + silt * .07, .11 + silt * .04);
+      color.setRGB(.24 + silt * .12, .20 + silt * .09, .12 + silt * .05);
       color.toArray(colors, i * 3);
     }
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
@@ -64,9 +64,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, []);
 
   useLayoutEffect(() => {
-    fillBatch(rocks.current, placements.rocks, "#777566");
-    fillBatch(gravel.current, placements.gravel, "#9a8b6e");
-    fillBatch(plants.current, placements.plants, "#5c7439");
+    fillBatch(rocks.current, placements.rocks, "#6b6055");
+    fillBatch(gravel.current, placements.gravel, "#8a7a60");
+    fillBatch(plants.current, placements.plants, "#3a6b3a");
   }, [placements]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
@@ -96,15 +96,15 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   });
 
   return <group visible={visible} name="PreviewWorld">
-    <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b3bc8a" intensity={.55} />
-    <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e9dfb4", "#393422", .8]} />
-    <directionalLight position={[-6, 9, 3]} color="#ffe3ab" intensity={2.2} />
+    <ambientLight ref={ambient} name="AboveWaterAmbient" color="#a8c4d8" intensity={.5} />
+    <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#d8eaf0", "#3a4a3a", .85]} />
+    <directionalLight position={[-6, 9, 3]} color="#fff4d6" intensity={2.4} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
     <instancedMesh ref={rocks} args={[undefined, undefined, placements.rocks.length]}>
       <icosahedronGeometry args={[1, 1]} />
-      <meshStandardMaterial roughness={.94} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
+      <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </instancedMesh>
     <instancedMesh ref={gravel} args={[undefined, undefined, placements.gravel.length]}>
       <icosahedronGeometry args={[1, 0]} />
@@ -112,16 +112,16 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     </instancedMesh>
     <instancedMesh ref={plants} args={[undefined, undefined, placements.plants.length]} frustumCulled={false}>
       <planeGeometry args={[.16, 1, 1, 8]} onUpdate={geometry => geometry.translate(0, .5, 0)} />
-      <meshStandardMaterial roughness={.85} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
+      <meshStandardMaterial roughness={.8} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
       <mesh>
         <cylinderGeometry args={[.14, .23, 3.8, 9]} />
-        <meshStandardMaterial color="#544536" roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
+        <meshStandardMaterial color="#4a3828" roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
       </mesh>
       <mesh position={[.16, .7, 0]} rotation={[0, 0, -.7]}>
         <cylinderGeometry args={[.035, .075, 1.25, 7]} />
-        <meshStandardMaterial color="#61513b" roughness={1} />
+        <meshStandardMaterial color="#5a4838" roughness={1} />
       </mesh>
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
@@ -133,7 +133,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 : 80 }}>
         <bufferAttribute ref={particleAttribute} attach="attributes-position" args={[motion.positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#c8c7a0" size={.026} transparent opacity={.32} depthWrite={false} sizeAttenuation />
+      <pointsMaterial color="#b8d4c0" size={.022} transparent opacity={.28} depthWrite={false} sizeAttenuation />
     </points>
   </group>;
 }

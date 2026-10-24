@@ -30,13 +30,13 @@ it("preserves real school clip time and action identity through pause and resume
     runtime, paused: false, visibleIds: runtime.current.fish.map(f => f.id), selectedId: null,
     onSelect: vi.fn(), onHover: vi.fn(), onReady: vi.fn() };
   const view = render(<Suspense><FishSchool {...props} /></Suspense>);
-  await waitFor(() => expect(actions).toHaveLength(10), { timeout: 10_000 });
+  await waitFor(() => expect(actions).toHaveLength(13), { timeout: 10_000 });
   runtime.current.time += .05; tick(.05); const times = actions.map(a => a.time), mixers = actions.map(a => a.getMixer());
   view.rerender(<Suspense><FishSchool {...props} paused /></Suspense>);
-  tick(.5); expect(actions.map(a => a.time)).toEqual(times); expect(actions).toHaveLength(10);
+  tick(.5); expect(actions.map(a => a.time)).toEqual(times); expect(actions).toHaveLength(13);
   expect(actions.every(a => a.isRunning())).toBe(true);
   view.rerender(<Suspense><FishSchool {...props} /></Suspense>);
   runtime.current.time += .05; tick(.05); expect(actions.every((a, i) => a.time !== times[i])).toBe(true);
-  expect(actions.map(a => a.getMixer())).toEqual(mixers); expect(actions).toHaveLength(10);
+  expect(actions.map(a => a.getMixer())).toEqual(mixers); expect(actions).toHaveLength(13);
   view.unmount(); expect(actions.every(a => !a.isRunning())).toBe(true);
 });
