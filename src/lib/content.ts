@@ -1,4 +1,5 @@
 import fixture from "../../content/fixtures/pipeline-test.json";
+import zebraDanioFixture from "../../content/fixtures/zebra-danio.json";
 import type { PipelineFixture } from "@/types/fixture";
 
 export function parsePipelineFixture(input: unknown): PipelineFixture {
@@ -24,4 +25,13 @@ export function parsePipelineFixture(input: unknown): PipelineFixture {
 
 export function loadPipelineFixture(): PipelineFixture {
   return parsePipelineFixture(fixture);
+}
+
+export const FISH_FIXTURES: PipelineFixture[] = [
+  parsePipelineFixture(fixture),
+  parsePipelineFixture(zebraDanioFixture),
+];
+
+export function loadFishFixtures(): PipelineFixture[] {
+  return FISH_FIXTURES.map((item) => ({ ...item }));
 }

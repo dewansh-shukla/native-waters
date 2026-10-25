@@ -30,7 +30,7 @@ function meshes(root: Object3D) {
   return result;
 }
 
-it("loads once, keeps ten independent rigs mounted, and preserves actions through quality and pause/resume", async () => {
+it("loads once, keeps thirteen independent rigs mounted, and preserves actions through quality and pause/resume", async () => {
   vi.spyOn(console, "error").mockImplementation(() => {}); // DOM host does not recognize Three primitive tags.
   const actions: AnimationAction[] = [];
   const clipAction = AnimationMixer.prototype.clipAction;
@@ -48,12 +48,12 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
     selectedId: null, onSelect: vi.fn(), onHover: vi.fn(), onReady: vi.fn(),
   };
   const view = render(<Suspense><FishSchool {...props} /></Suspense>);
-  await waitFor(() => expect(actions).toHaveLength(10));
+  await waitFor(() => expect(actions).toHaveLength(13));
   expect(props.onReady).toHaveBeenCalledTimes(1);
   expect(load.mock.calls.filter(([url]) => url === modelUrl)).toHaveLength(1);
   const roots = actions.map(a => a.getRoot());
-  expect(new Set(roots).size).toBe(10);
-  expect(new Set(roots.map(r => r.parent?.scale.x)).size).toBe(10);
+  expect(new Set(roots).size).toBe(13);
+  expect(new Set(roots.map(r => r.parent?.scale.x)).size).toBe(13);
   for (const root of roots) {
     const size = new Box3().setFromObject(root.parent!).getSize(new Vector3());
     const length = Math.max(size.x, size.y, size.z);
@@ -62,13 +62,13 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
   }
   const skinned = roots.map(r => meshes(r).find(m => m instanceof SkinnedMesh) as SkinnedMesh);
   expect(skinned.every(Boolean)).toBe(true);
-  expect(new Set(skinned.map(m => m.skeleton)).size).toBe(10);
-  expect(new Set(skinned.map(m => m.skeleton.bones[0])).size).toBe(10);
+  expect(new Set(skinned.map(m => m.skeleton)).size).toBe(13);
+  expect(new Set(skinned.map(m => m.skeleton.bones[0])).size).toBe(13);
   expect(skinned[0].geometry).toBe(skinned[1].geometry);
   expect(skinned[0].material).toBe(skinned[1].material);
   const dispose = vi.spyOn(skinned[0].geometry, "dispose");
   const initialPhases = actions.map(a => a.time);
-  expect(new Set(initialPhases).size).toBe(10);
+  expect(new Set(initialPhases).size).toBe(13);
   tick(10);
   expect(actions.map(a => a.time)).toEqual(initialPhases); // Initial mount never catches up to runtime.time=3.
   const mixerTime = actions[0].getMixer().time;
@@ -78,7 +78,7 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
   expect(actions[0].getMixer().time - mixerTime).toBeCloseTo(.05 * actions[0].getMixer().timeScale);
   expect(JSON.stringify(runtime.current)).toBe(snapshot); // No second simulation/time driver.
   expect(actions.every((a, i) => a.time !== initialPhases[i])).toBe(true);
-  expect(new Set(actions.map(a => a.getMixer().timeScale)).size).toBe(10);
+  expect(new Set(actions.map(a => a.getMixer().timeScale)).size).toBe(13);
   const fishRoot = roots[0].parent!.parent!;
   fishRoot.updateMatrixWorld(true);
   const ray = new Raycaster(fishRoot.position.clone().add(new Vector3(0, 0, 2)), new Vector3(0, 0, -1));
@@ -94,7 +94,7 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
   tick(0.5);
   expect(actions.map(a => a.time)).toEqual(saved);
   expect(changedReady).not.toHaveBeenCalled();
-  expect(actions).toHaveLength(10);
+  expect(actions).toHaveLength(13);
   expect(uncache).not.toHaveBeenCalled();
   expect(dispose).not.toHaveBeenCalled();
   // The rig's normalized parent sits under the independently oriented fish root.
@@ -108,7 +108,7 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
   view.rerender(<Suspense><FishSchool {...props} /></Suspense>);
   tick(0.1); expect(actions.map(a => a.time)).toEqual(saved); // Re-entry does not catch up.
   runtime.current.time += .05; tick(0.1);
-  expect(actions).toHaveLength(10);
+  expect(actions).toHaveLength(13);
   expect(actions.every((a, i) => a.time !== saved[i])).toBe(true);
   actions[0].stop();
   const secondTime = actions[1].time;
@@ -120,7 +120,7 @@ it("loads once, keeps ten independent rigs mounted, and preserves actions throug
   expect(skinned[1].skeleton.bones[0].position.x).not.toBe(123);
   view.unmount();
   expect(actions.every(a => !a.isRunning())).toBe(true);
-  expect(uncache).toHaveBeenCalledTimes(10);
+  expect(uncache).toHaveBeenCalledTimes(13);
   expect(dispose).not.toHaveBeenCalled();
   expect(props.onReady).toHaveBeenCalledTimes(1);
 });
@@ -164,15 +164,15 @@ it("plays only the three named disjoint actions per clone with duration-based ph
   const props: FishSchoolProps = { modelUrl: "synthetic-natural", runtime, paused: false,
     visibleIds: runtime.current.fish.map(f => f.id), selectedId: null, onSelect: vi.fn(), onHover: vi.fn(), onReady };
   const view = render(<FishSchool {...props} />);
-  expect(actions).toHaveLength(30);
-  expect(new Set(actions.map(a => a.getMixer())).size).toBe(10);
+  expect(actions).toHaveLength(39);
+  expect(new Set(actions.map(a => a.getMixer())).size).toBe(13);
   const roots = [...new Set(actions.map(a => a.getRoot()))];
   for (const [index, root] of roots.entries()) {
     const rigActions = actions.filter(a => a.getRoot() === root);
     expect(rigActions.map(a => a.getClip().name)).toEqual(["Swim", "Breathing", "FinIdle"]);
     expect(new Set(rigActions.map(a => a.getMixer())).size).toBe(1);
     for (const action of rigActions) {
-      expect(action.time).toBeCloseTo(action.getClip().duration * index / 10);
+      expect(action.time).toBeCloseTo(action.getClip().duration * index / 13);
       expect(action.isRunning()).toBe(true);
       const name = action.getClip().name as keyof typeof model.anatomy;
       for (const target of model.anatomy[name]) expect(root.getObjectByName(target)!.position.x).toBeCloseTo(action.time);
@@ -194,15 +194,15 @@ it("plays only the three named disjoint actions per clone with duration-based ph
   const phases = actions.map(a => a.time);
   tick(100); expect(actions.map(a => a.time)).toEqual(phases);
   view.rerender(<FishSchool {...props} visibleIds={["fish-0"]} selectedId="fish-9" onReady={vi.fn()} />);
-  expect(roots.map(r => r.parent!.parent!.visible)).toEqual([true, false, false, false, false, false, false, false, false, true]);
-  expect(actions).toHaveLength(30);
+  expect(roots.map(r => r.parent!.parent!.visible)).toEqual([true, false, false, false, false, false, false, false, false, true, false, false, false]);
+  expect(actions).toHaveLength(39);
   expect(actions.map(a => a.time)).toEqual(phases);
   expect(uncache).not.toHaveBeenCalled();
   expect(cloneDispose.every(s => s.mock.calls.length === 0)).toBe(true);
   expect(onReady).toHaveBeenCalledOnce();
   view.unmount();
   expect(cloneDispose.every(s => s.mock.calls.length === 1)).toBe(true);
-  expect(uncache).toHaveBeenCalledTimes(10);
+  expect(uncache).toHaveBeenCalledTimes(13);
   expect(actions.every(a => !a.isRunning())).toBe(true);
   for (const spy of [sourceSkeletonDispose, geometryDispose, materialDispose, textureDispose]) expect(spy).not.toHaveBeenCalled();
 });
@@ -219,7 +219,7 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   const props: FishSchoolProps = { modelUrl: "synthetic-natural", runtime, paused: false,
     visibleIds: runtime.current.fish.map(f => f.id), selectedId: null, onSelect: vi.fn(), onHover: vi.fn(), onReady: vi.fn() };
   const view = render(<FishSchool {...props} />);
-  expect(actions).toHaveLength(30);
+  expect(actions).toHaveLength(39);
   const [swim, breathing, fin] = actions;
   const root = swim.getRoot();
   const advance = (delta: number) => { runtime.current.time += delta; tick(100); };
@@ -270,7 +270,7 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   expect(breathing.time).toBeCloseTo(saved[1] + .1 * idleRates[0]);
   expect(fin.time).toBeCloseTo(saved[2] + .1 * idleRates[1]);
   assertPose();
-  expect(actions).toHaveLength(30);
+  expect(actions).toHaveLength(39);
   expect(model.mesh.skeleton.bones.every(b => b.position.x === 0)).toBe(true);
   runtime.current.fish.forEach(f => f.velocity.set(.42, 0, 0));
   advance(.1);

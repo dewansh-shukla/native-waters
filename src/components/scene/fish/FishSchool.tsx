@@ -45,11 +45,17 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     const instance = new AnimationMixer(model.rig);
     mixer.current = instance;
     // Single-clip GLBs keep their legacy action and mixer-driven timing.
-    const clips = animations.length === 1 ? animations : ["Swim", "Breathing", "FinIdle"].flatMap(name =>
-      animations.find(clip => clip.name === name) ?? []);
+    // Single-clip GLBs play their one clip. Skeletal multi-clip GLBs (Swim/SlowSwim/
+    // FastSwim/Idle) use the Swim clip as the primary locomotion, scaled by speed;
+    // legacy multi-clip GLBs fall back to the Swim/Breathing/FinIdle set.
+    const clips = animations.length === 1
+      ? animations
+      : (animations.some(clip => clip.name === "Breathing")
+          ? ["Swim", "Breathing", "FinIdle"].flatMap(name => animations.find(clip => clip.name === name) ?? [])
+          : [animations.find(clip => clip.name === "Swim") ?? animations[0]]);
     for (const clip of clips) {
       const action = instance.clipAction(clip).play();
-      action.time = clip.duration * index / 10;
+      action.time = clip.duration * index / 13;
       if (animations.length > 1 && clip.name === "Swim") swim.current = action;
     }
     instance.update(0);
@@ -124,7 +130,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
   />;
 }
 
-export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady }: FishSchoolProps) {
+export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds }: FishSchoolProps) {
   // One loader/cache entry; ten SkeletonUtils clones share geometry/materials/textures.
   const { scene, animations } = useGLTF(modelUrl);
   const readyScene = useRef<Object3D | null>(null);
@@ -133,7 +139,8 @@ export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, 
     readyScene.current = scene;
     onReady();
   }, [scene, onReady]);
-  return <>{runtime.current.fish.map((fish, index) => <Fish key={fish.id}
+  const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;
+  return <>{fishToRender.map((fish, index) => <Fish key={fish.id}
     source={scene} animations={animations} fish={fish} runtime={runtime} index={index} paused={paused}
     visible={visibleIds.includes(fish.id) || selectedId === fish.id}
     onSelect={onSelect} onHover={onHover}

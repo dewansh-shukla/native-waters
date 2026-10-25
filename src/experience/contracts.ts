@@ -12,7 +12,7 @@ export type JourneyEvent =
   | { type: "SELECT"; id: string } | { type: "STORY" }
   | { type: "BACK" } | { type: "ESCAPE" } | { type: "MAP" };
 export type FishState = { id: string; position: Vector3; velocity: Vector3; heading: Quaternion };
-export type SceneRuntime = { time: number; entryProgress: number; fish: FishState[] };
+export type SceneRuntime = { time: number; entryProgress: number; fish: FishState[]; cursorTarget?: Vector3 | null };
 export type RuntimeRef = MutableRefObject<SceneRuntime>;
 export type AudioControls = { enabled: boolean; error: string | null; enable: () => void; disable: () => void };
 
@@ -21,6 +21,7 @@ export type FishSchoolProps = {
   modelUrl: string; runtime: RuntimeRef; paused: boolean; visibleIds: string[];
   selectedId: string | null; onSelect: (id: string) => void;
   onHover: (id: string | null) => void; onReady: () => void;
+  fishIds?: string[];
 };
 export type ExperienceCameraProps = {
   runtime: RuntimeRef; phase: Phase; selectedId: string | null; paused: boolean; ready: boolean;
@@ -37,11 +38,14 @@ export type ExperienceUIProps = {
   onQualityChange: (quality: QualityPreference) => void; visibleFishIds: string[];
   hoveredId: string | null; dispatch: (event: JourneyEvent) => void; audio: AudioControls;
   onEntryIntent: () => void; onMapHighlight: (highlighted: boolean) => void;
+  fixtures?: PipelineFixture[]; selectedFixtureIndex?: number; onSelectFixture?: (index: number) => void;
+  secondarySpeciesLabel?: string; speciesLabels?: Record<string, string>;
 };
 export type ExperienceAudioProps = { phase: Phase; paused: boolean; runtime: RuntimeRef };
 
 export type ExperienceSceneProps = {
-  modelUrl: string; state: JourneyState; runtime: RuntimeRef; paused: boolean;
+  modelUrl: string; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[] }[];
+  state: JourneyState; runtime: RuntimeRef; paused: boolean;
   reducedMotion: boolean; quality: EffectiveQuality; visibleIds: string[];
   mapHighlighted: boolean; onMapHighlight: (highlighted: boolean) => void;
   onReady: (ready: boolean) => void; onEntered: () => void;

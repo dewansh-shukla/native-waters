@@ -18,11 +18,11 @@ describe("journeyReducer", () => {
     expect(journeyReducer(exploring, { type: "ENTERED" })).toBe(exploring);
   });
 
-  it.each(Array.from({ length: 10 }, (_, i) => `fish-${i}`))("follows stable identity %s", (id) => {
+  it.each(Array.from({ length: 13 }, (_, i) => `fish-${i}`))("follows stable identity %s", (id) => {
     expect(journeyReducer(exploring, { type: "SELECT", id })).toEqual({ ...following, selectedId: id });
   });
 
-  it.each(["fish-10", "fish--1", "fish-01", "fish-1\n", "fish-1-extra", "", "other"])("ignores invalid identity %j", (id) => {
+  it.each(["fish--1", "fish-01", "fish-1\n", "fish-1-extra", "", "other"])("ignores invalid identity %j", (id) => {
     expect(journeyReducer(exploring, { type: "SELECT", id })).toBe(exploring);
     expect(journeyReducer(following, { type: "SELECT", id })).toBe(following);
   });

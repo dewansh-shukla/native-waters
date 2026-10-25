@@ -17,9 +17,15 @@ const SceneViewport = dynamic(() => import("@/components/scene/SceneViewport"), 
   loading: () => <p className="scene-loading" role="status">Loading the river scene…</p>,
 });
 
-export default function Experience({ fixture }: { fixture: PipelineFixture }) {
+export default function Experience({ fixture, additionalModelUrls, species: speciesProp }: { fixture: PipelineFixture; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[]; label?: string }[] }) {
+  const species = speciesProp && speciesProp.length
+    ? speciesProp
+    : [{ modelUrl: fixture.modelUrl, fishIds: [] as string[], label: fixture.label.split(" - ")[0] }].concat(
+        (additionalModelUrls ?? []).map(url => ({ modelUrl: url, fishIds: [] as string[], label: "Zebra Danio - Danio rerio" }))
+      );
+  const speciesLabels = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.label ?? "Fish"])));
   const [state, dispatch] = useReducer(journeyReducer, INITIAL_JOURNEY);
-  const [initialRuntime] = useState<SceneRuntime>(() => ({ time: 0, entryProgress: 0, fish: createSchool() }));
+  const [initialRuntime] = useState<SceneRuntime>(() => ({ time: 0, entryProgress: 0, fish: createSchool(), cursorTarget: null }));
   const runtime = useRef(initialRuntime);
   const reducedMotion = useReducedMotion();
   const [pauseOverride, setPauseOverride] = useState<boolean | null>(null);
@@ -51,7 +57,7 @@ export default function Experience({ fixture }: { fixture: PipelineFixture }) {
 
   return <section className="experience" aria-label="Native Waters experience" data-phase={state.phase}>
     <SceneBoundary onRetry={() => window.location.reload()} retryLabel="Reload page">
-      <SceneViewport modelUrl={fixture.modelUrl} state={state} runtime={runtime} paused={paused || hidden}
+      <SceneViewport modelUrl={fixture.modelUrl} additionalModelUrls={additionalModelUrls} species={species.map(s => ({ modelUrl: s.modelUrl, fishIds: s.fishIds }))} state={state} runtime={runtime} paused={paused || hidden}
         reducedMotion={reducedMotion} quality={effectiveQuality} visibleIds={visibleIds}
         mapHighlighted={mapHighlighted} onMapHighlight={setMapHighlighted} onReady={onReady}
         onEntered={onEntered} onSelect={onSelect} onHover={setHoveredId} onEnter={onEnter} />
@@ -59,6 +65,7 @@ export default function Experience({ fixture }: { fixture: PipelineFixture }) {
     {state.phase === "map" && <p className="experience-map-disclaimer">Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.</p>}
     <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={setPauseOverride}
       quality={quality} onQualityChange={setQuality} visibleFishIds={visibleIds} hoveredId={hoveredId}
-      dispatch={dispatch} audio={audio} onEntryIntent={onEnter} onMapHighlight={setMapHighlighted} />
+      dispatch={dispatch} audio={audio} onEntryIntent={onEnter} onMapHighlight={setMapHighlighted}
+      secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} />
   </section>;
 }

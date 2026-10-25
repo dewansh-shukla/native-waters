@@ -15,7 +15,7 @@ function updateHeading(heading: Quaternion, velocity: Vector3): Quaternion {
   return heading.setFromEuler(orientation);
 }
 export function createSchool(): FishState[] {
-  return Array.from({ length: 10 }, (_, i) => {
+  return Array.from({ length: 13 }, (_, i) => {
     const velocity = new Vector3(0.37 + i * 0.006, 0.009 * Math.sin(i), 0.12);
     return {
       id: `fish-${i}`,
@@ -26,12 +26,12 @@ export function createSchool(): FishState[] {
   });
 }
 // Ten-fish scratch storage is reused; the coordinator owns time and stepping.
-const courses = Array.from({ length: 10 }, () => new Vector3());
+const courses = Array.from({ length: 13 }, () => new Vector3());
 const center = new Vector3();
 const flow = new Vector3();
 const offset = new Vector3();
 
-export function stepSchool(fish: FishState[], delta: number, time: number): void {
+export function stepSchool(fish: FishState[], delta: number, time: number, selectedId?: string | null, cursorTarget?: Vector3 | null): void {
   if (!(delta > 0) || !Number.isFinite(delta) || !Number.isFinite(time) || fish.length === 0) return;
   // Cap a stalled tab's step rather than teleport through the habitat.
   const dt = Math.min(delta, 0.05);
@@ -68,6 +68,10 @@ export function stepSchool(fish: FishState[], delta: number, time: number): void
       return offset.lengthSq() < (obstacle.radius + turnClearance) ** 2;
     });
     // One interior course avoids contradictory per-wall/rock corrections at corners.
+    if (selectedId && f.id === selectedId && cursorTarget) {
+      desired.subVectors(cursorTarget, p);
+      if (desired.lengthSq() < 1e-6) desired.set(0.001, 0, 0);
+    }
     if (nearWall || nearRock) desired.set(...HABITAT.school.center).sub(p);
     if (desired.lengthSq() < 1e-8) desired.set(0.4, 0, 0.1);
     desired.setLength(0.39 + i * 0.012);
