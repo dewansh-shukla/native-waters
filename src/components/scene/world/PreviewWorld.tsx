@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { AmbientLight, BufferAttribute, BufferGeometry, Color, DoubleSide, Fog, HemisphereLight, IcosahedronGeometry, InstancedMesh, Object3D, PlaneGeometry, Vector3 } from "three";
+import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere, type Placement } from "./worldMotion";
@@ -27,6 +28,7 @@ function fillBatch(mesh: InstancedMesh | null, placements: Placement[], tint: st
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
+  const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
   const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
@@ -35,7 +37,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
   const plant = useMemo(() => plantShader(uniforms), [uniforms]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#0d3846", 4, 23), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog("#0d3846", 5, 27), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
     const particles: Vector3[] = [];
@@ -75,6 +78,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     return () => { updateAtmosphere(scene, atmosphere, false); };
   }, [scene, atmosphere, visible]);
   useEffect(() => () => terrain.dispose(), [terrain]);
+  useEffect(() => () => env.dispose(), [env]);
 
   // Displaced rock geometry: multi-octave noise turns the icosahedron into an irregular boulder.
   const rockGeometry = useMemo(() => {
@@ -114,6 +118,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
     const underwater = visible && camera.position.y < -.08;
     updateAtmosphere(scene, atmosphere, underwater);
+    scene.environment = underwater ? env : null;
     if (ambient.current) ambient.current.visible = !underwater;
     if (hemisphere.current) hemisphere.current.visible = !underwater;
     if (underwaterAmbient.current) underwaterAmbient.current.visible = underwater;
@@ -136,7 +141,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
     <directionalLight position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
-    <directionalLight position={[4, -3, -2]} color="#9ab8cc" intensity={0.6} />
+    <directionalLight position={[4, -3, -2]} color="#9ab8cc" intensity={1.2} />
+    <directionalLight position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
     <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.7} visible={false} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
