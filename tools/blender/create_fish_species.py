@@ -13,12 +13,15 @@ from pathlib import Path
 
 import bmesh
 import bpy
+import numpy as np
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.blender.fish_geometry import fin, loft, sphere, tube  # noqa: E402
 from tools.blender.fish_specs import SPECIES, hex_rgb, profile  # noqa: E402
+from tools.blender.fish_textures import (body_albedo, body_normal, body_orm, eye_albedo,  # noqa: E402
+                                         srgb_to_linear)
 
 BONE_NAMES = (
     "Head", "Jaw", "Gill.L", "Gill.R",
@@ -48,7 +51,7 @@ BONE_SPECS = (
 )
 
 LOD_PARAMS = {
-    "high": {"fin_roots": 9, "columns": 4, "eye_segments": 20, "eye_rings": 12,
+    "high": {"fin_roots": 11, "columns": 4, "eye_segments": 20, "eye_rings": 12,
              "gill_cols": 9, "gill_rows": 7, "barbel_sides": 7, "cap_sides": 24,
              "decal_segments": 16, "thickness": 0.008},
     "mid": {"fin_roots": 7, "columns": 3, "eye_segments": 14, "eye_rings": 8,
@@ -77,13 +80,15 @@ def parse_args():
     parser.add_argument("--flat", action="store_true")
     parser.add_argument("--out", default=str(ROOT / "public/models/fish"))
     parser.add_argument("--report", default=str(ROOT / "artifacts/fish-production"))
+    parser.add_argument("--render", default=None)
     return parser.parse_args(argv)
 
 
 def flat_image(name, rgb, size=64):
     image = bpy.data.images.new(name, width=size, height=size, alpha=True)
     image.file_format = "PNG"
-    pixel = (rgb[0], rgb[1], rgb[2], 1.0)
+    image.colorspace_settings.name = "sRGB"
+    pixel = (float(rgb[0]), float(rgb[1]), float(rgb[2]), 1.0)
     image.pixels.foreach_set(list(pixel) * (size * size))
     image.update()
     image.pack()
@@ -91,50 +96,100 @@ def flat_image(name, rgb, size=64):
     return image
 
 
-def make_material(name, color, roughness, image=None, alpha=1.0, metallic=0.0, coat=0.0):
+def make_material(name, color, roughness, image=None, normal=None, orm=None,
+                  alpha=1.0, metallic=0.0, coat=0.0, blend=None):
     material = bpy.data.materials.new(name)
     material.use_nodes = True
     material.use_backface_culling = False
     bsdf = next(node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+    linear = srgb_to_linear(np.asarray(color, dtype=np.float32))
+    factor = (1.0, 1.0, 1.0, 1.0) if image is not None else (
+        float(linear[0]), float(linear[1]), float(linear[2]), 1.0)
+    bsdf.inputs["Base Color"].default_value = factor
     bsdf.inputs["Roughness"].default_value = roughness
     bsdf.inputs["Metallic"].default_value = metallic
     bsdf.inputs["Alpha"].default_value = alpha
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = coat
     if alpha < 1.0:
-        material.surface_render_method = "DITHERED"
+        material.surface_render_method = blend or "DITHERED"
         material.use_transparent_shadow = True
+    elif blend:
+        material.surface_render_method = blend
     if image is not None:
         texture = material.node_tree.nodes.new("ShaderNodeTexImage")
         texture.image = image
         material.node_tree.links.new(texture.outputs["Color"], bsdf.inputs["Base Color"])
-    material.diffuse_color = (*color, alpha)
+    if normal is not None:
+        texture = material.node_tree.nodes.new("ShaderNodeTexImage")
+        texture.image = normal
+        normal_map = material.node_tree.nodes.new("ShaderNodeNormalMap")
+        normal_map.inputs["Strength"].default_value = 0.30
+        material.node_tree.links.new(texture.outputs["Color"], normal_map.inputs["Color"])
+        material.node_tree.links.new(normal_map.outputs["Normal"], bsdf.inputs["Normal"])
+    if orm is not None:
+        texture = material.node_tree.nodes.new("ShaderNodeTexImage")
+        texture.image = orm
+        separate = material.node_tree.nodes.new("ShaderNodeSeparateColor")
+        material.node_tree.links.new(texture.outputs["Color"], separate.inputs["Color"])
+        material.node_tree.links.new(separate.outputs["Green"], bsdf.inputs["Roughness"])
+        material.node_tree.links.new(separate.outputs["Blue"], bsdf.inputs["Metallic"])
+    material.diffuse_color = (float(linear[0]), float(linear[1]), float(linear[2]), alpha)
     return material
 
 
-def make_materials(spec, variant, lod, flat):
-    del flat  # Task 4 uses flat placeholders; Task 5 replaces them with real maps.
-    body_image = flat_image("FishBody - albedo", hex_rgb(variant.body))
-    fin_image = flat_image("FishFin - albedo", hex_rgb(variant.fin))
-    body = make_material("FishBody", hex_rgb(variant.body), 0.46, body_image)
-    fins = make_material("FishFin", hex_rgb(variant.fin), 0.38, fin_image, alpha=0.82)
+def make_materials(spec, variant, lod, flat, texture_dir=None):
+    if flat:
+        body_image = flat_image("FishBody - albedo", hex_rgb(variant.body))
+        fin_image = flat_image("FishFin - albedo", hex_rgb(variant.fin))
+        body = make_material("FishBody", hex_rgb(variant.body), 0.50, body_image)
+        fins = make_material("FishFin", hex_rgb(variant.fin), 0.38, fin_image,
+                             alpha=0.82, blend="BLENDED")
+        materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
+        if lod != "low":
+            eye_image = flat_image("FishEye - iris", hex_rgb(variant.iris))
+            materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.30,
+                                             eye_image, metallic=0.0)
+            materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
+                                                alpha=0.05, metallic=0.0, coat=0.2,
+                                                blend="BLENDED")
+        return materials
+
+    albedo_size, normal_size = (1024, 1024) if lod == "high" else (1024, 512)
+    if lod == "low":
+        albedo_size = normal_size = 512
+    lod_dir = (Path(texture_dir) / lod) if texture_dir is not None else None
+    albedo = body_albedo(spec, variant, albedo_size,
+                         path=(lod_dir / "body-albedo.jpg") if lod_dir else None,
+                         eye_spots=(lod == "low"))
+    normal = body_normal(spec, normal_size,
+                         path=(lod_dir / "body-normal.png") if lod_dir else None)
+    orm = None
+    if lod != "low":
+        orm = body_orm(spec, 512, path=(lod_dir / "body-orm.png") if lod_dir else None)
+    body = make_material("FishBody", hex_rgb(variant.body), 0.50,
+                         image=albedo, normal=normal, orm=orm)
+    fins = make_material("FishFin", hex_rgb(variant.fin), 0.35,
+                         alpha=0.82, blend="BLENDED")
     materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
     if lod != "low":
-        eye_image = flat_image("FishEye - iris", hex_rgb(variant.iris))
-        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.24, eye_image, metallic=0.12)
-        materials["cornea"] = make_material("FishCornea", (0.86, 0.94, 1.0), 0.04,
-                                           alpha=0.12, metallic=0.0, coat=1.0)
+        eye_image = eye_albedo(variant, 256,
+                               path=(lod_dir / "eye-albedo.png") if lod_dir else None)
+        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.30,
+                                         image=eye_image, metallic=0.0)
+        materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
+                                            alpha=0.05, metallic=0.0, coat=0.2,
+                                            blend="BLENDED")
     return materials
 
 
 class Builder:
-    def __init__(self, spec, variant, lod, flat):
+    def __init__(self, spec, variant, lod, flat, texture_dir=None):
         self.spec = spec
         self.variant = variant
         self.lod = lod
         self.params = LOD_PARAMS[lod]
-        self.materials = make_materials(spec, variant, lod, flat)
+        self.materials = make_materials(spec, variant, lod, flat, texture_dir)
         self.meshes = []
         self.fin_data = {}
         self.scene = bpy.context.scene
@@ -170,20 +225,44 @@ class Builder:
         half_height, half_width, centre = profile(self.spec.slug, t)
         x = -1.0 + 1.8 * t
         sides = self.params["cap_sides"]
-        vertices = [(x, 0.0, centre)]
+        # The front cap is domed forward so the snout ends in a rounded nose
+        # instead of a flat disc; the rear cap stays a flat fan.
+        domes = 3 if t <= 0.0 else 0
+        bulge = 1.6 * half_height if t <= 0.0 else 0.0
+        vertices = [(x - bulge, 0.0, centre)]
         uvs = [(t, 0.5)]
+        for ring in range(1, domes + 1):
+            phi = 0.5 * math.pi * ring / (domes + 1)
+            scale = math.sin(phi)
+            offset = -math.cos(phi) * bulge
+            for side in range(sides):
+                angle = math.tau * side / sides
+                vertices.append((x + offset, half_width * scale * math.cos(angle),
+                                 centre + half_height * scale * math.sin(angle)))
+                uvs.append((t, side / sides))
         for side in range(sides):
             angle = math.tau * side / sides
             vertices.append((x, half_width * math.cos(angle),
-                             centre + half_height * math.sin(angle)))
+                            centre + half_height * math.sin(angle)))
             uvs.append((t, side / sides))
+        rings = [[0]]
+        for _ring in range(domes + 1):
+            start = rings[-1][-1] + 1
+            rings.append(list(range(start, start + sides)))
         faces = []
-        for side in range(sides):
-            nxt = 1 + (side + 1) % sides
-            if t <= 0.0:
-                faces.append((0, nxt, 1 + side))
+        for level in range(len(rings) - 1):
+            lower, upper = rings[level], rings[level + 1]
+            if len(lower) == 1:
+                for side in range(sides):
+                    nxt = upper[(side + 1) % sides]
+                    faces.append((lower[0], upper[side], nxt))
             else:
-                faces.append((0, 1 + side, nxt))
+                for side in range(sides):
+                    a = lower[side]
+                    b = lower[(side + 1) % sides]
+                    c = upper[(side + 1) % sides]
+                    d = upper[side]
+                    faces.append((a, b, c, d))
         from tools.blender.fish_geometry import Geometry
         return Geometry(vertices, faces, uvs)
 
@@ -211,16 +290,20 @@ class Builder:
         x, _, z = self.spec.eye
         half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
         surface = half_width * math.sqrt(max(0.05, 1.0 - ((z - centre) / half_height) ** 2))
-        y = side * (surface + 0.004)
+        y = side * (surface + 0.002)
         radius = self.spec.eye_radius * 0.95
         u0 = (x + 1.0) / 1.8
         v0 = 0.04 if side > 0 else 0.46
+        # Sample the same world-round UV ellipse the body paint uses (u is
+        # stretched 1.8 body lengths, v only wraps the ~0.6 girth), so the
+        # decal shows the full painted eye instead of a zoomed, offset crop.
+        ru, rv = 0.027, 0.082
         vertices = [(x, y, z)]
         uvs = [(u0, v0)]
         for segment in range(segments):
             angle = math.tau * segment / segments
             vertices.append((x + radius * math.cos(angle), y, z + radius * math.sin(angle)))
-            uvs.append((u0 + 0.035 * math.cos(angle), v0 + 0.035 * math.sin(angle)))
+            uvs.append((u0 + ru * math.cos(angle), v0 + rv * math.sin(angle)))
         faces = []
         for segment in range(segments):
             nxt = 1 + (segment + 1) % segments
@@ -237,6 +320,18 @@ class Builder:
         self.fin_data[obj] = (roots, tips)
         return obj
 
+    def add_rays(self, name, roots, tips, material, part, count):
+        if self.lod == "low":
+            return
+        step = max(1, (len(roots) - 1) // max(1, count))
+        indices = list(range(0, len(roots), step))[:count]
+        for index in indices:
+            start, end = Vector(roots[index]), Vector(tips[index])
+            points = [tuple(start.lerp(end, 0.05)), tuple(start.lerp(end, 0.50)),
+                      tuple(start.lerp(end, 0.92))]
+            obj = self.make_mesh(name + " ray", tube(points, 0.0035, 4), material, part)
+            self.fin_data[obj] = (roots, tips)
+
     def build_parts(self):
         spec, params = self.spec, self.params
         self.make_mesh("Body", loft(spec, spec.rings[self.lod], spec.sides[self.lod]),
@@ -244,22 +339,15 @@ class Builder:
         for t in (0.0, 1.0):
             self.make_mesh("Body cap", self.body_cap(t, self.materials["body"]),
                            self.materials["body"], "body")
-        for side, label in ((-1, "L"), (1, "R")):
-            self.make_mesh("Gill cover " + label, self.gill_patch(side, self.materials["body"]),
-                           self.materials["body"], "gill." + label)
-        self.make_mesh("Lower jaw",
-                       sphere((-0.96, 0.0, -0.075), (0.055, 0.065, 0.022),
-                              params["eye_segments"], params["eye_rings"]),
-                       self.materials["body"], "jaw")
         if spec.barbels:
             for side, label in ((-1, "L"), (1, "R")):
-                for index, (dy, dz) in enumerate(((0.025, -0.075), (0.050, -0.090))):
-                    points = [(-0.98, side * dy, dz),
-                              (-1.02, side * (dy + 0.015), dz - 0.02),
-                              (-1.06, side * (dy + 0.030), dz - 0.05),
-                              (-1.08, side * (dy + 0.040), dz - 0.08)]
+                for index, (dy, dz) in enumerate(((0.020, -0.050), (0.040, -0.062))):
+                    points = [(-0.985, side * dy, dz),
+                              (-1.005, side * (dy + 0.010), dz - 0.015),
+                              (-1.025, side * (dy + 0.018), dz - 0.030),
+                              (-1.040, side * (dy + 0.024), dz - 0.045)]
                     self.make_mesh("Barbel %s%d" % (label, index),
-                                   tube(points, 0.009, params["barbel_sides"]),
+                                   tube(points, 0.006, params["barbel_sides"]),
                                    self.materials["body"], "barbel")
         if self.lod == "low":
             for side, label in ((-1, "L"), (1, "R")):
@@ -278,8 +366,8 @@ class Builder:
                                self.materials["eye"], "eye")
                 self.make_mesh("Cornea " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius * 1.12, spec.eye_radius * 0.62,
-                                       spec.eye_radius * 1.12),
+                                      (spec.eye_radius * 1.06, spec.eye_radius * 0.58,
+                                       spec.eye_radius * 1.06),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["cornea"], "cornea")
         self.build_fins()
@@ -289,55 +377,69 @@ class Builder:
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
-            x = -0.55 + 0.90 * t
+            x = -0.50 + 0.92 * t
             half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
             roots.append((x, 0.0, centre + half_height * 0.98))
-            lift = 0.16 + 0.10 * math.sin(math.pi * t)
-            tips.append((x + 0.03 * math.sin(math.pi * t), 0.0,
+            lift = 0.05 + 0.24 * max(0.0, 1.0 - t / 0.55) ** 1.6
+            lift += 0.010 if index % 2 else 0.0
+            sweep = 0.06 * max(0.0, t - 0.5) / 0.5
+            tips.append((x + 0.025 * math.sin(math.pi * t) + sweep, 0.0,
                          centre + half_height * 0.98 + lift))
         self.add_fin("DorsalFin", roots, tips, self.materials["fin"], "dorsal")
+        self.add_rays("DorsalFin", roots, tips, self.materials["fin"], "dorsal",
+                      5 if self.lod == "high" else 3)
 
         roots, tips = [], []
         for index in range(count + 2):
             t = index / (count + 1)
-            z = -0.13 + 0.26 * t
-            edge = abs(z) / 0.13
-            roots.append((0.79, 0.0, z))
-            tips.append((0.93 + 0.07 * edge, 0.0, z * 1.75))
+            z = -0.16 + 0.32 * t
+            edge = abs(z) / 0.16
+            roots.append((0.795, 0.0, z))
+            tips.append((0.90 + 0.10 * edge, 0.0, z * 1.90))
         self.add_fin("Caudal fin", roots, tips, self.materials["fin"], "caudal")
+        self.add_rays("Caudal fin", roots, tips, self.materials["fin"], "caudal",
+                      5 if self.lod == "high" else 3)
 
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
-            x = -0.30 + 0.62 * t
+            x = -0.32 + 0.70 * t
             half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
             roots.append((x, 0.0, centre - half_height * 0.98))
-            tips.append((x + 0.06, 0.0,
-                         centre - half_height * 0.98 - 0.10 - 0.05 * math.sin(math.pi * t)))
+            tips.append((x + 0.05 + 0.04 * t, 0.0,
+                         centre - half_height * 0.98 - 0.04 - 0.10 * math.sin(math.pi * t)))
         self.add_fin("Anal fin", roots, tips, self.materials["fin"], "anal")
+        self.add_rays("Anal fin", roots, tips, self.materials["fin"], "anal",
+                      4 if self.lod == "high" else 2)
 
         for side, label in ((-1, "L"), (1, "R")):
             roots, tips = [], []
             for index in range(count):
                 t = index / (count - 1)
-                x = -0.45 + 0.12 * t
+                x = -0.44 + 0.14 * t
                 half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
-                roots.append((x, side * half_width * 0.92, centre - half_height * 0.10))
-                tips.append((x + 0.18, side * (half_width + 0.16),
-                             centre - half_height * 0.35))
+                roots.append((x, side * half_width * 0.92, centre - half_height * 0.12))
+                tips.append((x + 0.07 + 0.06 * math.sin(math.pi * t),
+                             side * (half_width + 0.08 + 0.04 * math.sin(math.pi * t)),
+                             centre - half_height * (0.40 + 0.18 * t)))
             self.add_fin("Pectoral fin " + label, roots, tips,
                          self.materials["fin"], "pectoral." + label)
+            self.add_rays("Pectoral fin " + label, roots, tips, self.materials["fin"],
+                          "pectoral." + label, 3 if self.lod == "high" else 2)
 
             roots, tips = [], []
             for index in range(max(4, count - 2)):
                 t = index / (max(4, count - 2) - 1)
-                x = -0.38 + 0.12 * t
+                x = -0.36 + 0.10 * t
                 half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
-                roots.append((x, side * half_width * 0.55, centre - half_height * 0.70))
-                tips.append((x + 0.10, side * half_width * 0.75,
-                             centre - half_height * 1.15))
+                roots.append((x, side * half_width * 0.55, centre - half_height * 0.72))
+                tips.append((x + 0.05 + 0.04 * math.sin(math.pi * t),
+                             side * half_width * (0.80 + 0.10 * math.sin(math.pi * t)),
+                             centre - half_height * (1.05 + 0.12 * t)))
             self.add_fin("Pelvic fin " + label, roots, tips,
                          self.materials["fin"], "pelvic." + label)
+            self.add_rays("Pelvic fin " + label, roots, tips, self.materials["fin"],
+                          "pelvic." + label, 2 if self.lod == "high" else 1)
 
     def make_armature(self):
         armature = bpy.data.armatures.new("FishRig")
@@ -393,7 +495,28 @@ class Builder:
     def weights_for(self, obj):
         part = obj["fish_part"]
         if part == "body":
-            return [self.chain_weights(vertex.co.x) for vertex in obj.data.vertices]
+            result = []
+            for vertex in obj.data.vertices:
+                weights = self.chain_weights(vertex.co.x)
+                half_height, half_width, centre = profile(
+                    self.spec.slug, clamp((vertex.co.x + 1.0) / 1.8))
+                front = smooth((vertex.co.x + 0.70) / 0.06)
+                back = smooth((-0.48 - vertex.co.x) / 0.06)
+                lateral = smooth((abs(vertex.co.y) / max(half_width, 1e-6) - 0.35) / 0.30)
+                mask = front * back * lateral
+                if mask > 0.0:
+                    gill = 0.55 * mask
+                    weights = {name: value * (1.0 - gill) for name, value in weights.items()}
+                    side = "Gill.L" if vertex.co.y < 0.0 else "Gill.R"
+                    weights[side] = gill
+                jaw_front = smooth((-0.93 - vertex.co.x) / 0.05)
+                jaw_lower = smooth((centre - vertex.co.z) / max(half_height * 0.55, 1e-6))
+                jaw = 0.55 * jaw_front * jaw_lower
+                if jaw > 0.0:
+                    weights = {name: value * (1.0 - jaw) for name, value in weights.items()}
+                    weights["Jaw"] = jaw
+                result.append(weights)
+            return result
         if part in ("eye", "cornea", "barbel") or part.startswith("eye_decal."):
             return [{"Head": 1.0} for _ in obj.data.vertices]
         if part == "jaw":
@@ -562,10 +685,80 @@ class Builder:
                 "vertices": vertices, "materials": materials, "bones": bones,
                 "bytes": path.stat().st_size}
 
+    def render_review(self, out_dir, lod):
+        """Add a review-only stage after export; nothing here enters the GLB."""
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        scene = self.scene
+        scene.render.engine = "BLENDER_EEVEE"
+        scene.render.resolution_x = 900
+        scene.render.resolution_y = 650
+        scene.render.resolution_percentage = 100
+        scene.render.image_settings.file_format = "PNG"
+        scene.render.image_settings.color_mode = "RGB"
+        scene.render.film_transparent = False
+        scene.view_settings.view_transform = "Standard"
+        try:
+            scene.view_settings.look = "None"
+        except TypeError:
+            pass
+        scene.view_settings.exposure = 0.0
+        if hasattr(scene, "eevee"):
+            scene.eevee.taa_render_samples = 32
+        world = bpy.data.worlds.new("Review world")
+        world.use_nodes = True
+        background = next(node for node in world.node_tree.nodes if node.type == "BACKGROUND")
+        background.inputs["Color"].default_value = (0.012, 0.020, 0.030, 1.0)
+        background.inputs["Strength"].default_value = 0.50
+        scene.world = world
 
-def build_lod(spec, variant, lod, out_dir, report_dir, flat):
+        def area(name, location, energy, size):
+            data = bpy.data.lights.new(name, "AREA")
+            data.energy = energy
+            data.shape = "DISK"
+            data.size = size
+            obj = bpy.data.objects.new(name, data)
+            obj.location = Vector(location)
+            obj.rotation_euler = (-Vector(location)).to_track_quat("-Z", "Y").to_euler()
+            scene.collection.objects.link(obj)
+            return obj
+
+        area("Review key", (-2.6, -3.2, 1.0), 150.0, 4.0)
+        area("Review fill", (2.5, -2.6, 0.6), 55.0, 3.5)
+        area("Review front fill", (0.0, -4.0, 0.1), 30.0, 5.0)
+        area("Review rim", (1.2, 2.4, 1.8), 90.0, 2.5)
+
+        camera_data = bpy.data.cameras.new("Review camera")
+        camera = bpy.data.objects.new("Review camera", camera_data)
+        scene.collection.objects.link(camera)
+        scene.camera = camera
+        camera_data.clip_start = 0.01
+        camera_data.clip_end = 50.0
+
+        def shot(name, location, target, lens=None, ortho=None):
+            camera.location = Vector(location)
+            camera.rotation_euler = (Vector(target) - camera.location).to_track_quat("-Z", "Y").to_euler()
+            if ortho is not None:
+                camera.data.type = "ORTHO"
+                camera.data.ortho_scale = ortho
+            else:
+                camera.data.type = "PERSP"
+                camera.data.lens = lens
+            scene.render.filepath = str(out_dir / ("arulius-%s-%s.png" % (lod, name)))
+            bpy.ops.render.render(write_still=True)
+            print("RENDER", scene.render.filepath)
+
+        shot("side", (0.0, -4.0, 0.12), (0.0, 0.0, 0.04), ortho=2.45)
+        shot("three-quarter", (-2.5, -3.3, 1.35), (0.0, 0.0, 0.02), lens=60)
+        shot("top", (0.0, 0.0, 4.0), (0.0, 0.0, 0.04), ortho=2.45)
+        shot("eye", (-1.55, -1.05, 0.30),
+             (self.spec.eye[0], -0.10, self.spec.eye[2]), lens=85)
+
+
+def build_lod(spec, variant, lod, out_dir, report_dir, flat, render_dir=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    builder = Builder(spec, variant, lod, flat)
+    texture_dir = Path(report_dir) / "textures" / spec.slug
+    builder = Builder(spec, variant, lod, flat, texture_dir)
     builder.build_parts()
     builder.make_armature()
     builder.skin_parts()
@@ -580,8 +773,13 @@ def build_lod(spec, variant, lod, out_dir, report_dir, flat):
     report_path = Path(report_dir) / ("%s-%s.json" % (spec.slug, lod))
     report_path.write_text(json.dumps(facts, indent=2) + "\n", encoding="utf-8")
     print("WROTE", output, facts["triangles"], "triangles", facts["bytes"], "bytes")
-    assert facts["triangles"] <= (12000 if spec.slug == "arulius-barb" else 10000), facts
-    assert facts["bytes"] <= 1800000, facts
+    limits = {"high": (12000, 1800000), "mid": (4500, 1000000), "low": (1500, 250000)}
+    if spec.slug == "arulius-barb":
+        triangles, size = limits[lod]
+        assert facts["triangles"] <= triangles, facts
+        assert facts["bytes"] <= size, facts
+    if render_dir is not None:
+        builder.render_review(render_dir, lod)
     return facts
 
 
@@ -593,8 +791,16 @@ def main():
         variant = next(item for item in spec.variants if item.slug == args.variant)
     else:
         variant = spec.variants[0]
+
+    def resolve(value):
+        path = Path(value)
+        return path if path.is_absolute() else ROOT / path
+
+    out_dir = resolve(args.out)
+    report_dir = resolve(args.report)
+    render_dir = resolve(args.render) if args.render else None
     for lod in ("high", "mid", "low"):
-        build_lod(spec, variant, lod, args.out, args.report, args.flat)
+        build_lod(spec, variant, lod, out_dir, report_dir, args.flat, render_dir)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 {
   "species": "arulius-barb",
   "lod": "low",
-  "triangles": 1360,
-  "vertices": 824,
+  "triangles": 1292,
+  "vertices": 751,
   "materials": [
     "FishBody",
     "FishFin"
@@ -26,5 +26,5 @@
     "Gill.L",
     "Gill.R"
   ],
-  "bytes": 76396
+  "bytes": 203428
 }
