@@ -1,0 +1,29 @@
+.guide { max-width: 1180px; margin: auto; padding: 28px clamp(20px, 5vw, 64px) 64px; color: #eee9da; }
+.header { display: flex; justify-content: space-between; gap: 24px; align-items: baseline; }
+.header > a:first-child { font: 1.3rem Georgia, serif; }
+.header > a:last-child { font-size: .85rem; }
+.intro { max-width: 850px; padding: 80px 0 48px; }
+.intro h1 { font-size: clamp(3rem, 7vw, 5.5rem); line-height: 1.05; margin: 0 0 28px; }
+.intro > p { max-width: 58ch; font-size: 1.15rem; color: #c6d8d6; }
+.intro nav { display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 28px; }
+.intro nav a { padding: 10px 0; text-underline-offset: 6px; }
+.method { background: #1c3539; padding: 24px clamp(20px, 4vw, 40px); border-radius: 12px 36px 12px 12px; max-width: 78ch; }
+.method h2 { margin-top: 0; font-size: 1.6rem; }
+.method p, .footer p { color: #c6d8d6; }
+.river { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: clamp(28px, 5vw, 70px); padding: 64px 0; scroll-margin-top: 24px; border-bottom: 1px solid #446166; }
+.riverIntro h2 { font-size: 3rem; margin: 0 0 12px; }
+.scope { color: #c6d8d6; font-size: .9rem; }
+.species { padding: 0 0 30px; margin-bottom: 30px; border-bottom: 1px solid #304c50; scroll-margin-top: 24px; }
+.species:last-child { border: 0; padding-bottom: 0; margin-bottom: 0; }
+.species h3 { font-size: 1.7rem; margin: 0; }
+.scientific { margin-top: 8px; color: #c6d8d6; }
+.status { color: #d4d3b0; font-size: .9rem; }
+.species dl { font-size: .9rem; }
+.species dt { color: #a6c4c5; margin-top: 12px; }
+.species dd { margin: 4px 0 0; }
+.citations { list-style: none; padding: 0; font-size: .8rem; line-height: 1.6; overflow-wrap: anywhere; }
+.citations li { margin: 10px 0; }
+.citations span { color: #b8c8c2; }
+.footer { max-width: 75ch; padding-top: 32px; }
+.entry { position: absolute; z-index: 3; top: 80px; left: 28px; font-size: .85rem; padding: 8px 12px; background: #162c29; border-radius: 6px; }
+@media (max-width: 700px) { .intro { padding-top: 56px; } .river { grid-template-columns: 1fr; padding: 40px 0; } .header { align-items: start; } .header > a:last-child { max-width: 15ch; text-align: right; } .entry { top: 150px; left: 20px; } }

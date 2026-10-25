@@ -10,7 +10,7 @@ function watchErrors(page: Page) {
   return errors;
 }
 async function content(page: Page) {
-  await expect(page.getByText("Native Waters", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Native Waters experience", exact: true }).getByText("Native Waters", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Experience preview", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText(fixture.disclaimer, { exact: true })).toBeVisible();
