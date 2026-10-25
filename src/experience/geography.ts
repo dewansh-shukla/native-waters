@@ -1,6 +1,7 @@
 import { Vector3 } from "three";
 import india from "../../content/maps/india.geojson.json";
 import cauvery from "../../content/maps/cauvery.geojson.json";
+import riversGeo from "../../content/maps/rivers.geojson.json";
 import provenance from "../../content/maps/provenance.json";
 
 export type LonLat = readonly [longitude: number, latitude: number];
@@ -26,13 +27,29 @@ export function projectLonLat([longitude, latitude]: LonLat): Vector3 {
 const riverParts = cauvery.features
   .filter((feature) => feature.properties.featurecla === "River")
   .flatMap((feature) => feature.geometry.coordinates) as unknown as readonly LineCoordinates[];
-const partLength = (part: LineCoordinates) => part.slice(1).reduce((sum, point, index) => {
+const partLength = (part: readonly LonLat[]) => part.slice(1).reduce((sum, point, index) => {
   const previous = projectLonLat(part[index]);
   return sum + previous.distanceTo(projectLonLat(point));
 }, 0);
 const longestRiverPart = riverParts.reduce((longest, part) => partLength(part) > partLength(longest) ? part : longest);
 // An existing interior vertex, not an interpolated point or a lake centerline.
 export const CAUVERY_ANCHOR: Vector3 = projectLonLat(longestRiverPart[Math.floor(longestRiverPart.length / 2)]);
+
+export interface RiverCourse { name: string; parts: readonly LineCoordinates[] }
+
+/** Catalog tributary overviews from rivers.geojson.json, already trimmed to India's landmass. */
+export const TRIBUTARY_RIVERS: readonly RiverCourse[] = (riversGeo as unknown as {
+  features: { properties: { name: string }; geometry: { coordinates: LineCoordinates[] } }[];
+}).features.map((feature) => ({ name: feature.properties.name, parts: feature.geometry.coordinates }));
+
+/** One label anchor per river: the midpoint of the geometrically longest part (a real vertex). */
+export const RIVER_LABELS: readonly { name: string; point: LonLat }[] = [
+  { name: "Cauvery", point: longestRiverPart[Math.floor(longestRiverPart.length / 2)] },
+  ...TRIBUTARY_RIVERS.map((river) => {
+    const longest = [...river.parts].reduce((a, b) => partLength(b) > partLength(a) ? b : a);
+    return { name: river.name, point: longest[Math.floor(longest.length / 2)] };
+  }),
+];
 
 const relief = provenance.relief as { status: string; url?: string; bounds?: number[] };
 export const RELIEF_CONFIG: { url: string; bounds: GeoBounds } | null =
