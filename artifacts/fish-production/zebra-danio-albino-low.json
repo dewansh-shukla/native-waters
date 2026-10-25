@@ -1,0 +1,31 @@
+{
+  "species": "zebra-danio",
+  "lod": "low",
+  "triangles": 1132,
+  "vertices": 647,
+  "materials": [
+    "FishBody",
+    "FishFin"
+  ],
+  "bones": [
+    "Root",
+    "Head",
+    "Spine.01",
+    "Spine.02",
+    "Spine.03",
+    "Tail.01",
+    "Tail.02",
+    "TailFin",
+    "Dorsal",
+    "AnalFin",
+    "Pectoral.L",
+    "Pectoral.R",
+    "Pelvic.L",
+    "Pelvic.R",
+    "Jaw",
+    "Gill.L",
+    "Gill.R"
+  ],
+  "bytes": 199784,
+  "variant": "zebra-danio-albino"
+}

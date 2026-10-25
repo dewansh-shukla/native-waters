@@ -30,6 +30,7 @@ class SpeciesSpec:
     eye_radius: float = 0.07
     barbels: bool = False
     pattern: str = "stripes"
+    normal_high: int = 1024
 
 
 ARULIUS = SpeciesSpec(
@@ -72,6 +73,9 @@ ZEBRA_DANIO = SpeciesSpec(
     eye_radius=0.05,
     barbels=False,
     pattern="stripes",
+    # Five variants share one HIGH texture-memory budget with the Arulius, so
+    # the danio high normal map stays at 512 instead of 1024.
+    normal_high=512,
 )
 
 SPECIES = {

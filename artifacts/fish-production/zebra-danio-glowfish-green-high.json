@@ -1,0 +1,33 @@
+{
+  "species": "zebra-danio",
+  "lod": "high",
+  "triangles": 7456,
+  "vertices": 4197,
+  "materials": [
+    "FishBody",
+    "FishCornea",
+    "FishEye",
+    "FishFin"
+  ],
+  "bones": [
+    "Root",
+    "Head",
+    "Spine.01",
+    "Spine.02",
+    "Spine.03",
+    "Tail.01",
+    "Tail.02",
+    "TailFin",
+    "Dorsal",
+    "AnalFin",
+    "Pectoral.L",
+    "Pectoral.R",
+    "Pelvic.L",
+    "Pelvic.R",
+    "Jaw",
+    "Gill.L",
+    "Gill.R"
+  ],
+  "bytes": 638232,
+  "variant": "zebra-danio-glowfish-green"
+}

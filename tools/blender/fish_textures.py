@@ -5,7 +5,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
-from tools.blender.fish_specs import hex_rgb
+from tools.blender.fish_specs import hex_rgb, profile
 
 
 TAU = 2.0 * np.pi
@@ -24,6 +24,19 @@ def srgb_to_linear(rgb):
     """Blender image pixels and node colours are linear; palettes are sRGB."""
     rgb = np.asarray(rgb, dtype=np.float32)
     return np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+
+
+def eye_uv_radii(spec):
+    """UV-space (u, v) radii of a world-round eye-sized spot on the flank.
+
+    u spans the whole body length in world units while v wraps only the local
+    girth, so a UV-round spot smears 3:1 on the skin; scale each axis so the
+    spot is round where it matters. The low eye decal samples the same ellipse.
+    """
+    half_height, half_width, _ = profile(spec.slug, (spec.eye[0] + 1.0) / spec.body_length)
+    girth = 2.0 * np.pi * np.sqrt((half_height ** 2 + half_width ** 2) / 2.0)
+    world = spec.eye_radius * 0.95
+    return world / spec.body_length, world / girth
 
 
 def _scale_height(size=512):
@@ -80,14 +93,33 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     scales = _scale_height(size)
     rgb *= (0.96 + 0.05 * scales)[..., None]
 
-    # Three irregular flank blotches, mirrored onto both sides by UV symmetry.
+    # Flank markings. The Arulius carries three irregular blotches; the danios
+    # carry five horizontal navy stripes around both flanks plus a dark
+    # pre-orbital bar. `height` is the signed distance above either flank's
+    # midline (positive toward the dorsal), so one set of bands marks both sides.
     side_distance = np.minimum(np.minimum(v, 1.0 - v), np.abs(v - 0.5))
-    for x in (-0.50, 0.05, 0.55):
-        centre = (x + 1.0) / 1.8
-        du = ((u - centre + 0.5) % 1.0) - 0.5
-        mask = np.exp(-((du / 0.040) ** 2 + (side_distance / 0.11) ** 2))
-        mask *= 0.86 + 0.14 * np.sin(TAU * (u * 5.0 + v * 9.0))
-        rgb = rgb * (1.0 - 0.82 * mask[..., None]) + stripe * (0.82 * mask[..., None])
+    if spec.pattern == "stripes":
+        off_r = ((v + 0.5) % 1.0) - 0.5
+        off_l = v - 0.5
+        height = np.where(np.abs(off_r) <= np.abs(off_l), off_r, -off_l)
+        stripe_mask = np.zeros_like(v)
+        for band in (0.17, 0.085, 0.0, -0.085, -0.17):
+            stripe_mask = np.maximum(stripe_mask,
+                                     np.exp(-((height - band) / 0.021) ** 2))
+        stripe_mask *= np.clip((u - 0.03) / 0.08, 0.0, 1.0)
+        stripe_mask *= 0.92 + 0.08 * np.sin(TAU * (u * 3.0 + v * 5.0))
+        rgb = rgb * (1.0 - 0.80 * stripe_mask[..., None]) + stripe * (0.80 * stripe_mask[..., None])
+        bar_u = (spec.eye[0] + 1.0) / spec.body_length - 0.045
+        preorbital = (np.exp(-((u - bar_u) / 0.016) ** 2)
+                      * np.exp(-((height / 0.16) ** 2)))
+        rgb = rgb * (1.0 - 0.45 * preorbital[..., None]) + stripe * (0.45 * preorbital[..., None])
+    else:
+        for x in (-0.50, 0.05, 0.55):
+            centre = (x + 1.0) / 1.8
+            du = ((u - centre + 0.5) % 1.0) - 0.5
+            mask = np.exp(-((du / 0.040) ** 2 + (side_distance / 0.11) ** 2))
+            mask *= 0.86 + 0.14 * np.sin(TAU * (u * 5.0 + v * 9.0))
+            rgb = rgb * (1.0 - 0.82 * mask[..., None]) + stripe * (0.82 * mask[..., None])
 
     gill = np.exp(-((u - 0.20) / 0.026) ** 2) * np.exp(-(side_distance / 0.13) ** 2)
     rgb *= (1.0 - 0.24 * gill[..., None])
@@ -108,13 +140,15 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
 
     # Only the low LOD needs painted eyes: its flat eye decals sample these spots.
     # High and mid carry real geometry, so a painted socket ring would show around it.
-    eye_u = (spec.eye[0] + 1.0) / 1.8
+    eye_u = (spec.eye[0] + 1.0) / spec.body_length
     iris = _rgb(variant.iris)
-    # u spans 1.8 body lengths while v only wraps the ~0.6 girth, so a UV-round
+    # u spans the body length while v only wraps the ~0.6 girth, so a UV-round
     # spot smears into a 3:1 ellipse on the skin. Normalise each axis so the low
-    # eye spot is round in world space (0.049 radius, matching its decal) and the
-    # high/mid eyelid rim hugs the 0.052-radius eye globe.
-    ru, rv = (0.027, 0.082) if eye_spots else (0.033, 0.100)
+    # eye spot is round in world space (matching its decal) and the high/mid
+    # eyelid rim hugs the eye globe.
+    ru, rv = eye_uv_radii(spec)
+    if not eye_spots:
+        ru, rv = ru * 1.28, rv * 1.28
     for eye_v in (0.04, 0.46):
         du = u - eye_u
         dv = v - eye_v

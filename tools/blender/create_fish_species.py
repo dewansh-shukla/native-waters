@@ -21,7 +21,8 @@ sys.path.insert(0, str(ROOT))
 from tools.blender.fish_geometry import fin, loft, sphere, tube  # noqa: E402
 from tools.blender.fish_specs import SPECIES, hex_rgb, profile  # noqa: E402
 from tools.blender.fish_textures import (body_albedo, body_normal, body_orm, eye_albedo,  # noqa: E402
-                                         srgb_to_linear)
+                                         eye_uv_radii, srgb_to_linear)
+from tools.assets.fish_budgets import BYTE_CAPS, TRIANGLE_CAPS  # noqa: E402
 
 BONE_NAMES = (
     "Head", "Jaw", "Gill.L", "Gill.R",
@@ -155,9 +156,11 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
                                                 blend="BLENDED")
         return materials
 
-    albedo_size, normal_size = (1024, 1024) if lod == "high" else (1024, 512)
-    if lod == "low":
-        albedo_size = normal_size = 512
+    # Albedo stays at 1024 for high/mid; the normal map is 1024 at high only
+    # for species that carry one variant (the Arulius) - five danio variants
+    # share one HIGH texture-memory budget, so theirs stays at 512.
+    albedo_size = 512 if lod == "low" else 1024
+    normal_size = {"high": spec.normal_high, "mid": 512, "low": 512}[lod]
     lod_dir = (Path(texture_dir) / lod) if texture_dir is not None else None
     albedo = body_albedo(spec, variant, albedo_size,
                          path=(lod_dir / "body-albedo.jpg") if lod_dir else None,
@@ -295,9 +298,9 @@ class Builder:
         u0 = (x + 1.0) / 1.8
         v0 = 0.04 if side > 0 else 0.46
         # Sample the same world-round UV ellipse the body paint uses (u is
-        # stretched 1.8 body lengths, v only wraps the ~0.6 girth), so the
-        # decal shows the full painted eye instead of a zoomed, offset crop.
-        ru, rv = 0.027, 0.082
+        # stretched across the body length, v only wraps the local girth), so
+        # the decal shows the full painted eye instead of a zoomed, offset crop.
+        ru, rv = eye_uv_radii(self.spec)
         vertices = [(x, y, z)]
         uvs = [(u0, v0)]
         for segment in range(segments):
@@ -685,10 +688,13 @@ class Builder:
                 "vertices": vertices, "materials": materials, "bones": bones,
                 "bytes": path.stat().st_size}
 
-    def render_review(self, out_dir, lod):
+    def render_review(self, out_dir, lod, prefix=None, shots=None):
         """Add a review-only stage after export; nothing here enters the GLB."""
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
+        prefix = prefix or self.spec.slug
+        all_shots = {"side", "three-quarter", "top", "eye"}
+        shots = sorted(all_shots if shots is None else all_shots.intersection(shots))
         scene = self.scene
         scene.render.engine = "BLENDER_EEVEE"
         scene.render.resolution_x = 900
@@ -736,6 +742,8 @@ class Builder:
         camera_data.clip_end = 50.0
 
         def shot(name, location, target, lens=None, ortho=None):
+            if name not in shots:
+                return
             camera.location = Vector(location)
             camera.rotation_euler = (Vector(target) - camera.location).to_track_quat("-Z", "Y").to_euler()
             if ortho is not None:
@@ -744,7 +752,7 @@ class Builder:
             else:
                 camera.data.type = "PERSP"
                 camera.data.lens = lens
-            scene.render.filepath = str(out_dir / ("arulius-%s-%s.png" % (lod, name)))
+            scene.render.filepath = str(out_dir / ("%s-%s-%s.png" % (prefix, lod, name)))
             bpy.ops.render.render(write_still=True)
             print("RENDER", scene.render.filepath)
 
@@ -755,9 +763,9 @@ class Builder:
              (self.spec.eye[0], -0.10, self.spec.eye[2]), lens=85)
 
 
-def build_lod(spec, variant, lod, out_dir, report_dir, flat, render_dir=None):
+def build_lod(spec, variant, lod, out_dir, report_dir, flat, render_dir=None, shots=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    texture_dir = Path(report_dir) / "textures" / spec.slug
+    texture_dir = Path(report_dir) / "textures" / variant.slug
     builder = Builder(spec, variant, lod, flat, texture_dir)
     builder.build_parts()
     builder.make_armature()
@@ -765,22 +773,71 @@ def build_lod(spec, variant, lod, out_dir, report_dir, flat, render_dir=None):
     builder.consolidate()
     builder.assert_weights()
     builder.make_action()
-    output = Path(out_dir) / spec.family / ("%s-%s.glb" % (spec.slug, lod))
+    output = Path(out_dir) / spec.family / ("%s-%s.glb" % (variant.slug, lod))
     output.parent.mkdir(parents=True, exist_ok=True)
     builder.export(output)
     facts = builder.report(output)
+    facts["variant"] = variant.slug
     Path(report_dir).mkdir(parents=True, exist_ok=True)
-    report_path = Path(report_dir) / ("%s-%s.json" % (spec.slug, lod))
+    report_path = Path(report_dir) / ("%s-%s.json" % (variant.slug, lod))
     report_path.write_text(json.dumps(facts, indent=2) + "\n", encoding="utf-8")
     print("WROTE", output, facts["triangles"], "triangles", facts["bytes"], "bytes")
-    limits = {"high": (12000, 1800000), "mid": (4500, 1000000), "low": (1500, 250000)}
-    if spec.slug == "arulius-barb":
-        triangles, size = limits[lod]
-        assert facts["triangles"] <= triangles, facts
-        assert facts["bytes"] <= size, facts
+    assert facts["triangles"] <= TRIANGLE_CAPS[variant.slug][lod], facts
+    assert facts["bytes"] <= BYTE_CAPS[lod], facts
     if render_dir is not None:
-        builder.render_review(render_dir, lod)
+        builder.render_review(render_dir, lod, prefix=variant.slug, shots=shots)
     return facts
+
+
+def review_shots(spec, variant, lod):
+    """Which review shots one (variant, LOD) render gets.
+
+    Single-variant species (the Arulius) keep the full four-view set. The five
+    danio variants get only the contact-sheet views: one three-quarter per
+    variant at high, a top view of the standard variant, and one low-LOD side
+    view to confirm the painted eye and stripes survive.
+    """
+    if len(spec.variants) < 2:
+        return None
+    standard = variant.slug == spec.slug
+    if lod == "high":
+        return ("three-quarter", "top") if standard else ("three-quarter",)
+    if lod == "low" and standard:
+        return ("side",)
+    return ()
+
+
+def compose_contact_sheet(render_dir, spec):
+    """Stitch the per-variant high renders into one danio contact sheet."""
+    import numpy as np
+    paths = [Path(render_dir) / ("%s-high-three-quarter.png" % variant.slug)
+             for variant in spec.variants]
+    top = Path(render_dir) / ("%s-high-top.png" % spec.slug)
+    if top.exists():
+        paths.append(top)
+    paths = [path for path in paths if path.exists()]
+    if len(paths) < 2:
+        return
+    images = [bpy.data.images.load(str(path)) for path in paths]
+    width, height = images[0].size[0], images[0].size[1]
+    for image in images:
+        if image.size[0] != width or image.size[1] != height:
+            raise ValueError("contact sheet tiles must share one size")
+    columns = 3
+    rows = (len(images) + columns - 1) // columns
+    sheet = np.zeros((rows * height, columns * width, 4), dtype=np.float32)
+    for index, image in enumerate(images):
+        pixels = np.array(image.pixels[:], dtype=np.float32).reshape(height, width, 4)
+        row, column = divmod(index, columns)
+        sheet[row * height:(row + 1) * height,
+              column * width:(column + 1) * width] = pixels
+    composite = bpy.data.images.new("danio-contact-sheet", width=columns * width,
+                                    height=rows * height, alpha=True)
+    composite.pixels.foreach_set(sheet.ravel())
+    composite.filepath_raw = str(Path(render_dir) / "danio-contact-sheet.png")
+    composite.file_format = "PNG"
+    composite.save()
+    print("WROTE", composite.filepath_raw)
 
 
 def main():
@@ -788,9 +845,9 @@ def main():
     args = parse_args()
     spec = SPECIES[args.species]
     if args.variant:
-        variant = next(item for item in spec.variants if item.slug == args.variant)
+        variants = [next(item for item in spec.variants if item.slug == args.variant)]
     else:
-        variant = spec.variants[0]
+        variants = list(spec.variants)
 
     def resolve(value):
         path = Path(value)
@@ -799,8 +856,12 @@ def main():
     out_dir = resolve(args.out)
     report_dir = resolve(args.report)
     render_dir = resolve(args.render) if args.render else None
-    for lod in ("high", "mid", "low"):
-        build_lod(spec, variant, lod, out_dir, report_dir, args.flat, render_dir)
+    for variant in variants:
+        for lod in ("high", "mid", "low"):
+            shots = review_shots(spec, variant, lod) if render_dir is not None else None
+            build_lod(spec, variant, lod, out_dir, report_dir, args.flat, render_dir, shots)
+    if render_dir is not None and len(spec.variants) > 1:
+        compose_contact_sheet(render_dir, spec)
 
 
 if __name__ == "__main__":
