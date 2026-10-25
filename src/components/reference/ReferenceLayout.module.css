@@ -1,0 +1,42 @@
+.layout { display: grid; grid-template-columns: minmax(0, 65fr) minmax(0, 35fr); height: 100svh; }
+.visual { position: relative; min-width: 0; height: 100svh; overflow: hidden; background: #152f35; }
+.visual :global(.experience) { height: 100%; min-height: 0; }
+.visual :global(.experience-map-intro) { width: min(280px, 42%); }
+.panel { overflow-y: auto; min-width: 0; padding: 28px clamp(22px, 3vw, 48px) 48px; background: #102428; }
+.panel h1 { font-size: clamp(2.2rem, 3.5vw, 3.8rem); line-height: 1.08; margin: 36px 0 20px; overflow-wrap: anywhere; }
+.panel h2 { font-size: 1.6rem; margin-top: 32px; }
+.panel p { color: #c6d8d6; max-width: 68ch; }
+.panel nav { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: .85rem; }
+.panel ul { padding-left: 22px; line-height: 1.7; }
+.panel li { margin: 12px 0; }
+.panel dl { font-size: .95rem; }
+.panel dt { color: #a6c4c5; margin-top: 16px; }
+.panel dd { margin: 4px 0 0; line-height: 1.6; }
+.panel a { text-underline-offset: 3px; overflow-wrap: anywhere; }
+.citations { padding: 0 !important; list-style: none; font-size: .8rem; }
+.citations span { display: block; color: #b8c8c2; }
+.record { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid #446166; }
+.status { color: #d4d3b0 !important; }
+.fallback { display: grid; align-content: center; justify-items: start; height: 100%; padding: clamp(24px, 6vw, 80px); isolation: isolate; }
+.fallback svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .25; z-index: -1; }
+.fallback h2 { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.1; max-width: 15ch; margin: 0 0 20px; }
+.fallback p { max-width: 48ch; color: #d0e2df; }
+.fallback button { margin-top: 12px; }
+.notice { padding: 16px; border-left: 3px solid #b8cba4; background: #1c3539; }
+@media (max-width: 900px) {
+ .layout { grid-template-columns: 1fr; grid-template-rows: 50svh 50svh; }
+ .visual { height: 50svh; }
+ .panel { padding: 24px; }
+ .panel h1 { margin-top: 28px; }
+ .visual :global(.experience-map-intro) { width: calc(100% - 40px); }
+ .visual :global(.experience-map-intro h1) { font-size: 1.6rem; }
+ .visual :global(.experience-map-intro > p:not(.experience-readiness)) { display: none; }
+ .visual :global(.experience-map-intro) { bottom: 85px; top: auto; left: 20px; }
+ .visual :global(.experience-map-disclaimer) { right: 16px; left: 16px; top: 64px; bottom: auto; width: auto; font-size: .62rem; }
+ .visual :global(.experience-follow-card) { top: 100px; right: 16px; padding: 10px; }
+ .visual :global(.experience-fish-controls) { bottom: 90px; }
+ .visual :global(.experience[data-phase=map] .scene-viewport > div:not([role=alert])) { height: calc(100% - 170px) !important; top: 72px; }
+ .fallback { padding: 24px; }
+ .fallback h2 { font-size: 2rem; margin-bottom: 8px; }
+ .fallback p { font-size: .85rem; margin: 8px 0; }
+}
