@@ -1,0 +1,30 @@
+{
+  "species": "arulius-barb",
+  "lod": "low",
+  "triangles": 1360,
+  "vertices": 824,
+  "materials": [
+    "FishBody",
+    "FishFin"
+  ],
+  "bones": [
+    "Root",
+    "Head",
+    "Spine.01",
+    "Spine.02",
+    "Spine.03",
+    "Tail.01",
+    "Tail.02",
+    "TailFin",
+    "Dorsal",
+    "AnalFin",
+    "Pectoral.L",
+    "Pectoral.R",
+    "Pelvic.L",
+    "Pelvic.R",
+    "Jaw",
+    "Gill.L",
+    "Gill.R"
+  ],
+  "bytes": 76396
+}
