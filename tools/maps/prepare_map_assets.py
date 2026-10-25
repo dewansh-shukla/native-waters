@@ -23,6 +23,97 @@ SOURCES = {
 RELIEF_URL = "https://naturalearth.s3.amazonaws.com/50m_raster/SR_50M.zip?versionId=gS0sNgLWM3mMkML6s7ucwdH_6KVQhxMJ"
 RELIEF_HASH = "ff810f5f2747463fd8ffa612b23e5f5e5d593a345218976872b6749610976ab7"
 RELIEF_PRJ = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.017453292519943295]]'
+# Catalog river name -> Natural Earth river identity (10m rivers: name, rivernum).
+RIVERS = {
+    "Ganga": {"ne": "Ganges", "rivernum": 55},
+    "Brahmaputra": {"ne": "Brahmaputra", "rivernum": 51},
+    "Krishna": {"ne": "Krishna", "rivernum": 279},
+    "Godavari": {"ne": "God\u00e4vari", "rivernum": 179},
+}
+
+
+def inside_land(lon, lat, rings):
+    """Even-odd point-in-polygon over India's outer rings (interior holes ignored)."""
+    crossings = 0
+    for ring in rings:
+        for index in range(len(ring) - 1):
+            x1, y1 = ring[index][0], ring[index][1]
+            x2, y2 = ring[index + 1][0], ring[index + 1][1]
+            if (y1 > lat) != (y2 > lat):
+                if x1 + (lat - y1) / (y2 - y1) * (x2 - x1) > lon:
+                    crossings += 1
+    return crossings % 2 == 1
+
+
+def border_crossing(start, end, rings):
+    """Bisect the segment toward the land boundary; return the point on the border edge."""
+    inside_start = inside_land(start[0], start[1], rings)
+    low, high = 0.0, 1.0
+    point = [start[0], start[1]]
+    for _ in range(32):
+        middle = (low + high) / 2
+        point = [start[0] + (end[0] - start[0]) * middle, start[1] + (end[1] - start[1]) * middle]
+        if inside_land(point[0], point[1], rings) is inside_start:
+            low = middle
+        else:
+            high = middle
+    return point
+
+
+def trim_to_land(part, rings):
+    """Split a coordinate line into the runs inside India; interpolate at each border crossing."""
+    result, current, previous_point, previous_state = [], [], None, False
+    for point in part:
+        position(point)
+        state = inside_land(point[0], point[1], rings)
+        if state:
+            if not current and previous_point is not None:
+                current.append(border_crossing(previous_point, point, rings))
+            current.append(point)
+        elif current:
+            current.append(border_crossing(previous_point, point, rings))
+            if len(current) >= 2:
+                result.append(current)
+            current = []
+        previous_point, previous_state = point, state
+    if len(current) >= 2:
+        result.append(current)
+    return result
+
+
+def extract_tributaries(waterways, rings):
+    """Extract catalog relief rivers (River features only) trimmed to India's landmass."""
+    collected = {name: [] for name in RIVERS}
+    for feature in waterways["features"]:
+        properties = feature.get("properties", {})
+        name = properties.get("name")
+        if properties.get("featurecla") != "River":
+            continue
+        matched = next((key for key, spec in RIVERS.items() if spec["ne"] == name and spec["rivernum"] == properties.get("rivernum")), None)
+        if matched is None:
+            continue
+        geometry = feature["geometry"]
+        require(geometry["type"] in ("LineString", "MultiLineString"), "Expected river line geometry")
+        parts = geometry["coordinates"] if geometry["type"] == "MultiLineString" else [geometry["coordinates"]]
+        for part in parts:
+            require(len(part) >= 2, "Empty or singleton river part")
+            for point in part:
+                position(point)
+        collected[matched].extend(parts)
+    features, counts = [], {}
+    for name, parts in collected.items():
+        trimmed = [trimmed_part for part in parts for trimmed_part in trim_to_land(part, rings)]
+        require(trimmed, f"No {name} river segments lie within the India map")
+        counts[name] = {
+            "neName": RIVERS[name]["ne"], "rivernum": RIVERS[name]["rivernum"], "sourceParts": len(parts),
+            "parts": len(trimmed), "points": sum(len(part) for part in trimmed),
+        }
+        features.append({
+            "type": "Feature",
+            "properties": {"name": name, "featurecla": "River", "rivernum": RIVERS[name]["rivernum"]},
+            "geometry": {"type": "MultiLineString", "coordinates": trimmed},
+        })
+    return features, counts
 
 
 def require(condition, message):
@@ -147,7 +238,7 @@ def crop_relief(data):
 
 
 def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n")
+    path.write_text(json.dumps(data, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
 def main():
@@ -163,11 +254,14 @@ def main():
         require(sha256(data) == digest, f"Unexpected pinned source SHA256: {name}")
         raw[name] = data
         records[name] = {"url": url, "sha256": digest, "bytes": len(data)}
-    license_text = raw["LICENSE.md"].decode()
+    license_text = raw["LICENSE.md"].decode("utf-8")
     require("Everything here is public domain" in license_text and "raster + vector" in license_text, "Public-domain license missing")
     india, rivers = validate_sources(json.loads(raw["ne_10m_admin_0_countries_ind.geojson"]), json.loads(raw["ne_10m_rivers_lake_centerlines.geojson"]))
+    waterways = json.loads(raw["ne_10m_rivers_lake_centerlines.geojson"])
     india = {"type": "Feature", "properties": {k: india["properties"][k] for k in ("ADM0_A3", "NAME", "ADM0_A3_IN")}, "geometry": india["geometry"]}
     rivers = [{"type": "Feature", "properties": {k: f["properties"][k] for k in ("rivernum", "name", "featurecla")}, "geometry": f["geometry"]} for f in rivers]
+    outer_rings = [polygon[0] for polygon in india["geometry"]["coordinates"]]
+    tributaries, tributary_counts = extract_tributaries(waterways, outer_rings)
     relief_image = None
     relief = {"status": "unavailable", "reason": "Optional relief not requested; verified outline with stylistic lighting remains usable.", "sourceUrl": RELIEF_URL}
     if args.relief_archive or args.with_relief:
@@ -182,24 +276,33 @@ def main():
     # All source/geometry validation completes before writing any deliverable.
     save_json(content / "india.geojson.json", india)
     save_json(content / "cauvery.geojson.json", {"type": "FeatureCollection", "crs": CRS, "features": rivers})
-    (content / "LICENSE.md").write_text(license_text)
+    save_json(content / "rivers.geojson.json", {"type": "FeatureCollection", "crs": CRS, "features": tributaries})
+    (content / "LICENSE.md").write_text(license_text, encoding="utf-8")
     relief_path = public / "india-shaded-relief.jpg"
     if relief_image is not None:
         relief_path.write_bytes(relief_image)
     elif relief_path.exists():
         relief_path.unlink()
-    outputs = {p.name: {"sha256": sha256(p.read_bytes()), "bytes": p.stat().st_size} for p in (content / "india.geojson.json", content / "cauvery.geojson.json")}
+    outputs = {p.name: {"sha256": sha256(p.read_bytes()), "bytes": p.stat().st_size} for p in (content / "india.geojson.json", content / "cauvery.geojson.json", content / "rivers.geojson.json")}
     save_json(content / "provenance.json", {
         "provider": "Natural Earth", "credit": "Made with Natural Earth", "commit": COMMIT,
         "license": "Public domain", "licenseFile": "content/maps/LICENSE.md", "sources": records,
         "crs": CRS_NAME, "coordinateOrder": "longitude, latitude", "cartographicScale": "1:10 million (not ten-metre survey accuracy)",
         "boundaryPolicy": "India point-of-view variant; generalized cartographic depiction, not an official Survey of India map.",
-        "filters": {"india": {"ADM0_A3": "IND"}, "cauvery": {"rivernum": 403}},
-        "validation": {"indiaFeatures": 1, "indiaPolygons": 35, "indiaPoints": 8474, "indiaBounds": INDIA_BOUNDS, "cauveryFeatures": 2, "riverParts": 7, "riverPoints": 283, "lakeParts": 2, "lakePoints": 28},
+        "filters": {
+            "india": {"ADM0_A3": "IND"}, "cauvery": {"rivernum": 403},
+            "tributaries": {name: {"neName": spec["ne"], "rivernum": spec["rivernum"], "featurecla": "River"} for name, spec in RIVERS.items()},
+        },
+        "validation": {
+            "indiaFeatures": 1, "indiaPolygons": 35, "indiaPoints": 8474, "indiaBounds": INDIA_BOUNDS, "cauveryFeatures": 2, "riverParts": 7, "riverPoints": 283, "lakeParts": 2, "lakePoints": 28,
+            "tributaries": tributary_counts,
+        },
         "outputs": outputs, "relief": relief,
-        "interpretation": "Real generalized Cauvery overview; illustrative dive, not a surveyed reach. No polar-parrot occurrence is asserted.",
+        "trimPolicy": "Tributary river centerlines are retained unsimplified but split and clipped to India's landmass; Cauvery is never trimmed (identical source geometry).",
+        "interpretation": "Real generalized Cauvery overview and India-basin tributary overviews; illustrative dive, not a surveyed reach. No polar-parrot occurrence is asserted.",
     })
-    print(f"Validated India: 35 polygons / 8474 points; Cauvery: 7 river + 2 lake parts / 311 points. Relief: {relief['status']}")
+    summary = ", ".join(f"{name}: {counts['parts']} parts / {counts['points']} points" for name, counts in tributary_counts.items())
+    print(f"Validated India: 35 polygons / 8474 points; Cauvery: 7 river + 2 lake parts / 311 points; Tributaries [{summary}]. Relief: {relief['status']}")
 
 
 if __name__ == "__main__":

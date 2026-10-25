@@ -1,6 +1,6 @@
 import { BufferGeometry, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Path, Quaternion, Shape, Vector2, Vector3 } from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { CAUVERY_PARTS, INDIA_BOUNDS, INDIA_SHAPES, MAP_TOP, projectLonLat, RELIEF_CONFIG, type GeoBounds, type PolygonCoordinates } from "@/experience/geography";
+import { CAUVERY_PARTS, TRIBUTARY_RIVERS, INDIA_BOUNDS, INDIA_SHAPES, MAP_TOP, projectLonLat, RELIEF_CONFIG, type GeoBounds, type PolygonCoordinates } from "@/experience/geography";
 
 export function polygonShape(rings: PolygonCoordinates): Shape {
   const paths = rings.map((ring) => ring.map((lonLat) => {
@@ -78,5 +78,7 @@ export function buildMapGeometry() {
   const river = riverTubes(riverParts, 0.026);
   const glow = riverTubes(riverParts, 0.065);
   const hit = riverTubes(riverParts, 0.17);
-  return { land, coast, riverParts, river, glow, hit, dispose() { [land, coast, river, glow, hit].forEach((geometry) => geometry.dispose()); } };
+  const tributaryParts = TRIBUTARY_RIVERS.flatMap((river) => river.parts.map((part) => part.map(projectLonLat)));
+  const tributary = tributaryParts.length > 0 ? riverTubes(tributaryParts, 0.02) : new BufferGeometry();
+  return { land, coast, riverParts, river, glow, hit, tributary, dispose() { [land, coast, river, glow, hit, tributary].forEach((geometry) => geometry.dispose()); } };
 }

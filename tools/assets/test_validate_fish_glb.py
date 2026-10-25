@@ -41,13 +41,14 @@ class ValidationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.original = V1.read_bytes()
+        cls.animated = (ROOT / 'public/models/polar-parrot-study-v1-animated.glb').read_bytes()
         cls.probe_hash = hashlib.sha256(PROBE.read_bytes()).hexdigest()
 
-    def run_cli(self, data):
+    def run_cli(self, data, *args):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'fish.glb'
             path.write_bytes(data)
-            result = subprocess.run([sys.executable, '-B', str(CLI), str(path)],
+            result = subprocess.run([sys.executable, '-B', str(CLI), str(path), *args],
                                     capture_output=True, text=True)
         self.assertTrue(result.stdout.strip(), result.stderr)
         return result.returncode, json.loads(result.stdout)
@@ -71,6 +72,31 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(facts['axis']['dorsal'], '+Y')
         self.assertEqual(hashlib.sha256(PROBE.read_bytes()).hexdigest(), self.probe_hash)
         self.assertEqual(V1.read_bytes(), self.original)
+
+    def test_custom_limits_clips_and_bones(self):
+        code, facts = self.run_cli(self.original, '--triangles', '41771')
+        self.assertNotEqual(code, 0)
+        self.assertIn('budget', facts['error'])
+        code, facts = self.run_cli(self.original, '--primitives', '10')
+        self.assertNotEqual(code, 0)
+        self.assertIn('budget', facts['error'])
+        code, facts = self.run_cli(self.original, '--bytes', '1000')
+        self.assertNotEqual(code, 0)
+        self.assertIn('payload', facts['error'])
+        code, facts = self.run_cli(self.original, '--triangles', '41772',
+                                   '--primitives', '11', '--bytes', str(3 * 1024 * 1024))
+        self.assertEqual(code, 0, facts)
+        code, facts = self.run_cli(self.animated, '--clip', 'Swim')
+        self.assertNotEqual(code, 0)
+        self.assertIn('animation clips', facts['error'])
+        code, facts = self.run_cli(self.animated, '--clip', 'Swim', '--clip', 'Breathing',
+                                   '--clip', 'FinIdle')
+        self.assertEqual(code, 0, facts)
+        code, facts = self.run_cli(self.animated, '--bone', 'Head', '--bone', 'Gill.L')
+        self.assertEqual(code, 0, facts)
+        code, facts = self.run_cli(self.animated, '--bone', 'NoSuchBone')
+        self.assertNotEqual(code, 0)
+        self.assertIn('required bone', facts['error'])
 
     def test_active_fixture_model(self):
         fixture = json.loads((ROOT / 'content/fixtures/pipeline-test.json').read_text())

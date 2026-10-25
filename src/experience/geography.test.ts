@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import india from "../../content/maps/india.geojson.json";
 import cauvery from "../../content/maps/cauvery.geojson.json";
-import { CAUVERY_ANCHOR, CAUVERY_PARTS, INDIA_BOUNDS, INDIA_SHAPES, MAP_TOP, RELIEF_CONFIG, projectLonLat } from "./geography";
+import rivers from "../../content/maps/rivers.geojson.json";
+import { CAUVERY_ANCHOR, CAUVERY_PARTS, INDIA_BOUNDS, INDIA_SHAPES, MAP_TOP, RIVER_LABELS, TRIBUTARY_RIVERS, RELIEF_CONFIG, projectLonLat } from "./geography";
 
 describe("sourced map geography", () => {
   it("preserves all island polygons, rings, and finite CRS84 bounds", () => {
@@ -54,6 +55,36 @@ describe("sourced map geography", () => {
     expect(CAUVERY_ANCHOR.y).toBe(8);
     expect(CAUVERY_ANCHOR.x).toBeLessThan(0);
     expect(CAUVERY_ANCHOR.z).toBeGreaterThan(0);
+  });
+
+  it("exposes the four catalog tributaries with trimmed, finite multi-line geometry", () => {
+    expect(TRIBUTARY_RIVERS.map((river) => river.name)).toEqual(["Ganga", "Brahmaputra", "Krishna", "Godavari"]);
+    expect(TRIBUTARY_RIVERS.map((river) => river.parts).flat()).toEqual(
+      (rivers.features as { geometry: { coordinates: number[][][] } }[]).flatMap((feature) => feature.geometry.coordinates)
+    );
+    for (const river of TRIBUTARY_RIVERS) for (const part of river.parts) {
+      expect(part.length).toBeGreaterThan(1);
+      for (const point of part) {
+        expect(point.every(Number.isFinite)).toBe(true);
+        expect(point[0]).toBeGreaterThanOrEqual(INDIA_BOUNDS[0]);
+        expect(point[0]).toBeLessThanOrEqual(INDIA_BOUNDS[2]);
+        expect(point[1]).toBeGreaterThanOrEqual(INDIA_BOUNDS[1]);
+        expect(point[1]).toBeLessThanOrEqual(INDIA_BOUNDS[3]);
+      }
+    }
+  });
+
+  it("places one label anchor per catalog river on a real tributary or Cauvery vertex", () => {
+    expect(RIVER_LABELS.map((label) => label.name)).toEqual(["Cauvery", "Ganga", "Brahmaputra", "Krishna", "Godavari"]);
+    const tributaryVertices = [...TRIBUTARY_RIVERS];
+    for (const label of RIVER_LABELS) {
+      if (label.name === "Cauvery") {
+        expect(projectLonLat(label.point).equals(CAUVERY_ANCHOR)).toBe(true);
+        continue;
+      }
+      const river = tributaryVertices.find((r) => r.name === label.name)!;
+      expect(river.parts.flat().some((point) => point[0] === label.point[0] && point[1] === label.point[1])).toBe(true);
+    }
   });
 
   it("aligns optional relief using geographic crop bounds rather than a separate image fit", () => {

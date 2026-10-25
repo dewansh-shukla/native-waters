@@ -32,6 +32,26 @@ describe("real map geometry", () => {
     expect(map.riverParts.flat().some((point) => point.distanceTo(CAUVERY_ANCHOR) < 1e-9)).toBe(true);
     map.dispose();
   });
+
+  it("builds one tube mesh for every projected tributary vertex without touching the Cauvery tubes", () => {
+    const map = buildMapGeometry();
+    const tributary = map.tributary;
+    expect(tributary).not.toBeNull();
+    const tributaryPosition = tributary!.getAttribute("position");
+    const riverPosition = map.river.getAttribute("position");
+    const tributaryVertices = new Set<string>();
+    for (let i = 0; i < tributaryPosition.count; i++) tributaryVertices.add(`${tributaryPosition.getX(i)},${tributaryPosition.getY(i)},${tributaryPosition.getZ(i)}`);
+    expect(tributaryVertices.size).toBeGreaterThan(0);
+    for (let i = 0; i < riverPosition.count; i++) {
+      expect(tributaryVertices.has(`${riverPosition.getX(i)},${riverPosition.getY(i)},${riverPosition.getZ(i)}`)).toBe(false);
+    }
+    for (let i = 0; i < tributaryPosition.count; i++) {
+      const y = tributaryPosition.getY(i);
+      expect(y).toBeGreaterThan(MAP_TOP + 0.045 - 0.021);
+      expect(y).toBeLessThan(MAP_TOP + 0.045 + 0.021);
+    }
+    map.dispose();
+  });
   it("extrudes upward to Y=8, with finite upward-facing cap normals and a 15-unit country height", () => {
     const map = buildMapGeometry();
     map.land.computeBoundingBox();

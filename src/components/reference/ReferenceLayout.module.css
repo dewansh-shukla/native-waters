@@ -1,8 +1,16 @@
 .layout { display: grid; grid-template-columns: minmax(0, 65fr) minmax(0, 35fr); height: 100svh; }
+.layout.closed { grid-template-columns: minmax(0, 100fr) 0; }
 .visual { position: relative; min-width: 0; height: 100svh; overflow: hidden; background: #152f35; }
 .visual :global(.experience) { height: 100%; min-height: 0; }
 .visual :global(.experience-map-intro) { width: min(280px, 42%); }
-.panel { overflow-y: auto; min-width: 0; padding: 28px clamp(22px, 3vw, 48px) 48px; background: #102428; }
+.panel { position: relative; overflow-y: auto; min-width: 0; padding: 28px clamp(22px, 3vw, 48px) 48px; background: #102428; }
+.panel[hidden] { display: none; }
+.close, .reopen { color: #d0e2df; border: none; cursor: pointer; font: inherit; font-size: .8rem; }
+.close:focus-visible, .reopen:focus-visible { outline: 2px solid #b8cba4; outline-offset: 2px; }
+.close { margin-left: auto; width: 26px; height: 26px; padding: 0; border-radius: 999px; line-height: 1; font-size: .9rem; color: #a6c4c5; background: transparent; }
+.close:hover { background: #26404a; color: #ffffff; }
+.reopen { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 5; padding: 10px 14px 10px 16px; border-radius: 999px 0 0 999px; background: rgba(16, 36, 40, .9); box-shadow: 0 2px 10px rgba(0, 0, 0, .35); font-size: .72rem; letter-spacing: .05em; color: #c6d8d6; }
+.reopen:hover { background: #26404a; color: #ffffff; }
 .panel h1 { font-size: clamp(2.2rem, 3.5vw, 3.8rem); line-height: 1.08; margin: 36px 0 20px; overflow-wrap: anywhere; }
 .panel h2 { font-size: 1.6rem; margin-top: 32px; }
 .panel p { color: #c6d8d6; max-width: 68ch; }
@@ -25,8 +33,11 @@
 .notice { padding: 16px; border-left: 3px solid #b8cba4; background: #1c3539; }
 @media (max-width: 900px) {
  .layout { grid-template-columns: 1fr; grid-template-rows: 50svh 50svh; }
+ .layout.closed { grid-template-rows: 100svh 0; }
  .visual { height: 50svh; }
+ .layout.closed .visual { height: 100svh; }
  .panel { padding: 24px; }
+ .close { width: 28px; height: 28px; }
  .panel h1 { margin-top: 28px; }
  .visual :global(.experience-map-intro) { width: calc(100% - 40px); }
  .visual :global(.experience-map-intro h1) { font-size: 1.6rem; }

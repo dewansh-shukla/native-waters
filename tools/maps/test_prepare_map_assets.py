@@ -3,10 +3,43 @@ import json
 import unittest
 from pathlib import Path
 
-from prepare_map_assets import validate_sources, validate_world_file
+from prepare_map_assets import inside_land, trim_to_land, validate_sources, validate_world_file
 
 ROOT = Path(__file__).resolve().parents[2]
 CRS = {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}}
+
+SQUARE_RINGS = [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]]
+
+
+class LandTrimTests(unittest.TestCase):
+    def test_inside_land_answering_even_odd_across_outer_rings(self):
+        self.assertTrue(inside_land(1, 1, SQUARE_RINGS))
+        self.assertFalse(inside_land(3, 1, SQUARE_RINGS))
+        self.assertFalse(inside_land(-1, 1, SQUARE_RINGS))
+
+    def test_trim_split_a_part_at_each_boundary_crossing(self):
+        parts = trim_to_land([[1.5, 1.5], [2.5, 2], [3, 2], [2.5, 1], [1, 0.5]], SQUARE_RINGS)
+        self.assertEqual(2, len(parts))
+        self.assertEqual(4, sum(len(part) for part in parts))
+        self.assertEqual([1.5, 1.5], parts[0][0])
+        self.assertAlmostEqual(2, parts[0][1][0], places=6)
+        self.assertAlmostEqual(1.75, parts[0][1][1], places=6)
+        self.assertAlmostEqual(2, parts[1][0][0], places=6)
+        self.assertAlmostEqual(0.8333333, parts[1][0][1], places=6)
+        self.assertEqual([1, 0.5], parts[1][1])
+
+    def test_trim_drops_parts_that_never_enter_the_land(self):
+        self.assertEqual([], trim_to_land([[3, 1], [4, 1]], SQUARE_RINGS))
+
+    def test_trim_keeps_segments_that_stay_inside(self):
+        self.assertEqual([[[0.5, 0.5], [1, 1]]], trim_to_land([[0.5, 0.5], [1, 1]], SQUARE_RINGS))
+
+    def test_trim_returns_at_least_two_points_per_part_and_clips_the_exit(self):
+        parts = trim_to_land([[1, 1], [2.5, 1]], SQUARE_RINGS)
+        self.assertEqual(1, len(parts))
+        self.assertEqual([1, 1], parts[0][0])
+        self.assertAlmostEqual(2, parts[0][1][0], places=6)
+        self.assertAlmostEqual(1, parts[0][1][1], places=6)
 
 
 class SourceValidationTests(unittest.TestCase):

@@ -8,6 +8,15 @@ import sys
 import zlib
 
 
+DEFAULT_LIMITS = {
+    'max_triangles': 41772,
+    'max_primitives': 11,
+    'max_bytes': 3 * 1024 * 1024,
+    'clips': None,
+    'bones': (),
+}
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -68,8 +77,10 @@ def transform(node):
     return [[r[i][j] * s[j] for j in range(3)] + [t[i]] for i in range(3)] + [[0, 0, 0, 1]]
 
 
-def validate(path):
-    require(path.stat().st_size <= 3 * 1024 * 1024, 'payload exceeds 3 MiB')
+def validate(path, limits=None):
+    limits = {**DEFAULT_LIMITS, **(limits or {})}
+    require(path.stat().st_size <= limits['max_bytes'],
+            'payload exceeds %d bytes' % limits['max_bytes'])
     raw = path.read_bytes()
     magic, version, length = struct.unpack_from('<4sII', raw)
     require(magic == b'glTF' and version == 2, 'GLB header/version')
@@ -122,8 +133,10 @@ def validate(path):
         require('uri' not in image, 'external image URI')
         _, start, size = view(image['bufferView'])
         require(size > 0, 'image empty')
+        payload = binary[start:start + size]
         images.append({'name': image.get('name', ''), 'mime': image['mimeType'],
-                       'dimensions': image_dimensions(binary[start:start + size], image['mimeType']), 'bytes': size})
+                       'dimensions': image_dimensions(payload, image['mimeType']),
+                       'bytes': size, 'sha256': hashlib.sha256(payload).hexdigest()})
     require(images, 'no embedded images')
     nodes, skins = d['nodes'], d['skins']
     require(not d.get('cameras') and 'KHR_lights_punctual' not in d.get('extensions', {}), 'staged camera/lights')
@@ -199,7 +212,8 @@ def validate(path):
         points.extend(geometry)
         named[node.get('name', str(i)).lower()] = geometry
     require(used == set(range(len(d['meshes']))), 'uninstantiated mesh')
-    require(0 < triangles <= 41772 and 0 < primitives <= 11, 'triangle/primitive budget')
+    require(0 < triangles <= limits['max_triangles'] and 0 < primitives <= limits['max_primitives'],
+            'triangle/primitive budget')
     lo, hi = [min(p[k] for p in points) for k in range(3)], [max(p[k] for p in points) for k in range(3)]
     extent = [hi[k] - lo[k] for k in range(3)]
     require(1.7 <= extent[0] <= 2.3 and extent[0] > max(extent[1:]) and all(0 < x <= 2.3 for x in extent), 'world bounds expected ~2 long X')
@@ -241,6 +255,12 @@ def validate(path):
             errors.append(error)
         animations.append({'name': anim.get('name', ''), 'start': min(times), 'end': max(times), 'duration': max(times)-min(times), 'max_loop_error': max(errors)})
     require(animations, 'at least one animation required')
+    if limits['clips'] is not None:
+        require({animation['name'] for animation in animations} == set(limits['clips']),
+                'animation clips must be exactly ' + ', '.join(sorted(limits['clips'])))
+    joint_names = {nodes[joint].get('name', str(joint)) for skin in skins for joint in skin['joints']}
+    missing_bones = [name for name in limits['bones'] if name not in joint_names]
+    require(not missing_bones, 'required bone missing: ' + ', '.join(missing_bones))
     materials = []
     for material in d.get('materials', []):
         pbr, links = material.get('pbrMetallicRoughness', {}), {}
@@ -255,13 +275,48 @@ def validate(path):
     return {'ok': True, 'path': str(path), 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(), 'triangles': triangles,
             'primitives': primitives, 'bounds': {'min': lo, 'max': hi, 'extent': extent}, 'axis': axis,
             'bones': [[nodes[j].get('name', str(j)) for j in s['joints']] for s in skins],
-            'images': images, 'materials': materials, 'animations': animations}
+            'images': images, 'materials': materials, 'animations': animations,
+            'limits': {'max_triangles': limits['max_triangles'],
+                       'max_primitives': limits['max_primitives'],
+                       'max_bytes': limits['max_bytes'],
+                       'clips': sorted(limits['clips']) if limits['clips'] is not None else None,
+                       'bones': list(limits['bones'])}}
+
+
+def parse_args(argv):
+    usage = ('usage: python3 -B tools/assets/validate_fish_glb.py PATH '
+             '[--triangles N] [--primitives N] [--bytes N] [--clip NAME ...] [--bone NAME ...]')
+    require(argv, usage)
+    path = Path(argv[0])
+    limits, clips, bones = {}, [], []
+    flags = {'--triangles': 'max_triangles', '--primitives': 'max_primitives', '--bytes': 'max_bytes'}
+    index = 1
+    while index < len(argv):
+        flag = argv[index]
+        require(index + 1 < len(argv), usage)
+        value = argv[index + 1]
+        if flag in flags:
+            number = int(value)
+            require(number > 0, usage)
+            limits[flags[flag]] = number
+        elif flag == '--clip':
+            clips.append(value)
+        elif flag == '--bone':
+            bones.append(value)
+        else:
+            raise ValueError(usage)
+        index += 2
+    if clips:
+        limits['clips'] = tuple(clips)
+    if bones:
+        limits['bones'] = tuple(bones)
+    return path, limits
 
 
 if __name__ == '__main__':
     try:
-        require(len(sys.argv) == 2, 'usage: python3 -B tools/assets/validate_fish_glb.py PATH')
-        print(json.dumps(validate(Path(sys.argv[1])), allow_nan=False, separators=(',', ':')))
+        path, limits = parse_args(sys.argv[1:])
+        print(json.dumps(validate(path, limits), allow_nan=False, separators=(',', ':')))
     except Exception as error:
         print(json.dumps({'ok': False, 'error': str(error)[:240]}, separators=(',', ':')))
         sys.exit(1)
