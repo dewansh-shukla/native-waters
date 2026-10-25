@@ -9,6 +9,7 @@ import { useExperienceAudio } from "@/components/experience-ui/useExperienceAudi
 import { createSchool } from "@/components/scene/fish/school";
 import { INITIAL_JOURNEY, journeyReducer } from "@/experience/journey";
 import { resolveQuality, visibleFishIds } from "@/experience/quality";
+import { resolveSpecies } from "@/experience/species";
 import type { QualityPreference, SceneRuntime } from "@/experience/contracts";
 import type { PipelineFixture } from "@/types/fixture";
 
@@ -18,11 +19,7 @@ const SceneViewport = dynamic(() => import("@/components/scene/SceneViewport"), 
 });
 
 export default function Experience({ fixture, additionalModelUrls, species: speciesProp }: { fixture: PipelineFixture; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[]; label?: string }[] }) {
-  const species = speciesProp && speciesProp.length
-    ? speciesProp
-    : [{ modelUrl: fixture.modelUrl, fishIds: [] as string[], label: fixture.label.split(" - ")[0] }].concat(
-        (additionalModelUrls ?? []).map(url => ({ modelUrl: url, fishIds: [] as string[], label: "Zebra Danio - Danio rerio" }))
-      );
+  const species = resolveSpecies(speciesProp, additionalModelUrls);
   const speciesLabels = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.label ?? "Fish"])));
   const [state, dispatch] = useReducer(journeyReducer, INITIAL_JOURNEY);
   const [initialRuntime] = useState<SceneRuntime>(() => ({ time: 0, entryProgress: 0, fish: createSchool(), cursorTarget: null }));
