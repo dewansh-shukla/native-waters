@@ -184,9 +184,12 @@ def body_normal(spec, size, path=None):
 
 def body_orm(spec, size, path=None):
     del spec
+    u, v = _grid(size)
     height = _scale_height(size)
     cavity = 0.66 + 0.34 * height
-    roughness = 0.35 + 0.20 * (1.0 - height)
+    belly = np.clip(-np.sin(TAU * v), 0.0, 1.0)
+    roughness = 0.22 + 0.18 * (1.0 - height) - 0.08 * belly
+    roughness = np.clip(roughness, 0.12, 0.45)
     rgb = np.stack((cavity, roughness, np.zeros_like(height)), axis=2)
     return _image("FishBody - ORM", _rgba(rgb), path, "PNG", "Non-Color")
 

@@ -98,7 +98,7 @@ def flat_image(name, rgb, size=64):
 
 
 def make_material(name, color, roughness, image=None, normal=None, orm=None,
-                  alpha=1.0, metallic=0.0, coat=0.0, blend=None):
+                  alpha=1.0, metallic=0.0, coat=0.0, blend=None, transmission=0.0):
     material = bpy.data.materials.new(name)
     material.use_nodes = True
     material.use_backface_culling = False
@@ -112,6 +112,8 @@ def make_material(name, color, roughness, image=None, normal=None, orm=None,
     bsdf.inputs["Alpha"].default_value = alpha
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = coat
+    if "Transmission Weight" in bsdf.inputs and transmission > 0.0:
+        bsdf.inputs["Transmission Weight"].default_value = transmission
     if alpha < 1.0:
         material.surface_render_method = blend or "DITHERED"
         material.use_transparent_shadow = True
@@ -125,7 +127,7 @@ def make_material(name, color, roughness, image=None, normal=None, orm=None,
         texture = material.node_tree.nodes.new("ShaderNodeTexImage")
         texture.image = normal
         normal_map = material.node_tree.nodes.new("ShaderNodeNormalMap")
-        normal_map.inputs["Strength"].default_value = 0.30
+        normal_map.inputs["Strength"].default_value = 0.50
         material.node_tree.links.new(texture.outputs["Color"], normal_map.inputs["Color"])
         material.node_tree.links.new(normal_map.outputs["Normal"], bsdf.inputs["Normal"])
     if orm is not None:
@@ -143,7 +145,7 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     if flat:
         body_image = flat_image("FishBody - albedo", hex_rgb(variant.body))
         fin_image = flat_image("FishFin - albedo", hex_rgb(variant.fin))
-        body = make_material("FishBody", hex_rgb(variant.body), 0.50, body_image)
+        body = make_material("FishBody", hex_rgb(variant.body), 0.35, body_image, coat=0.25)
         fins = make_material("FishFin", hex_rgb(variant.fin), 0.38, fin_image,
                              alpha=0.82, blend="BLENDED")
         materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
@@ -152,7 +154,7 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
             materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.30,
                                              eye_image, metallic=0.0)
             materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
-                                                alpha=0.05, metallic=0.0, coat=0.2,
+                                                alpha=0.05, metallic=0.0, coat=0.5,
                                                 blend="BLENDED")
         return materials
 
@@ -170,10 +172,11 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     orm = None
     if lod != "low":
         orm = body_orm(spec, 512, path=(lod_dir / "body-orm.png") if lod_dir else None)
-    body = make_material("FishBody", hex_rgb(variant.body), 0.50,
-                         image=albedo, normal=normal, orm=orm)
+    body = make_material("FishBody", hex_rgb(variant.body), 0.35,
+                         image=albedo, normal=normal, orm=orm, coat=0.25)
     fins = make_material("FishFin", hex_rgb(variant.fin), 0.35,
-                         alpha=0.82, blend="BLENDED")
+                         alpha=0.82, blend="BLENDED",
+                         transmission=0.0 if lod == "low" else 0.5)
     materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
     if lod != "low":
         eye_image = eye_albedo(variant, 256,
@@ -361,15 +364,15 @@ class Builder:
             half_height, half_width, centre = profile(spec.slug, (eye_x + 1.0) / 1.8)
             surface = half_width * math.sqrt(max(0.05, 1.0 - ((eye_z - centre) / half_height) ** 2))
             for side, label in ((-1, "L"), (1, "R")):
-                y = side * (surface + spec.eye_radius * 0.15)
+                y = side * (surface - spec.eye_radius * 0.10)
                 self.make_mesh("Eye globe " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius, spec.eye_radius * 0.55, spec.eye_radius),
+                                      (spec.eye_radius, spec.eye_radius * 0.85, spec.eye_radius),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["eye"], "eye")
                 self.make_mesh("Cornea " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius * 1.06, spec.eye_radius * 0.58,
+                                      (spec.eye_radius * 1.06, spec.eye_radius * 0.88,
                                        spec.eye_radius * 1.06),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["cornea"], "cornea")

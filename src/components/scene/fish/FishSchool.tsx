@@ -5,6 +5,7 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { prepareFishMaterials } from "./fishMaterials";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
 
 // Shared, invisible padded targets are immutable and retained across school mounts.
@@ -136,6 +137,7 @@ export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, 
   const readyScene = useRef<Object3D | null>(null);
   useEffect(() => {
     if (readyScene.current === scene) return;
+    prepareFishMaterials(scene);
     readyScene.current = scene;
     onReady();
   }, [scene, onReady]);
