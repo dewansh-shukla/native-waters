@@ -1,0 +1,32 @@
+{
+  "arulius": {
+    "source": "arulius-lateral-1.jpg",
+    "depth_SL": 0.29,
+    "head_SL": 0.24,
+    "eye_SL": 0.07,
+    "eye_HL": 0.29,
+    "dorsal_origin_SL": 0.53,
+    "anal_origin_SL": 0.60,
+    "peduncle_depth_SL": 0.11,
+    "caudal_length_SL": 0.18,
+    "blotches": [0.43, 0.73, 0.92],
+    "fin_colour": "red",
+    "iris_colour": "red-orange"
+  },
+  "danio": {
+    "source": "danio-lateral-1.jpg",
+    "depth_SL": 0.26,
+    "head_SL": 0.20,
+    "eye_SL": 0.07,
+    "eye_HL": 0.35,
+    "dorsal_origin_SL": 0.58,
+    "anal_origin_SL": 0.55,
+    "peduncle_depth_SL": 0.11,
+    "caudal_length_SL": 0.20,
+    "stripes": 5,
+    "fin_colour": "clear-yellow",
+    "anal_fin": "striped"
+  },
+  "tolerance": 0.02,
+  "note": "Pixel landmarks read from grid overlays on 2026-10-26; refine in R3 overlay validation. Lab danio photo is plumper than wild type; spec split the difference."
+}

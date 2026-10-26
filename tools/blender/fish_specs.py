@@ -3,6 +3,26 @@
 from dataclasses import dataclass
 from math import pi, sin
 
+# Measured from the reference pack (artifacts/fish-production/reference) in
+# body-length units, tolerance +/-0.02, on 2026-10-26 from grid overlays.
+# These are the binding spec for the photoreal rebuild (R2+); the builder
+# starts consuming them in R2. Lab danio photo is plumper than wild type.
+MEASUREMENTS = {
+    "arulius-barb": {
+        "depth_SL": 0.29, "head_SL": 0.24, "eye_SL": 0.07, "eye_HL": 0.29,
+        "dorsal_origin_SL": 0.53, "anal_origin_SL": 0.60,
+        "peduncle_depth_SL": 0.11, "caudal_length_SL": 0.18,
+        "blotches_SL": (0.43, 0.73, 0.92), "fin_colour": "red",
+        "iris_colour": "red-orange",
+    },
+    "zebra-danio": {
+        "depth_SL": 0.26, "head_SL": 0.20, "eye_SL": 0.07, "eye_HL": 0.35,
+        "dorsal_origin_SL": 0.58, "anal_origin_SL": 0.55,
+        "peduncle_depth_SL": 0.11, "caudal_length_SL": 0.20,
+        "stripes": 5, "fin_colour": "clear-yellow", "anal_fin": "striped",
+    },
+}
+
 
 @dataclass(frozen=True)
 class Variant:
