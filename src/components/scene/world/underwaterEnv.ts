@@ -13,9 +13,9 @@ export function createUnderwaterEnvironment(renderer: WebGLRenderer) {
   const geometry = new SphereGeometry(10, 32, 16);
   const position = geometry.getAttribute("position");
   const colors = new Float32Array(position.count * 3);
-  const top = new Color("#bfeaf0").multiplyScalar(1.6);
-  const mid = new Color("#2e6a78").multiplyScalar(0.8);
-  const bottom = new Color("#3a2f22").multiplyScalar(0.35);
+  const top = new Color("#bfeaf0").multiplyScalar(1.0);
+  const mid = new Color("#2e6a78").multiplyScalar(0.5);
+  const bottom = new Color("#3a2f22").multiplyScalar(0.25);
   for (let i = 0; i < position.count; i++) {
     const y = position.getY(i);
     const t = Math.max(0, Math.min(1, (y / 10 + 1) / 2));

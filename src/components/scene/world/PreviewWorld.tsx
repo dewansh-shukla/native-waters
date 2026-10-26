@@ -2,29 +2,14 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, BufferGeometry, Color, DoubleSide, Fog, HemisphereLight, IcosahedronGeometry, InstancedMesh, Object3D, PlaneGeometry, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, Fog, HemisphereLight, InstancedMesh, PlaneGeometry, Vector3 } from "three";
+import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { advanceParticle, bedHeight, createPlacements, updateAtmosphere, type Placement } from "./worldMotion";
+import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
 import { plantShader, substrateShader, surfaceFragment, surfaceVertex } from "./materials";
-
-function fillBatch(mesh: InstancedMesh | null, placements: Placement[], tint: string) {
-  if (!mesh) return;
-  const transform = new Object3D(), color = new Color(tint);
-  for (let i = 0; i < placements.length; i++) {
-    const item = placements[i];
-    transform.position.fromArray(item.position);
-    transform.scale.fromArray(item.scale);
-    transform.rotation.set(0, item.rotation, 0);
-    transform.updateMatrix();
-    mesh.setMatrixAt(i, transform.matrix);
-    mesh.setColorAt(i, color.clone().multiplyScalar(.72 + (i % 13) / 26));
-  }
-  mesh.instanceMatrix.needsUpdate = true;
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  mesh.computeBoundingSphere();
-}
+import { createGravelGeometry, createPlantGeometry, createRockGeometry, fillBatch } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
@@ -32,12 +17,13 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
   const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
+  const keyLight = useRef<DirectionalLight>(null), fillLight = useRef<DirectionalLight>(null), backlight = useRef<DirectionalLight>(null);
   const placements = useMemo(() => createPlacements(), []);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
   const plant = useMemo(() => plantShader(uniforms), [uniforms]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#0d3846", 5, 27), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog("#082b36", 4.5, 27), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
@@ -68,8 +54,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, []);
 
   useLayoutEffect(() => {
-    fillBatch(rocks.current, placements.rocks, "#6b6055");
-    fillBatch(gravel.current, placements.gravel, "#8a7a60");
+    // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
+    fillBatch(rocks.current, placements.rocks, "#6b6055", { spin: true, stretch: true, skipFirst: OBSTACLES.length });
+    fillBatch(gravel.current, placements.gravel, "#8a7a60", { spin: true, colorSpread: .42 });
     fillBatch(plants.current, placements.plants, "#3d8b3a");
     fillBatch(plants2.current, placements.plants, "#2d6b28");
   }, [placements]);
@@ -80,35 +67,18 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useEffect(() => () => terrain.dispose(), [terrain]);
   useEffect(() => () => env.dispose(), [env]);
 
-  // Displaced rock geometry: multi-octave noise turns the icosahedron into an irregular boulder.
-  const rockGeometry = useMemo(() => {
-    const geo = new IcosahedronGeometry(1, 3);
-    const pos = geo.getAttribute("position");
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const len = Math.sqrt(x * x + y * y + z * z) || 1;
-      const nx = x / len, ny = y / len, nz = z / len;
-      const n1 = Math.sin(nx * 4.1 + ny * 2.7) * Math.cos(nz * 3.3 + nx * 1.9) * 0.22;
-      const n2 = Math.sin(ny * 7.3 + nz * 5.1) * 0.11;
-      const n3 = Math.cos(nx * 9.7 + ny * 8.2 + nz * 6.4) * 0.06;
-      const scale = 1 + n1 + n2 + n3;
-      pos.setXYZ(i, nx * len * scale, ny * len * scale, nz * len * scale);
-    }
-    geo.computeVertexNormals();
-    return geo;
-  }, []);
+  // Rock/gravel/plant geometry lives in worldAssets: radial noise displacement
+  // (crag detail on boulders, worn relief on pebbles) plus blade vertex shading.
+  const rockGeometry = useMemo(() => createRockGeometry(), []);
   useEffect(() => () => rockGeometry.dispose(), [rockGeometry]);
+  const gravelGeometry = useMemo(() => createGravelGeometry(), []);
+  useEffect(() => () => gravelGeometry.dispose(), [gravelGeometry]);
 
-  // Plant: single blade (proven to render). Sway via plantShader.
-  const plantGeometry = useMemo(() => {
-    const geo = new PlaneGeometry(0.16, 1, 1, 8);
-    geo.translate(0, 0.5, 0);
-    return geo;
-  }, []);
+  // Plant: single blade with baked taper, arch and root-to-tip shading. Sway via plantShader.
+  const plantGeometry = useMemo(() => createPlantGeometry(), []);
   const plantGeometry2 = useMemo(() => {
-    const geo = new PlaneGeometry(0.16, 1, 1, 8);
+    const geo = createPlantGeometry();
     geo.rotateY(Math.PI / 2);
-    geo.translate(0, 0.5, 0);
     return geo;
   }, []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
@@ -122,6 +92,12 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     if (ambient.current) ambient.current.visible = !underwater;
     if (hemisphere.current) hemisphere.current.visible = !underwater;
     if (underwaterAmbient.current) underwaterAmbient.current.visible = underwater;
+    // The sun trio dominates underwater exposure; dim it while submerged so the
+    // darker fog/env read through. Above water the trio stays at full strength.
+    const sunScale = underwater ? .7 : 1;
+    if (keyLight.current) keyLight.current.intensity = 2.4 * sunScale;
+    if (fillLight.current) fillLight.current.intensity = 1.2 * sunScale;
+    if (backlight.current) backlight.current.intensity = 1.1 * sunScale;
     const time = runtime.current.time;
     const { uniforms, motion } = mutable.current;
     uniforms.time.value = time;
@@ -140,25 +116,24 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   return <group visible={visible} name="PreviewWorld">
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
-    <directionalLight position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
-    <directionalLight position={[4, -3, -2]} color="#9ab8cc" intensity={1.2} />
-    <directionalLight position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
-    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.7} visible={false} />
+    <directionalLight ref={keyLight} position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
+    <directionalLight ref={fillLight} position={[4, -3, -2]} color="#9ab8cc" intensity={1.2} />
+    <directionalLight ref={backlight} position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
+    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.4} visible={false} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
     <instancedMesh ref={rocks} args={[rockGeometry, undefined, placements.rocks.length]}>
       <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </instancedMesh>
-    <instancedMesh ref={gravel} args={[undefined, undefined, placements.gravel.length]}>
-      <icosahedronGeometry args={[1, 0]} />
-      <meshStandardMaterial roughness={1} />
+    <instancedMesh ref={gravel} args={[gravelGeometry, undefined, placements.gravel.length]}>
+      <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </instancedMesh>
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
-      <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
+      <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, placements.plants.length]} frustumCulled={false}>
-      <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
+      <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
       <mesh>
