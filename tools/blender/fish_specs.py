@@ -59,15 +59,15 @@ ARULIUS = SpeciesSpec(
     label="Arulius Barb",
     rings={"high": 72, "mid": 48, "low": 32},
     sides={"high": 24, "mid": 16, "low": 10},
-    height=0.30,
-    width=0.115,
+    height=0.267,
+    width=0.105,
     variants=(
-        Variant("arulius-barb", "Arulius Barb", "#929a82", "#262a20", "#a97a42", "#b8862f"),
+        Variant("arulius-barb", "Arulius Barb", "#c3c0a8", "#0b0b0d", "#c0655a", "#c07a3a"),
     ),
     body_length=1.8,
-    arch=0.18,
-    eye=(-0.78, 0.0, 0.06),
-    eye_radius=0.052,
+    arch=0.10,
+    eye=(-0.865, 0.0, 0.035),
+    eye_radius=0.072,
     barbels=True,
     pattern="blotches",
 )
@@ -106,12 +106,39 @@ SPECIES = {
 # Fraction of maximum half-depth along the body. A real barb is deep through the
 # middle and keeps a substantial caudal peduncle instead of tapering to a stick.
 SHAPE_POINTS = {
-    "arulius-barb": ((0.00, 0.06), (0.10, 0.38), (0.22, 0.72), (0.42, 0.96),
-                     (0.58, 1.00), (0.72, 0.94), (0.85, 0.72), (0.93, 0.45),
-                     (1.00, 0.22)),
+    "arulius-barb": ((0.00, 0.22), (0.08, 0.52), (0.18, 0.78), (0.35, 0.95),
+                     (0.55, 1.00), (0.72, 0.92), (0.86, 0.66), (0.94, 0.42),
+                     (1.00, 0.24)),
     "zebra-danio": ((0.00, 0.10), (0.10, 0.48), (0.25, 0.82), (0.50, 1.00),
                     (0.70, 0.85), (0.88, 0.50), (1.00, 0.16)),
 }
+
+# Absolute dorsal and ventral edge heights, measured from the lateral photos:
+# a barb is not a symmetric tube. The back rises steeply to a dorsal hump, the
+# belly hangs deeper, and the peduncle stays substantial.
+CONTOURS = {
+    "arulius-barb": {
+        "top": ((0.00, 0.070), (0.02, 0.105), (0.05, 0.155), (0.08, 0.200),
+                (0.15, 0.255), (0.23, 0.275), (0.32, 0.283), (0.44, 0.288),
+                (0.55, 0.280), (0.66, 0.255), (0.76, 0.215), (0.85, 0.165),
+                (0.92, 0.115), (0.97, 0.085), (1.00, 0.075)),
+        "bottom": ((0.00, -0.050), (0.02, -0.070), (0.05, -0.095), (0.08, -0.120),
+                   (0.15, -0.160), (0.23, -0.195), (0.32, -0.215), (0.44, -0.225),
+                   (0.55, -0.220), (0.66, -0.195), (0.76, -0.160), (0.85, -0.125),
+                   (0.92, -0.095), (0.97, -0.075), (1.00, -0.070)),
+    },
+}
+
+
+def _line(points, t):
+    if t <= points[0][0]:
+        return points[0][1]
+    for (t0, v0), (t1, v1) in zip(points, points[1:]):
+        if t <= t1:
+            blend = (t - t0) / (t1 - t0)
+            blend = blend * blend * (3.0 - 2.0 * blend)
+            return v0 + (v1 - v0) * blend
+    return points[-1][1]
 
 
 def _shape(slug, t):
@@ -130,6 +157,16 @@ def profile(slug: str, t: float) -> tuple[float, float, float]:
     """Return (half-height, half-width, vertical centre) at body fraction t."""
     spec = SPECIES[slug]
     t = min(1.0, max(0.0, t))
+    contour = CONTOURS.get(slug)
+    if contour is not None:
+        top = _line(contour["top"], t)
+        bottom = _line(contour["bottom"], t)
+        half_height = max(0.012, 0.5 * (top - bottom))
+        centre = 0.5 * (top + bottom)
+        # Heads stay rounder than the compressed flank: a width that follows the
+        # height too closely pinches the snout into a blade.
+        half_width = max(0.008, spec.width * (0.45 + 0.55 * half_height / spec.height))
+        return half_height, half_width, centre
     shape = _shape(slug, t)
     half_height = max(0.008, spec.height * shape)
     half_width = max(0.006, spec.width * shape)

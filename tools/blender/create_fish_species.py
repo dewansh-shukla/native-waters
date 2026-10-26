@@ -19,7 +19,7 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.blender.fish_geometry import fin, loft, sphere, tube  # noqa: E402
-from tools.blender.fish_specs import SPECIES, hex_rgb, profile  # noqa: E402
+from tools.blender.fish_specs import MEASUREMENTS, SPECIES, hex_rgb, profile  # noqa: E402
 from tools.blender.fish_textures import (body_albedo, body_normal, body_orm, eye_albedo,  # noqa: E402
                                          eye_uv_radii, srgb_to_linear)
 from tools.assets.fish_budgets import BYTE_CAPS, TRIANGLE_CAPS  # noqa: E402
@@ -145,13 +145,13 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     if flat:
         body_image = flat_image("FishBody - albedo", hex_rgb(variant.body))
         fin_image = flat_image("FishFin - albedo", hex_rgb(variant.fin))
-        body = make_material("FishBody", hex_rgb(variant.body), 0.35, body_image, coat=0.25)
+        body = make_material("FishBody", hex_rgb(variant.body), 0.42, body_image, coat=0.25)
         fins = make_material("FishFin", hex_rgb(variant.fin), 0.38, fin_image,
                              alpha=0.82, blend="BLENDED")
         materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
         if lod != "low":
             eye_image = flat_image("FishEye - iris", hex_rgb(variant.iris))
-            materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.30,
+            materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.12,
                                              eye_image, metallic=0.0)
             materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
                                                 alpha=0.05, metallic=0.0, coat=0.5,
@@ -162,7 +162,7 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     # for species that carry one variant (the Arulius) - five danio variants
     # share one HIGH texture-memory budget, so theirs stays at 512.
     albedo_size = 512 if lod == "low" else 1024
-    normal_size = {"high": spec.normal_high, "mid": 512, "low": 512}[lod]
+    normal_size = {"high": spec.normal_high, "mid": 512, "low": 256}[lod]
     lod_dir = (Path(texture_dir) / lod) if texture_dir is not None else None
     albedo = body_albedo(spec, variant, albedo_size,
                          path=(lod_dir / "body-albedo.jpg") if lod_dir else None,
@@ -172,19 +172,19 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     orm = None
     if lod != "low":
         orm = body_orm(spec, 512, path=(lod_dir / "body-orm.png") if lod_dir else None)
-    body = make_material("FishBody", hex_rgb(variant.body), 0.35,
-                         image=albedo, normal=normal, orm=orm, coat=0.25)
-    fins = make_material("FishFin", hex_rgb(variant.fin), 0.35,
-                         alpha=0.82, blend="BLENDED",
+    body = make_material("FishBody", hex_rgb(variant.body), 0.42,
+                         image=albedo, normal=normal, orm=orm, coat=0.12)
+    fins = make_material("FishFin", hex_rgb(variant.fin), 0.38,
+                         alpha=0.62, blend="BLENDED",
                          transmission=0.0 if lod == "low" else 0.5)
     materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
     if lod != "low":
         eye_image = eye_albedo(variant, 256,
                                path=(lod_dir / "eye-albedo.png") if lod_dir else None)
-        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.30,
+        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.12,
                                          image=eye_image, metallic=0.0)
         materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
-                                            alpha=0.05, metallic=0.0, coat=0.2,
+                                            alpha=0.10, metallic=0.0, coat=0.8,
                                             blend="BLENDED")
     return materials
 
@@ -234,7 +234,7 @@ class Builder:
         # The front cap is domed forward so the snout ends in a rounded nose
         # instead of a flat disc; the rear cap stays a flat fan.
         domes = 3 if t <= 0.0 else 0
-        bulge = 1.6 * half_height if t <= 0.0 else 0.0
+        bulge = 0.8 * half_height if t <= 0.0 else 0.0
         vertices = [(x - bulge, 0.0, centre)]
         uvs = [(t, 0.5)]
         for ring in range(1, domes + 1):
@@ -299,7 +299,7 @@ class Builder:
         y = side * (surface + 0.002)
         radius = self.spec.eye_radius * 0.95
         u0 = (x + 1.0) / 1.8
-        v0 = 0.04 if side > 0 else 0.46
+        v0 = 0.0 if side > 0 else 0.5
         # Sample the same world-round UV ellipse the body paint uses (u is
         # stretched across the body length, v only wraps the local girth), so
         # the decal shows the full painted eye instead of a zoomed, offset crop.
@@ -347,14 +347,12 @@ class Builder:
                            self.materials["body"], "body")
         if spec.barbels:
             for side, label in ((-1, "L"), (1, "R")):
-                for index, (dy, dz) in enumerate(((0.020, -0.050), (0.040, -0.062))):
-                    points = [(-0.985, side * dy, dz),
-                              (-1.005, side * (dy + 0.010), dz - 0.015),
-                              (-1.025, side * (dy + 0.018), dz - 0.030),
-                              (-1.040, side * (dy + 0.024), dz - 0.045)]
-                    self.make_mesh("Barbel %s%d" % (label, index),
-                                   tube(points, 0.006, params["barbel_sides"]),
-                                   self.materials["body"], "barbel")
+                points = [(-0.975, side * 0.030, -0.040),
+                          (-0.995, side * 0.036, -0.052),
+                          (-1.012, side * 0.040, -0.064)]
+                self.make_mesh("Barbel " + label,
+                               tube(points, 0.0032, params["barbel_sides"]),
+                               self.materials["body"], "barbel")
         if self.lod == "low":
             for side, label in ((-1, "L"), (1, "R")):
                 self.make_mesh("EyeDecal." + label, self.decal(side, params["decal_segments"]),
@@ -364,74 +362,80 @@ class Builder:
             half_height, half_width, centre = profile(spec.slug, (eye_x + 1.0) / 1.8)
             surface = half_width * math.sqrt(max(0.05, 1.0 - ((eye_z - centre) / half_height) ** 2))
             for side, label in ((-1, "L"), (1, "R")):
-                y = side * (surface - spec.eye_radius * 0.10)
+                y = side * (surface - spec.eye_radius * 0.32)
                 self.make_mesh("Eye globe " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius, spec.eye_radius * 0.85, spec.eye_radius),
+                                      (spec.eye_radius, spec.eye_radius * 0.72, spec.eye_radius),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["eye"], "eye")
                 self.make_mesh("Cornea " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius * 1.06, spec.eye_radius * 0.88,
-                                       spec.eye_radius * 1.06),
+                                      (spec.eye_radius * 1.05, spec.eye_radius * 0.76,
+                                       spec.eye_radius * 1.05),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["cornea"], "cornea")
         self.build_fins()
 
     def build_fins(self):
         count = self.params["fin_roots"]
+        measured = MEASUREMENTS.get(self.spec.slug, {})
+        bl = self.spec.body_length
+        dorsal_x0 = bl * measured.get("dorsal_origin_SL", 0.28) - 1.0
+        anal_x0 = bl * measured.get("anal_origin_SL", 0.55) - 1.0
+        caudal_tip = 0.795 + bl * measured.get("caudal_length_SL", 0.15)
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
-            x = -0.50 + 0.92 * t
+            x = dorsal_x0 + 0.33 * t
             half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
             roots.append((x, 0.0, centre + half_height * 0.98))
-            lift = 0.05 + 0.24 * max(0.0, 1.0 - t / 0.55) ** 1.6
-            lift += 0.010 if index % 2 else 0.0
+            lift = 0.05 + 0.26 * max(0.0, 1.0 - t / 0.55) ** 1.4
+            lift += 0.004 if index % 2 else 0.0
             sweep = 0.06 * max(0.0, t - 0.5) / 0.5
             tips.append((x + 0.025 * math.sin(math.pi * t) + sweep, 0.0,
                          centre + half_height * 0.98 + lift))
         self.add_fin("DorsalFin", roots, tips, self.materials["fin"], "dorsal")
         self.add_rays("DorsalFin", roots, tips, self.materials["fin"], "dorsal",
-                      5 if self.lod == "high" else 3)
+                      10 if self.lod == "high" else 6)
 
         roots, tips = [], []
         for index in range(count + 2):
             t = index / (count + 1)
-            z = -0.16 + 0.32 * t
-            edge = abs(z) / 0.16
+            z = -0.084 + 0.168 * t
+            edge = abs(z) / 0.084
             roots.append((0.795, 0.0, z))
-            tips.append((0.90 + 0.10 * edge, 0.0, z * 1.90))
+            tips.append((0.795 + (caudal_tip - 0.795) * (0.45 + 0.55 * edge),
+                         0.0, z * 2.60))
         self.add_fin("Caudal fin", roots, tips, self.materials["fin"], "caudal")
         self.add_rays("Caudal fin", roots, tips, self.materials["fin"], "caudal",
-                      5 if self.lod == "high" else 3)
+                      10 if self.lod == "high" else 6)
 
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
-            x = -0.32 + 0.70 * t
+            x = anal_x0 + 0.30 * t
             half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
             roots.append((x, 0.0, centre - half_height * 0.98))
             tips.append((x + 0.05 + 0.04 * t, 0.0,
                          centre - half_height * 0.98 - 0.04 - 0.10 * math.sin(math.pi * t)))
         self.add_fin("Anal fin", roots, tips, self.materials["fin"], "anal")
         self.add_rays("Anal fin", roots, tips, self.materials["fin"], "anal",
-                      4 if self.lod == "high" else 2)
+                      8 if self.lod == "high" else 5)
 
         for side, label in ((-1, "L"), (1, "R")):
             roots, tips = [], []
             for index in range(count):
                 t = index / (count - 1)
-                x = -0.44 + 0.14 * t
+                x = -0.50 + 0.12 * t
                 half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
-                roots.append((x, side * half_width * 0.92, centre - half_height * 0.12))
-                tips.append((x + 0.07 + 0.06 * math.sin(math.pi * t),
-                             side * (half_width + 0.08 + 0.04 * math.sin(math.pi * t)),
-                             centre - half_height * (0.40 + 0.18 * t)))
+                roots.append((x, side * half_width * 0.86, centre - half_height * 0.30))
+                tips.append((x + 0.13 + 0.05 * t,
+                             side * (half_width * 0.86 + 0.020),
+                             centre - half_height * (0.52 + 0.22 * t)))
             self.add_fin("Pectoral fin " + label, roots, tips,
                          self.materials["fin"], "pectoral." + label)
             self.add_rays("Pectoral fin " + label, roots, tips, self.materials["fin"],
-                          "pectoral." + label, 3 if self.lod == "high" else 2)
+                          "pectoral." + label, 6 if self.lod == "high" else 4)
 
             roots, tips = [], []
             for index in range(max(4, count - 2)):
@@ -445,7 +449,7 @@ class Builder:
             self.add_fin("Pelvic fin " + label, roots, tips,
                          self.materials["fin"], "pelvic." + label)
             self.add_rays("Pelvic fin " + label, roots, tips, self.materials["fin"],
-                          "pelvic." + label, 2 if self.lod == "high" else 1)
+                          "pelvic." + label, 4 if self.lod == "high" else 2)
 
     def make_armature(self):
         armature = bpy.data.armatures.new("FishRig")
