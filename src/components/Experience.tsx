@@ -9,7 +9,7 @@ import { useExperienceAudio } from "@/components/experience-ui/useExperienceAudi
 import { createSchool } from "@/components/scene/fish/school";
 import { INITIAL_JOURNEY, journeyReducer } from "@/experience/journey";
 import { resolveQuality, visibleFishIds } from "@/experience/quality";
-import { resolveSpecies } from "@/experience/species";
+import { resolveSpecies, lodSpecies } from "@/experience/species";
 import type { QualityPreference, SceneRuntime } from "@/experience/contracts";
 import type { PipelineFixture } from "@/types/fixture";
 
@@ -19,7 +19,7 @@ const SceneViewport = dynamic(() => import("@/components/scene/SceneViewport"), 
 });
 
 export default function Experience({ fixture, additionalModelUrls, species: speciesProp }: { fixture: PipelineFixture; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[]; label?: string }[] }) {
-  const species = resolveSpecies(speciesProp, additionalModelUrls);
+  const species = useMemo(() => resolveSpecies(speciesProp, additionalModelUrls), [speciesProp, additionalModelUrls]);
   const speciesLabels = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.label ?? "Fish"])));
   const [state, dispatch] = useReducer(journeyReducer, INITIAL_JOURNEY);
   const [initialRuntime] = useState<SceneRuntime>(() => ({ time: 0, entryProgress: 0, fish: createSchool(), cursorTarget: null }));
@@ -46,6 +46,14 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
   }, []);
   const effectiveQuality = resolveQuality(quality, conservative, conservative);
   const visibleIds = useMemo(() => visibleFishIds(effectiveQuality, state.selectedId), [effectiveQuality, state.selectedId]);
+  // LOW keeps only the six native fish, so fixtures and unlisted variants must
+  // not fetch their assets at all: filter to species that still own a visible fish.
+  const shownSpecies = useMemo(() => {
+    const mapped = lodSpecies(species, effectiveQuality);
+    if (effectiveQuality === "HIGH") return mapped;
+    const visible = new Set(visibleIds);
+    return mapped.filter(entry => entry.fishIds.some(id => visible.has(id)));
+  }, [species, effectiveQuality, visibleIds]);
   const audio = useExperienceAudio({ phase: state.phase, paused: paused || hidden, runtime });
   const onReady = useCallback((ready: boolean) => dispatch({ type: "READY", ready }), []);
   const onEntered = useCallback(() => dispatch({ type: "ENTERED" }), []);
@@ -54,7 +62,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
 
   return <section className="experience" aria-label="Native Waters experience" data-phase={state.phase}>
     <SceneBoundary onRetry={() => window.location.reload()} retryLabel="Reload page">
-      <SceneViewport modelUrl={fixture.modelUrl} additionalModelUrls={additionalModelUrls} species={species.map(s => ({ modelUrl: s.modelUrl, fishIds: s.fishIds }))} state={state} runtime={runtime} paused={paused || hidden}
+      <SceneViewport modelUrl={fixture.modelUrl} additionalModelUrls={additionalModelUrls} species={shownSpecies.map(s => ({ modelUrl: s.modelUrl, fishIds: s.fishIds }))} state={state} runtime={runtime} paused={paused || hidden}
         reducedMotion={reducedMotion} quality={effectiveQuality} visibleIds={visibleIds}
         mapHighlighted={mapHighlighted} onMapHighlight={setMapHighlighted} onReady={onReady}
         onEntered={onEntered} onSelect={onSelect} onHover={setHoveredId} onEnter={onEnter} />

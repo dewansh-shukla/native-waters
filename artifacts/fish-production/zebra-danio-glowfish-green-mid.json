@@ -1,8 +1,8 @@
 {
   "species": "zebra-danio",
   "lod": "mid",
-  "triangles": 3508,
-  "vertices": 2069,
+  "triangles": 3868,
+  "vertices": 2324,
   "materials": [
     "FishBody",
     "FishCornea",
@@ -28,6 +28,6 @@
     "Gill.L",
     "Gill.R"
   ],
-  "bytes": 510584,
+  "bytes": 585900,
   "variant": "zebra-danio-glowfish-green"
 }

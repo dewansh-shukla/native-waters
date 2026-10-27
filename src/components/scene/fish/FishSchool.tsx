@@ -6,7 +6,11 @@ import { useGLTF } from "@react-three/drei";
 import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { prepareFishMaterials } from "./fishMaterials";
+import { bankAngle, swimTimeScale } from "./motion";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
+
+// The GLB nose points down -X; all motion offsets are applied in this frame.
+const FORWARD = new Vector3(-1, 0, 0);
 
 // Shared, invisible padded targets are immutable and retained across school mounts.
 const hitGeometry = new SphereGeometry(1, 12, 8);
@@ -34,11 +38,14 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     hit.scale.set(length * 0.68, 0.15, 0.13);
     const root = new Group();
     root.add(normalized, hit);
-    return { root, rig, hit };
+    return { root, rig, hit, length };
   }, [source, index]);
   const mixer = useRef<AnimationMixer | null>(null);
   const swim = useRef<AnimationAction | null>(null);
   const lastTime = useRef(runtime.current.time);
+  const lastForward = useRef(new Vector3(-1, 0, 0));
+  const forwardRef = useRef(new Vector3(-1, 0, 0));
+  const banking = useRef(0);
   useEffect(() => { lastTime.current = runtime.current.time; }, [paused, runtime]);
   const gesture = useRef({ down: false, x: 0, y: 0, moved: false, pointerId: -1 });
 
@@ -84,8 +91,20 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     lastTime.current = time;
     model.root.position.copy(fish.position);
     model.root.quaternion.copy(fish.heading);
+    // Bank into turns: the heading supplies pitch, the frame supplies roll.
+    const forward = forwardRef.current.copy(FORWARD).applyQuaternion(fish.heading);
+    const previous = lastForward.current;
+    const cross = previous.z * forward.x - previous.x * forward.z;
+    const dot = previous.x * forward.x + previous.z * forward.z;
+    const turnRate = Math.atan2(cross, dot) / Math.max(delta, 1e-3);
+    previous.copy(forward);
+    const target = bankAngle(turnRate);
+    banking.current += (target - banking.current) * Math.min(1, delta * 6);
+    model.root.rotateX(banking.current);
     if (!paused && mixer.current) {
-      const speed = fish.velocity.length() / 0.42 * (0.9 + index * 0.023);
+      // Retime by real speed: body lengths per second, not roster index.
+      // A fish that is not moving holds its stroke instead of treading water.
+      const speed = fish.velocity.length() > 1e-4 ? swimTimeScale(fish.velocity.length(), model.length) : 0;
       if (swim.current) {
         mixer.current.timeScale = 1;
         swim.current.timeScale = speed;

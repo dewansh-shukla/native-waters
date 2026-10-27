@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT))
 from tools.blender.fish_geometry import fin, loft, sphere, tube  # noqa: E402
 from tools.blender.fish_specs import MEASUREMENTS, SPECIES, hex_rgb, profile  # noqa: E402
 from tools.blender.fish_textures import (body_albedo, body_normal, body_orm, eye_albedo,  # noqa: E402
-                                         eye_uv_radii, srgb_to_linear)
+                                         eye_uv_radii, fin_albedo, srgb_to_linear)
 from tools.assets.fish_budgets import BYTE_CAPS, TRIANGLE_CAPS  # noqa: E402
 
 BONE_NAMES = (
@@ -98,7 +98,8 @@ def flat_image(name, rgb, size=64):
 
 
 def make_material(name, color, roughness, image=None, normal=None, orm=None,
-                  alpha=1.0, metallic=0.0, coat=0.0, blend=None, transmission=0.0):
+                  alpha=1.0, metallic=0.0, coat=0.0, blend=None, transmission=0.0,
+                  specular=None):
     material = bpy.data.materials.new(name)
     material.use_nodes = True
     material.use_backface_culling = False
@@ -112,6 +113,8 @@ def make_material(name, color, roughness, image=None, normal=None, orm=None,
     bsdf.inputs["Alpha"].default_value = alpha
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = coat
+    if specular is not None and "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = specular
     if "Transmission Weight" in bsdf.inputs and transmission > 0.0:
         bsdf.inputs["Transmission Weight"].default_value = transmission
     if alpha < 1.0:
@@ -173,18 +176,20 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
     if lod != "low":
         orm = body_orm(spec, 512, path=(lod_dir / "body-orm.png") if lod_dir else None)
     body = make_material("FishBody", hex_rgb(variant.body), 0.42,
-                         image=albedo, normal=normal, orm=orm, coat=0.12)
-    fins = make_material("FishFin", hex_rgb(variant.fin), 0.38,
-                         alpha=0.62, blend="BLENDED",
-                         transmission=0.0 if lod == "low" else 0.5)
+                         image=albedo, normal=normal, orm=orm, coat=0.0, specular=0.25)
+    fin_image = fin_albedo(spec, variant, 128,
+                           path=(lod_dir / "fin-albedo.png") if lod_dir else None)
+    fins = make_material("FishFin", hex_rgb(variant.fin), 0.38, fin_image,
+                         alpha=0.52 if spec.pattern == "stripes" else 0.62, blend="BLENDED",
+                         transmission=0.0 if lod == "low" else 0.5, specular=0.35)
     materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
     if lod != "low":
         eye_image = eye_albedo(variant, 256,
                                path=(lod_dir / "eye-albedo.png") if lod_dir else None)
-        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.12,
+        materials["eye"] = make_material("FishEye", hex_rgb(variant.iris), 0.20,
                                          image=eye_image, metallic=0.0)
-        materials["cornea"] = make_material("FishCornea", (0.82, 0.90, 1.0), 0.02,
-                                            alpha=0.10, metallic=0.0, coat=0.8,
+        materials["cornea"] = make_material("FishCornea", (0.04, 0.045, 0.05), 0.06,
+                                            alpha=0.12, metallic=0.0, coat=0.35,
                                             blend="BLENDED")
     return materials
 
@@ -200,7 +205,7 @@ class Builder:
         self.fin_data = {}
         self.scene = bpy.context.scene
         self.scene.render.fps = 24
-        self.scene.frame_start, self.scene.frame_end = 1, 49
+        self.scene.frame_start, self.scene.frame_end = 1, 25
 
     def make_mesh(self, name, geometry, material, part, recalc=True):
         data = bpy.data.meshes.new(name)
@@ -370,8 +375,8 @@ class Builder:
                                self.materials["eye"], "eye")
                 self.make_mesh("Cornea " + label,
                                sphere((eye_x, y, eye_z),
-                                      (spec.eye_radius * 1.05, spec.eye_radius * 0.76,
-                                       spec.eye_radius * 1.05),
+                                      (spec.eye_radius * 1.02, spec.eye_radius * 0.74,
+                                       spec.eye_radius * 1.02),
                                       params["eye_segments"], params["eye_rings"]),
                                self.materials["cornea"], "cornea")
         self.build_fins()
@@ -382,14 +387,15 @@ class Builder:
         bl = self.spec.body_length
         dorsal_x0 = bl * measured.get("dorsal_origin_SL", 0.28) - 1.0
         anal_x0 = bl * measured.get("anal_origin_SL", 0.55) - 1.0
-        caudal_tip = 0.795 + bl * measured.get("caudal_length_SL", 0.15)
+        caudal_len = bl * measured.get("caudal_length_SL", 0.15)
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
             x = dorsal_x0 + 0.33 * t
             half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
             roots.append((x, 0.0, centre + half_height * 0.98))
-            lift = 0.05 + 0.26 * max(0.0, 1.0 - t / 0.55) ** 1.4
+            tall = 0.26 if self.spec.slug == "arulius-barb" else 0.15
+            lift = 0.05 + tall * max(0.0, 1.0 - t / 0.55) ** 1.4
             lift += 0.004 if index % 2 else 0.0
             sweep = 0.06 * max(0.0, t - 0.5) / 0.5
             tips.append((x + 0.025 * math.sin(math.pi * t) + sweep, 0.0,
@@ -399,13 +405,15 @@ class Builder:
                       10 if self.lod == "high" else 6)
 
         roots, tips = [], []
+        rear_x = -1.0 + bl
+        half_height, _, centre = profile(self.spec.slug, 1.0)
+        base = max(0.02, half_height * 0.98)
         for index in range(count + 2):
             t = index / (count + 1)
-            z = -0.084 + 0.168 * t
-            edge = abs(z) / 0.084
-            roots.append((0.795, 0.0, z))
-            tips.append((0.795 + (caudal_tip - 0.795) * (0.45 + 0.55 * edge),
-                         0.0, z * 2.60))
+            across = t * 2.0 - 1.0
+            roots.append((rear_x - 0.004, 0.0, centre + across * base))
+            length = caudal_len * (0.58 + 0.42 * abs(across))
+            tips.append((rear_x - 0.004 + length, 0.0, centre + across * base * 2.5))
         self.add_fin("Caudal fin", roots, tips, self.materials["fin"], "caudal")
         self.add_rays("Caudal fin", roots, tips, self.materials["fin"], "caudal",
                       10 if self.lod == "high" else 6)
@@ -440,7 +448,7 @@ class Builder:
             roots, tips = [], []
             for index in range(max(4, count - 2)):
                 t = index / (max(4, count - 2) - 1)
-                x = -0.36 + 0.10 * t
+                x = -0.20 + 0.10 * t
                 half_height, half_width, centre = profile(self.spec.slug, (x + 1.0) / 1.8)
                 roots.append((x, side * half_width * 0.55, centre - half_height * 0.72))
                 tips.append((x + 0.05 + 0.04 * math.sin(math.pi * t),
@@ -629,27 +637,46 @@ class Builder:
         action = bpy.data.actions.new("Swim")
         action.use_fake_user = True
         rig.animation_data.action = action
-        for frame in range(1, 50):
-            phase = math.tau * ((frame - 1) % 48) / 48.0
-            opening = (1.0 - math.cos(phase)) * 0.5
-            rotations = {
-                "Head": (0.0, 0.0, -0.006 * math.sin(phase)),
-                "Spine.01": (0.0, 0.0, 0.010 * math.sin(phase)),
-                "Spine.02": (0.0, 0.0, 0.018 * math.sin(phase - 0.25)),
-                "Spine.03": (0.0, 0.0, 0.030 * math.sin(phase - 0.50)),
-                "Tail.01": (0.0, 0.0, 0.050 * math.sin(phase - 0.75)),
-                "Tail.02": (0.0, 0.0, 0.075 * math.sin(phase - 1.00)),
-                "TailFin": (0.0, 0.0, 0.105 * math.sin(phase - 1.25)),
-                "Pectoral.L": (0.050 * math.sin(phase + 0.20), 0.0, 0.040 * math.sin(phase)),
-                "Pectoral.R": (0.050 * math.sin(phase + 0.80), 0.0, -0.040 * math.sin(phase + 0.60)),
-                "Pelvic.L": (0.030 * math.sin(phase + 1.20), 0.0, 0.0),
-                "Pelvic.R": (0.030 * math.sin(phase + 1.60), 0.0, 0.0),
-                "Dorsal": (0.0, 0.0, 0.025 * math.sin(phase + 0.40)),
-                "AnalFin": (0.0, 0.0, 0.025 * math.sin(phase + 1.00)),
-                "Gill.L": (0.060 * opening, 0.0, 0.0),
-                "Gill.R": (-0.060 * opening, 0.0, 0.0),
-                "Jaw": (0.040 * opening, 0.0, 0.0),
-            }
+        # One second holds three tail beats, two gill beats and one pectoral
+        # scull, so every oscillator closes its loop exactly. The body wave has
+        # a 1.1 body-length wavelength and an amplitude that grows from the nape
+        # to the tail tip (0.02 L -> 0.12 L), per the measured zebrafish gait.
+        beat = 3.0
+        wavelength = 1.1 * 1.8
+        joints = {
+            "Head": (-0.80, 0.010),
+            "Spine.01": (-0.35, 0.018),
+            "Spine.02": (0.05, 0.045),
+            "Spine.03": (0.40, 0.080),
+            "Tail.01": (0.65, 0.130),
+            "Tail.02": (0.85, 0.170),
+            "TailFin": (1.00, 0.220),
+        }
+        for frame in range(1, 26):
+            time = (frame - 1) / 24.0
+            tail = math.tau * beat * time
+            gill = math.tau * 2.0 * time
+            scull = math.tau * 1.0 * time
+            opening = 0.5 - 0.5 * math.cos(gill)
+            rotations = {}
+            for name, (x, amplitude) in joints.items():
+                phase = math.tau * (x + 0.80) / wavelength
+                rotations[name] = (0.0, 0.0, amplitude * math.sin(tail - phase))
+            dorsal_phase = math.tau * (0.55 + 0.80) / wavelength
+            anal_phase = math.tau * (0.20 + 0.80) / wavelength
+            rotations["Dorsal"] = (0.0, 0.0, 0.018 * math.sin(tail - dorsal_phase))
+            rotations["AnalFin"] = (0.0, 0.0, 0.022 * math.sin(tail - anal_phase))
+            # Pectorals scull on their own slow cycle; they never flap in tail
+            # phase. The two sides are slightly offset so the fish hovers.
+            rotations["Pectoral.L"] = (0.10 * math.sin(scull), 0.0,
+                                       0.055 * math.sin(scull + 0.6))
+            rotations["Pectoral.R"] = (0.10 * math.sin(scull + 0.9), 0.0,
+                                       -0.055 * math.sin(scull + 1.5))
+            rotations["Pelvic.L"] = (0.020 * math.sin(scull + 1.2), 0.0, 0.0)
+            rotations["Pelvic.R"] = (0.020 * math.sin(scull + 1.9), 0.0, 0.0)
+            rotations["Gill.L"] = (0.060 * opening, 0.0, 0.0)
+            rotations["Gill.R"] = (-0.060 * opening, 0.0, 0.0)
+            rotations["Jaw"] = (0.030 * opening, 0.0, 0.0)
             for pose_bone in rig.pose.bones:
                 pose_bone.rotation_euler = (0.0, 0.0, 0.0)
             for name, rotation in rotations.items():
@@ -665,6 +692,7 @@ class Builder:
             for key in curve.keyframe_points:
                 key.interpolation = "LINEAR"
         self.scene.frame_set(1)
+        self.scene.frame_end = 25
         self.action = action
 
     def export(self, path):

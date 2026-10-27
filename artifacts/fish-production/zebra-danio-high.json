@@ -1,8 +1,8 @@
 {
   "species": "zebra-danio",
   "lod": "high",
-  "triangles": 7456,
-  "vertices": 4197,
+  "triangles": 8032,
+  "vertices": 4605,
   "materials": [
     "FishBody",
     "FishCornea",
@@ -28,6 +28,6 @@
     "Gill.L",
     "Gill.R"
   ],
-  "bytes": 651988,
+  "bytes": 732868,
   "variant": "zebra-danio"
 }

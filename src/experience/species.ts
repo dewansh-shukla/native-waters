@@ -25,3 +25,16 @@ export function resolveSpecies(species?: { modelUrl: string; fishIds: string[]; 
     .map(url => ({ modelUrl: url, fishIds: [] as string[], label: "Zebra Danio - Danio rerio" }));
   return extras.length ? [...DEFAULT_SPECIES, ...extras] : DEFAULT_SPECIES;
 }
+
+/**
+ * Swap the native fish assets to the tier that matches the runtime quality.
+ * Only the six owned fish paths carry LOD suffixes; fixtures and extras that do
+ * not end in `-high.glb` are left exactly as the caller supplied them.
+ */
+export function lodSpecies(species: SpeciesEntry[], quality: "HIGH" | "LOW"): SpeciesEntry[] {
+  if (quality === "HIGH") return species;
+  return species.map(entry => ({
+    ...entry,
+    modelUrl: entry.modelUrl.replace(/-high\.glb$/, "-low.glb"),
+  }));
+}

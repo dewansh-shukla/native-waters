@@ -12,7 +12,7 @@ describe("quality policy", () => {
   });
 
   it("returns deterministic stable base IDs without sharing mutable arrays", () => {
-    expect(visibleFishIds("LOW", null)).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-5"]);
+    expect(visibleFishIds("LOW", null)).toEqual(["fish-5", "fish-7", "fish-8", "fish-10", "fish-11", "fish-12"]);
     expect(visibleFishIds("HIGH", null)).toEqual(Array.from({ length: 13 }, (_, i) => `fish-${i}`));
     const ids = visibleFishIds("LOW", null);
     ids.pop();
@@ -29,7 +29,7 @@ describe("quality policy", () => {
   });
 
   it("replaces only the final low slot for fish-9 and ignores invalid selection", () => {
-    expect(visibleFishIds("LOW", "fish-9")).toEqual(["fish-0", "fish-1", "fish-2", "fish-3", "fish-4", "fish-9"]);
+    expect(visibleFishIds("LOW", "fish-9")).toEqual(["fish-5", "fish-7", "fish-8", "fish-10", "fish-11", "fish-9"]);
     expect(visibleFishIds("LOW", "fish-13")).toEqual(visibleFishIds("LOW", null));
   });
 });
