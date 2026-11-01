@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from tools.blender.fish_rig import DETAIL_BONES
+
 
 SPECIES = (
     "arulius-barb",
@@ -41,7 +43,7 @@ REQUIRED_BONES = (
     "Pelvic.R",
     "Dorsal",
     "AnalFin",
-)
+) + DETAIL_BONES
 
 
 def glb_path(slug: str, lod: str) -> Path:

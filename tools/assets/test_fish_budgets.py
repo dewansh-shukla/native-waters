@@ -27,9 +27,13 @@ class BudgetTests(unittest.TestCase):
         self.assertEqual(PRIMITIVE_CAPS, {"high": 6, "mid": 6, "low": 4})
 
     def test_required_bones_and_family_paths(self):
-        self.assertEqual(len(REQUIRED_BONES), 16)
+        self.assertEqual(len(REQUIRED_BONES), 23)
         self.assertIn("Gill.L", REQUIRED_BONES)
         self.assertIn("AnalFin", REQUIRED_BONES)
+        # The detail bones must be required, or a species left on the 17-bone
+        # rig would still pass this suite.
+        self.assertIn("TailFin.U", REQUIRED_BONES)
+        self.assertIn("AnalFin.Tip", REQUIRED_BONES)
         self.assertEqual(glb_path("arulius-barb", "high").as_posix(),
                          "public/models/fish/arulius-barb/arulius-barb-high.glb")
         self.assertEqual(glb_path("zebra-danio-wild", "low").as_posix(),
