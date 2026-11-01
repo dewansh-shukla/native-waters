@@ -21,7 +21,10 @@ def albedo_dimensions(lod):
 
 
 def normal_dimensions(slug, lod):
-    """The Arulius carries a 1024 normal map at high; the danios stay at 512."""
+    """Texture tiers by LOD: the Arulius keeps a 1024 normal at high, the
+    danios share a 512, and the low LOD drops to 256 to stay inside 250 kB."""
+    if lod == "low":
+        return 256
     return 1024 if slug == "arulius-barb" and lod == "high" else 512
 
 

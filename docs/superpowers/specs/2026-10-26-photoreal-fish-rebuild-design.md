@@ -19,8 +19,9 @@ shading, and locomotion; it is not another material tweak.
 - Species-accurate silhouette and pattern, validated by photo overlay.
 - Flesh that reads wet and translucent; eyes and fins that read biological.
 - Biologically correct swim: travelling wave, correct frequency and phase.
-- Keep the real-time contract: three LODs, shared danio geometry, LOW roster
-  unchanged, app renders six species at 60 fps on a mid GPU.
+- Keep the real-time contract: three LODs, shared danio geometry, six native
+  fish at LOW (zebra, golden and wild danios plus three Arulius; the polar
+  parrot study is HIGH-only), app renders at 60 fps on a mid GPU.
 
 ## Non-goals
 

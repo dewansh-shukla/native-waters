@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SPECIES, resolveSpecies } from "./species";
+import { DEFAULT_SPECIES, lodSpecies, resolveSpecies } from "./species";
 
 describe("species roster", () => {
   it("covers all 13 fish slots exactly once", () => {
@@ -24,5 +24,14 @@ describe("species roster", () => {
   it("keeps an explicitly provided species list", () => {
     const provided = [{ modelUrl: "/models/custom.glb", fishIds: ["fish-0"], label: "Custom" }];
     expect(resolveSpecies(provided, undefined)).toEqual(provided);
+  });
+
+  it("swaps only the owned native fish to the low tier", () => {
+    const low = lodSpecies(DEFAULT_SPECIES, "LOW");
+    expect(low).toHaveLength(DEFAULT_SPECIES.length);
+    expect(low[0].modelUrl).toBe("/models/polar-parrot-study-v1-animated.glb");
+    expect(low[1].modelUrl).toBe("/models/fish/zebra-danio/zebra-danio-low.glb");
+    expect(low[6].modelUrl).toBe("/models/fish/arulius-barb/arulius-barb-low.glb");
+    expect(lodSpecies(DEFAULT_SPECIES, "HIGH")).toBe(DEFAULT_SPECIES);
   });
 });

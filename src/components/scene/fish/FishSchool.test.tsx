@@ -5,6 +5,7 @@ import { AnimationClip, AnimationMixer, Bone, Box3, BoxGeometry, FileLoader, Flo
 import { afterEach, expect, it, vi } from "vitest";
 import type { FishSchoolProps } from "@/experience/contracts";
 import { FishSchool } from "./FishSchool";
+import { swimTimeScale } from "./motion";
 import { createSchool } from "./school";
 
 const frames = vi.hoisted(() => ({ ticks: new Set<(state: unknown, delta: number) => void>() }));
@@ -243,13 +244,16 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   runtime.current.fish[0].velocity.set(.42, 0, 0);
   const phases = actions.slice(0, 3).map(a => a.time);
   advance(.1);
-  expect(swim.time - phases[0]).toBeCloseTo(.09);
-  const rate = swim.timeScale;
+  const slow = swimTimeScale(.42, .36);
+  expect(swim.timeScale).toBeCloseTo(slow, 5);
+  expect(swim.time - phases[0]).toBeCloseTo(.1 * slow, 5);
   const nextPhases = actions.slice(0, 3).map(a => a.time);
   runtime.current.fish[0].velocity.set(.84, 0, 0);
   advance(.1);
-  expect(swim.timeScale).toBeCloseTo(2 * rate);
-  expect(swim.time - nextPhases[0]).toBeCloseTo(.18);
+  const fast = swimTimeScale(.84, .36);
+  expect(fast).toBeGreaterThan(slow);
+  expect(swim.timeScale).toBeCloseTo(fast, 5);
+  expect(swim.time - nextPhases[0]).toBeCloseTo(.1 * fast, 5);
   expect(breathing.time - nextPhases[1]).toBeCloseTo(.1 * idleRates[0]);
   expect(fin.time - nextPhases[2]).toBeCloseTo(.1 * idleRates[1]);
   expect([breathing.timeScale, fin.timeScale]).toEqual(idleRates);
@@ -266,7 +270,7 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   tick(100);
   expect(actions.map(a => a.time)).toEqual(saved);
   advance(.1);
-  expect(swim.time).toBeCloseTo(saved[0] + .18);
+  expect(swim.time).toBeCloseTo(saved[0] + .1 * swimTimeScale(.84, .36));
   expect(breathing.time).toBeCloseTo(saved[1] + .1 * idleRates[0]);
   expect(fin.time).toBeCloseTo(saved[2] + .1 * idleRates[1]);
   assertPose();
@@ -275,7 +279,7 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   runtime.current.fish.forEach(f => f.velocity.set(.42, 0, 0));
   advance(.1);
   for (const [index, action] of actions.filter(a => a.getClip().name === "Swim").entries()) {
-    expect(action.timeScale).toBeCloseTo(.9 + index * .023);
+    expect(action.timeScale).toBeCloseTo(swimTimeScale(.42, .36 + index * .008), 5);
   }
   const stoppedPhase = swim.time;
   const breathingPhase = breathing.time;
