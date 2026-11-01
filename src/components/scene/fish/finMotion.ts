@@ -189,13 +189,13 @@ export function driveFins(root: Object3D, state: FinState): void {
   const flare = turnFlare(state.turnRate);
   const bend = bodyBend(state.turnRate);
 
-  // 1. Body wave, plus the caudal roll layered on the tail stock.
-  const tailRoll = 0.12 * Math.sin(phase + Math.PI / 2) * gain;
+  // 1. Body wave. The clip already authors the caudal roll and torsion at the
+  // right phase, so the layer only rescales that rotation here; adding the same
+  // term again doubled it into a ribbon (see the Task 7 render review).
   for (const name of WAVE_BONES) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      placeBone(root, bone, state.rest?.get(name), gain,
-        0, name === "TailFin" ? tailRoll : 0, 0);
+      placeBone(root, bone, state.rest?.get(name), gain, 0, 0, 0);
     }
   }
 
@@ -216,14 +216,14 @@ export function driveFins(root: Object3D, state: FinState): void {
     }
   }
 
-  // 3. Fins: small local deviations layered onto the baked pose.
-  const lobeRoll = 0.2 * Math.sin(phase + Math.PI / 2 - TAU * 0.06);
+  // 3. Fins: small local deviations layered onto the baked pose. The caudal
+  // lobes only get a cup and the turn flare; their per-beat torsion is baked.
   const cup = 0.05 * Math.sin(phase + Math.PI);
   for (const [name, side] of [["TailFin.U", 1], ["TailFin.L", -1]] as const) {
     const bone = root.getObjectByName(name);
     if (bone) {
       placeBone(root, bone, state.rest?.get(name), gain,
-        0, lobeRoll, side * (cup + 0.3 * flare));
+        0, 0, side * (cup + 0.3 * flare));
     }
   }
 

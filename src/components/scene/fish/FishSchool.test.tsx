@@ -307,8 +307,11 @@ function finModel() {
   mesh.bind(new Skeleton(bones));
   const scene = new Group(); scene.add(mesh);
   const swing = [0, 0, 0, 1, 0, 0, Math.sin(0.12), Math.cos(0.12)];
+  // The caudal lobe swings with the clip, as every exported joint does; the
+  // layer must move it without writing a second copy of that swing.
+  const animated = new Set(["Spine.01", "TailFin.U"]);
   const tracks = bones.map(bone => new QuaternionKeyframeTrack(`${bone.name}.quaternion`, [0, 1],
-    bone.name === "Spine.01"
+    animated.has(bone.name)
       ? swing
       : [...bone.quaternion.toArray(), ...bone.quaternion.toArray()]));
   return { scene, animations: [new AnimationClip("Swim", 1, tracks)], rest };
