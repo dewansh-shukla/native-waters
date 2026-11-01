@@ -1,0 +1,147 @@
+import { Object3D, Quaternion, Vector3 } from "three";
+import { describe, expect, it } from "vitest";
+import {
+  bodyBend,
+  driveFins,
+  gillHz,
+  pectoralRowHz,
+  pectoralTuck,
+  turnFlare,
+  waveGain,
+} from "./finMotion";
+import { beatFrequency } from "./motion";
+
+describe("waveGain", () => {
+  it("rises monotonically with speed and stays bounded", () => {
+    expect(waveGain(1.6)).toBeGreaterThan(waveGain(0.7));
+    for (const blps of [0, 0.7, 1.2, 1.7, 3, 10]) {
+      expect(waveGain(blps)).toBeGreaterThanOrEqual(0.7);
+      expect(waveGain(blps)).toBeLessThanOrEqual(1.25);
+    }
+  });
+});
+
+describe("gait", () => {
+  it("tucks pectorals by cruise and rows them when slow", () => {
+    expect(pectoralTuck(0.7)).toBeLessThan(0.2);
+    expect(pectoralTuck(1.7)).toBeGreaterThan(0.7);
+    expect(pectoralRowHz(1.7)).toBeLessThan(pectoralRowHz(0.7));
+  });
+
+  it("keeps gill rate independent of tail beat", () => {
+    const gills = [gillHz(0.7), gillHz(1.7)];
+    const beats = [beatFrequency(0.7 * 0.36, 0.36), beatFrequency(1.7 * 0.36, 0.36)];
+    expect(Math.max(...gills)).toBeLessThan(Math.min(...beats));
+    expect(Math.max(...gills) / Math.min(...gills)).toBeLessThan(2);
+  });
+});
+
+describe("turn", () => {
+  it("caps flare and bend symmetrically", () => {
+    expect(turnFlare(100)).toBeLessThanOrEqual(0.35);
+    expect(turnFlare(-100)).toBeGreaterThanOrEqual(-0.35);
+    expect(bodyBend(100)).toBeLessThanOrEqual(0.16);
+    expect(bodyBend(0)).toBe(0);
+  });
+});
+
+describe("driveFins", () => {
+  const build = () => {
+    const root = new Object3D();
+    for (const name of [
+      "TailFin",
+      "TailFin.U",
+      "TailFin.L",
+      "Gill.L",
+      "Gill.R",
+      "Dorsal",
+      "Dorsal.Mid",
+    ]) {
+      const bone = new Object3D();
+      bone.name = name;
+      root.add(bone);
+    }
+    return root;
+  };
+
+  it("writes gills and leaves an unrelated node alone", () => {
+    const root = build();
+    const unrelated = new Object3D();
+    unrelated.name = "Body";
+    root.add(unrelated);
+    driveFins(root, { cycle: 0, blps: 1.2, turnRate: 0, gillPhase: 0.25 });
+    const gill = root.getObjectByName("Gill.L")!;
+    expect(gill.quaternion.equals(new Quaternion())).toBe(false);
+    expect(unrelated.quaternion.equals(new Quaternion())).toBe(true);
+  });
+
+  it("does not throw when detail bones are missing from an older GLB", () => {
+    const root = new Object3D();
+    expect(() =>
+      driveFins(root, { cycle: 0.3, blps: 1.2, turnRate: 0.5, gillPhase: 0.1 }),
+    ).not.toThrow();
+  });
+
+  it("is deterministic for the same state", () => {
+    const a = build();
+    const b = build();
+    const state = { cycle: 0.4, blps: 1.1, turnRate: 0.2, gillPhase: 0.6 };
+    driveFins(a, state);
+    driveFins(b, state);
+    for (const name of ["TailFin", "TailFin.U", "Gill.L"]) {
+      expect(
+        a.getObjectByName(name)!.quaternion.angleTo(b.getObjectByName(name)!.quaternion),
+      ).toBeLessThan(1e-6);
+    }
+  });
+
+  it("holds a valid pose at zero speed", () => {
+    const root = build();
+    driveFins(root, { cycle: 0, blps: 0, turnRate: 0, gillPhase: 0 });
+    for (const name of ["TailFin", "TailFin.U", "Gill.L"]) {
+      const q = root.getObjectByName(name)!.quaternion;
+      expect(Number.isFinite(q.x + q.y + q.z + q.w)).toBe(true);
+      expect(Math.abs(q.length() - 1)).toBeLessThan(1e-6);
+    }
+  });
+});
+
+describe("rest-pose composition", () => {
+  const restRoll = (angle: number) =>
+    new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), angle);
+
+  it("scales the baked wave about the joint rest pose", () => {
+    const root = new Object3D();
+    const bone = new Object3D();
+    bone.name = "Spine.01";
+    // Joint nodes carry their rest orientation inside the animated quaternion.
+    const rest = restRoll(Math.PI / 4);
+    const baked = restRoll(0.2);
+    bone.quaternion.copy(rest).multiply(baked);
+    root.add(bone);
+    const rests = new Map([["Spine.01", rest]]);
+
+    driveFins(root, { cycle: 0, blps: 1, turnRate: 0, gillPhase: 0, rest: rests });
+
+    const pose = bone.quaternion.clone().premultiply(rest.clone().invert());
+    const angle = 2 * Math.acos(Math.min(1, pose.w));
+    expect(angle).toBeCloseTo(0.2 * waveGain(1), 5);
+  });
+
+  it("overwrites gills rather than stacking the offset twice", () => {
+    const root = new Object3D();
+    const bone = new Object3D();
+    bone.name = "Gill.L";
+    const rest = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.4);
+    bone.quaternion.copy(rest);
+    root.add(bone);
+    const rests = new Map([["Gill.L", rest]]);
+
+    const state = { cycle: 0, blps: 0.6, turnRate: 0, gillPhase: 0.25, rest: rests };
+    driveFins(root, state);
+    const first = bone.quaternion.clone();
+    driveFins(root, state);
+    expect(bone.quaternion.angleTo(first)).toBeLessThan(1e-6);
+    expect(bone.quaternion.angleTo(rest)).toBeGreaterThan(0.01);
+  });
+});
