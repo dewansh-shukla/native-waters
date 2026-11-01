@@ -5,14 +5,20 @@
 // independent gill oscillator, pectoral tuck, and a turn response. Two offset
 // semantics are deliberate and must not be swapped:
 //
-// * fins are MULTIPLIED onto the baked pose (baked, plus deviation), so the
-//   clip keeps its phase and the layer only adds a delta;
-// * gills are OVERWRITTEN from their own oscillator, because their rate is
+// * fins are layered onto the baked pose (baked, plus deviation), so the clip
+//   keeps its phase and the layer only adds a delta;
+// * gills are rebuilt from their own oscillator, because their rate is
 //   decoupled from the tail beat rather than layered on it.
 //
 // Body-wave bones are re-scaled about their joint rest pose: an animated
 // quaternion is rest * pose, so scaling the raw quaternion would also scale
 // the joint's rest orientation.
+//
+// Three writes a bound property only when its value changes, so a clip that is
+// held still (a loitering fish runs at timeScale 0) leaves the bone holding
+// whatever this layer last wrote. Every offset is therefore composed onto a
+// remembered baked pose, never onto the live bone; otherwise a held stroke
+// would stack the same offset sixty times a second.
 
 import { Euler, Object3D, Quaternion, Vector3 } from "three";
 
@@ -26,6 +32,7 @@ const scratchEuler = new Euler();
 const scratchQuaternion = new Quaternion();
 const poseQuaternion = new Quaternion();
 const scaledQuaternion = new Quaternion();
+const resultQuaternion = new Quaternion();
 const axis = new Vector3();
 
 function clamp(value: number, low: number, high: number): number {
@@ -76,9 +83,37 @@ export interface FinState {
   /**
    * Joint rest rotations, captured before the mixer first runs. Without them
    * the layer still produces a valid pose but cannot rescale the baked wave or
-   * replace the gill rotation, so it layers the offsets instead.
+   * rebuild the gill rotation, so it layers those offsets instead.
    */
   rest?: ReadonlyMap<string, Quaternion>;
+}
+
+interface BoneSlot {
+  /** The pose the mixer produced, i.e. what this layer must add to. */
+  baked: Quaternion;
+  /** The pose this layer last wrote, used to notice a mixer rewrite. */
+  written: Quaternion;
+}
+
+const slotsByRoot = new WeakMap<Object3D, Map<string, BoneSlot>>();
+
+function slotFor(root: Object3D, bone: Object3D): BoneSlot {
+  let slots = slotsByRoot.get(root);
+  if (!slots) {
+    slots = new Map<string, BoneSlot>();
+    slotsByRoot.set(root, slots);
+  }
+  let slot = slots.get(bone.name);
+  if (!slot) {
+    slot = { baked: new Quaternion(), written: new Quaternion() };
+    slots.set(bone.name, slot);
+  }
+  // A bone that still holds our own last write was not touched by the mixer,
+  // so its baked pose is unchanged and must not be re-read from the bone.
+  if (!slot.written.equals(bone.quaternion)) {
+    slot.baked.copy(bone.quaternion);
+  }
+  return slot;
 }
 
 function angleOf(rotation: Quaternion): number {
@@ -87,14 +122,13 @@ function angleOf(rotation: Quaternion): number {
 }
 
 function scaleAboutRest(
-  bone: Object3D,
+  baked: Quaternion,
   rest: Quaternion,
   factor: number,
   out: Quaternion,
 ): Quaternion {
-  // Read the baked pose from the bone first; `out` must never be the bone's
-  // own quaternion, or the read and the write alias.
-  poseQuaternion.copy(rest).invert().multiply(bone.quaternion);
+  // `out` must never be `baked` or `rest`, or the read and the write alias.
+  poseQuaternion.copy(rest).invert().multiply(baked);
   const angle = angleOf(poseQuaternion);
   if (angle < 1e-9) {
     return out.identity();
@@ -111,10 +145,35 @@ function scaleAboutRest(
   return out.setFromAxisAngle(axis, angle * factor);
 }
 
-function addOffset(bone: Object3D, x: number, y: number, z: number): void {
-  scratchEuler.set(x, y, z, "XYZ");
-  scratchQuaternion.setFromEuler(scratchEuler);
-  bone.quaternion.multiply(scratchQuaternion);
+/**
+ * Write one bone as `base * offset`, where the base is the mixer's baked pose,
+ * optionally rescaled about the joint rest, and `offset` is a small local
+ * Euler deviation. Missing bones are simply skipped.
+ */
+function placeBone(
+  root: Object3D,
+  bone: Object3D,
+  rest: Quaternion | undefined,
+  factor: number,
+  x: number,
+  y: number,
+  z: number,
+): void {
+  // Resolve the slot before writing: it reads the bone to detect a rewrite, so
+  // it has to see the pose this layer did not write.
+  const slot = slotFor(root, bone);
+  if (rest) {
+    scaleAboutRest(slot.baked, rest, factor, scaledQuaternion);
+    resultQuaternion.copy(rest).multiply(scaledQuaternion);
+  } else {
+    resultQuaternion.copy(slot.baked);
+  }
+  if (x !== 0 || y !== 0 || z !== 0) {
+    scratchEuler.set(x, y, z, "XYZ");
+    resultQuaternion.multiply(scratchQuaternion.setFromEuler(scratchEuler));
+  }
+  bone.quaternion.copy(resultQuaternion);
+  slot.written.copy(resultQuaternion);
 }
 
 /**
@@ -130,47 +189,41 @@ export function driveFins(root: Object3D, state: FinState): void {
   const flare = turnFlare(state.turnRate);
   const bend = bodyBend(state.turnRate);
 
-  // 1. Body wave: rescale the baked rotation about the joint's own rest pose.
-  if (state.rest) {
-    for (const name of WAVE_BONES) {
-      const bone = root.getObjectByName(name);
-      const rest = state.rest.get(name);
-      if (!bone || !rest) {
-        continue;
-      }
-      const scaled = scaleAboutRest(bone, rest, gain, scaledQuaternion);
-      bone.quaternion.copy(rest).multiply(scaled);
+  // 1. Body wave, plus the caudal roll layered on the tail stock.
+  const tailRoll = 0.12 * Math.sin(phase + Math.PI / 2) * gain;
+  for (const name of WAVE_BONES) {
+    const bone = root.getObjectByName(name);
+    if (bone) {
+      placeBone(root, bone, state.rest?.get(name), gain,
+        0, name === "TailFin" ? tailRoll : 0, 0);
     }
   }
 
-  // 2. Gills: their own oscillator replaces the bake, not adds to it.
+  // 2. Gills: their own oscillator replaces the bake, not adds to it. They are
+  // never read back, so they are not tracked.
   const opening = 0.5 - 0.5 * Math.cos(state.gillPhase * TAU);
   for (const [name, side] of [["Gill.L", -1], ["Gill.R", 1]] as const) {
     const bone = root.getObjectByName(name);
     if (!bone) {
       continue;
     }
-    scratchQuaternion.setFromAxisAngle(LOCAL_X, side * 0.06 * opening);
     const rest = state.rest?.get(name);
     if (rest) {
+      scratchQuaternion.setFromAxisAngle(LOCAL_X, side * 0.06 * opening);
       bone.quaternion.copy(rest).multiply(scratchQuaternion);
     } else {
-      bone.quaternion.multiply(scratchQuaternion);
+      placeBone(root, bone, undefined, 1, side * 0.06 * opening, 0, 0);
     }
   }
 
-  // 3. Fins: deviations multiplied onto the baked pose.
-  const tailRoll = 0.12 * Math.sin(phase + Math.PI / 2) * gain;
+  // 3. Fins: small local deviations layered onto the baked pose.
   const lobeRoll = 0.2 * Math.sin(phase + Math.PI / 2 - TAU * 0.06);
   const cup = 0.05 * Math.sin(phase + Math.PI);
-  const tail = root.getObjectByName("TailFin");
-  if (tail) {
-    addOffset(tail, 0, tailRoll, 0);
-  }
   for (const [name, side] of [["TailFin.U", 1], ["TailFin.L", -1]] as const) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      addOffset(bone, 0, lobeRoll, side * (cup + 0.3 * flare));
+      placeBone(root, bone, state.rest?.get(name), gain,
+        0, lobeRoll, side * (cup + 0.3 * flare));
     }
   }
 
@@ -178,13 +231,13 @@ export function driveFins(root: Object3D, state: FinState): void {
   for (const [name, side] of [["Pectoral.L.Tip", -1], ["Pectoral.R.Tip", 1]] as const) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      addOffset(bone, 0, rowRoll + (side > 0 ? flare : -flare), 0);
+      placeBone(root, bone, undefined, 1, 0, rowRoll + (side > 0 ? flare : -flare), 0);
     }
   }
   for (const [name, side] of [["Pectoral.L", -1], ["Pectoral.R", 1]] as const) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      addOffset(bone, 0, 0, side * tuck * 0.55);
+      placeBone(root, bone, undefined, 1, 0, 0, side * tuck * 0.55);
     }
   }
 
@@ -195,7 +248,7 @@ export function driveFins(root: Object3D, state: FinState): void {
   ] as const) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      addOffset(bone, 0, 0, amplitude * Math.sin(phase - TAU * lag));
+      placeBone(root, bone, undefined, 1, 0, 0, amplitude * Math.sin(phase - TAU * lag));
     }
   }
 
@@ -203,7 +256,7 @@ export function driveFins(root: Object3D, state: FinState): void {
   for (const name of BEND_BONES) {
     const bone = root.getObjectByName(name);
     if (bone) {
-      addOffset(bone, 0, 0, bend / BEND_BONES.length);
+      placeBone(root, bone, state.rest?.get(name), gain, 0, 0, bend / BEND_BONES.length);
     }
   }
 }

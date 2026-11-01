@@ -145,3 +145,58 @@ describe("rest-pose composition", () => {
     expect(bone.quaternion.angleTo(rest)).toBeGreaterThan(0.01);
   });
 });
+
+// Three writes a bound property only when its value changes, so a clip held at
+// timeScale 0 stops rewriting its bones after the first frame. The layer has to
+// notice that and add to the pose it remembers, not to its own last output.
+describe("held clip", () => {
+  const state = { cycle: 0.2, blps: 1.1, turnRate: 0, gillPhase: 0 };
+  const tail = () => {
+    const root = new Object3D();
+    const bone = new Object3D();
+    bone.name = "TailFin.U";
+    root.add(bone);
+    return { root, bone };
+  };
+
+  it("does not stack the same offset while the mixer leaves the bone alone", () => {
+    const { root, bone } = tail();
+    driveFins(root, state);
+    const once = bone.quaternion.clone();
+    driveFins(root, state);
+    driveFins(root, state);
+    expect(bone.quaternion.angleTo(once)).toBeLessThan(1e-6);
+  });
+
+  it("adds to a pose the mixer rewrote between frames", () => {
+    const baked = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), 0.5);
+    const { root, bone } = tail();
+    driveFins(root, state);
+    bone.quaternion.copy(baked);
+    driveFins(root, state);
+    const fresh = tail();
+    fresh.bone.quaternion.copy(baked);
+    driveFins(fresh.root, state);
+    expect(bone.quaternion.angleTo(fresh.bone.quaternion)).toBeLessThan(1e-6);
+  });
+
+  it("holds a rescaled wave bone instead of shrinking it every frame", () => {
+    const root = new Object3D();
+    const bone = new Object3D();
+    bone.name = "Spine.01";
+    const rest = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 4);
+    bone.quaternion.copy(rest).multiply(
+      new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), 0.2),
+    );
+    root.add(bone);
+    const rests = new Map([["Spine.01", rest]]);
+
+    const held = { cycle: 0.3, blps: 1, turnRate: 0, gillPhase: 0, rest: rests };
+    driveFins(root, held);
+    const once = bone.quaternion.clone();
+    for (let frame = 0; frame < 5; frame += 1) {
+      driveFins(root, held);
+    }
+    expect(bone.quaternion.angleTo(once)).toBeLessThan(1e-6);
+  });
+});

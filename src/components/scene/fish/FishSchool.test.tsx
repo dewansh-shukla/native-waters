@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Suspense, useEffect } from "react";
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
-import { AnimationClip, AnimationMixer, Bone, Box3, BoxGeometry, FileLoader, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, NumberKeyframeTrack, Skeleton, SkinnedMesh, Texture, Vector3, Raycaster, type AnimationAction, type Object3D } from "three";
+import { AnimationClip, AnimationMixer, Bone, Box3, BoxGeometry, FileLoader, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, NumberKeyframeTrack, Quaternion, QuaternionKeyframeTrack, Skeleton, SkinnedMesh, Texture, Vector3, Raycaster, type AnimationAction, type Object3D } from "three";
 import { afterEach, expect, it, vi } from "vitest";
 import type { FishSchoolProps } from "@/experience/contracts";
 import { FishSchool } from "./FishSchool";
@@ -291,8 +291,81 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
   view.unmount();
 });
 
-function pointer(target: Element, type: string, x: number, y: number) {
-  fireEvent(target, Object.assign(new Event(type, { bubbles: true }), { clientX: x, clientY: y, pointerId: 1, button: 0 }));
+// One swim clip plus the detail bones the procedural layer addresses. Every
+// bone is keyed, as the exporter guarantees, so per-frame offsets cannot stack.
+function finModel() {
+  const names = ["Spine.01", "TailFin", "TailFin.U", "Pectoral.L", "Pectoral.R", "Gill.L", "Gill.R"];
+  const bones = names.map(name => { const bone = new Bone(); bone.name = name; return bone; });
+  const rest = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.4);
+  bones.find(bone => bone.name === "Gill.L")!.quaternion.copy(rest);
+  const geometry = new BoxGeometry(1, .3, .2);
+  const count = geometry.attributes.position.count;
+  geometry.setAttribute("skinIndex", new Float32BufferAttribute(new Array(count * 4).fill(0), 4));
+  geometry.setAttribute("skinWeight", new Float32BufferAttribute(Array.from({ length: count * 4 }, (_, i) => i % 4 === 0 ? 1 : 0), 4));
+  const mesh = new SkinnedMesh(geometry, new MeshBasicMaterial({ map: new Texture() }));
+  mesh.add(...bones);
+  mesh.bind(new Skeleton(bones));
+  const scene = new Group(); scene.add(mesh);
+  const swing = [0, 0, 0, 1, 0, 0, Math.sin(0.12), Math.cos(0.12)];
+  const tracks = bones.map(bone => new QuaternionKeyframeTrack(`${bone.name}.quaternion`, [0, 1],
+    bone.name === "Spine.01"
+      ? swing
+      : [...bone.quaternion.toArray(), ...bone.quaternion.toArray()]));
+  return { scene, animations: [new AnimationClip("Swim", 1, tracks)], rest };
+}
+
+it("drives gill, tuck and fin bones from speed and freezes them while paused", () => {
+  const model = finModel(); synthetic.model = model;
+  const actions: AnimationAction[] = [];
+  const original = AnimationMixer.prototype.clipAction;
+  vi.spyOn(AnimationMixer.prototype, "clipAction").mockImplementation(function (this: AnimationMixer, ...args) {
+    const action = original.apply(this, args); if (action) actions.push(action); return action;
+  });
+  const runtime = { current: { fish: createSchool(), time: 3, entryProgress: 0 } };
+  runtime.current.fish.forEach(f => f.velocity.set(0, 0, 0));
+  const props: FishSchoolProps = { modelUrl: "synthetic-fins", runtime, paused: false,
+    visibleIds: runtime.current.fish.map(f => f.id), selectedId: null, onSelect: vi.fn(), onHover: vi.fn(), onReady: vi.fn() };
+  const view = render(<FishSchool {...props} />);
+  expect(actions).toHaveLength(13);
+  const root = actions[0].getRoot();
+  const gill = root.getObjectByName("Gill.L")!;
+  const tail = root.getObjectByName("TailFin.U")!;
+  const pectoral = root.getObjectByName("Pectoral.L")!;
+  const advance = (delta: number) => { runtime.current.time += delta; tick(delta); };
+
+  // At rest the gills still ventilate against their rest pose and the pectorals
+  // stay out. The first frame also settles the heading baseline, so sample after it.
+  advance(.1);
+  advance(.1);
+  expect(pectoral.quaternion.angleTo(new Quaternion())).toBeLessThan(1e-6);
+  const restingGill = gill.quaternion.clone();
+  expect(restingGill.angleTo(model.rest)).toBeGreaterThan(1e-3);
+  expect(restingGill.angleTo(model.rest)).toBeLessThan(0.2);
+  const restingTail = tail.quaternion.clone();
+  advance(.1);
+  expect(gill.quaternion.angleTo(restingGill)).toBeGreaterThan(1e-4);
+  // With no speed the clip holds its phase, so the caudal offset holds too.
+  expect(tail.quaternion.angleTo(restingTail)).toBeLessThan(1e-6);
+
+  // Cruising tucks the pectorals and advances the baked cycle.
+  runtime.current.fish.forEach(f => f.velocity.set(.5, 0, 0));
+  advance(.1);
+  expect(pectoral.quaternion.angleTo(new Quaternion())).toBeGreaterThan(0.05);
+  const swimming = tail.quaternion.clone();
+  advance(.1);
+  expect(tail.quaternion.angleTo(swimming)).toBeGreaterThan(1e-5);
+
+  // Pause freezes the pose instead of letting the layer fight the mixer.
+  const frozenGill = gill.quaternion.clone();
+  const frozenTail = tail.quaternion.clone();
+  view.rerender(<FishSchool {...props} paused />);
+  advance(5);
+  expect(gill.quaternion.angleTo(frozenGill)).toBe(0);
+  expect(tail.quaternion.angleTo(frozenTail)).toBe(0);
+  view.unmount();
+});
+
+function pointer(target: Element, type: string, x: number, y: number) {  fireEvent(target, Object.assign(new Event(type, { bubbles: true }), { clientX: x, clientY: y, pointerId: 1, button: 0 }));
 }
 
 it("reports stable hover/select IDs, shares drags with the camera, and rejects drag-return and canceled clicks", async () => {
