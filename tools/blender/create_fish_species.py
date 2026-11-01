@@ -1,4 +1,4 @@
-"""Generate the native fish GLBs: anatomy, rig, Swim action, and three LODs.
+﻿"""Generate the native fish GLBs: anatomy, rig, Swim action, and three LODs.
 
 Run with the bundled Blender, for example:
   blender --background --python tools/blender/create_fish_species.py -- \
@@ -19,37 +19,14 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.blender.fish_geometry import fin, loft, sphere, tube  # noqa: E402
+from tools.blender.fish_rig import (BONE_NAMES, body_attachment, bone_specs,  # noqa: E402
+                                    caudal_lobe_weights, caudal_span,
+                                    dorsal_chain_weights, span_weights)
 from tools.blender.fish_specs import MEASUREMENTS, SPECIES, hex_rgb, profile  # noqa: E402
 from tools.blender.fish_textures import (body_albedo, body_normal, body_orm, eye_albedo,  # noqa: E402
                                          eye_uv_radii, fin_albedo, srgb_to_linear)
 from tools.assets.fish_budgets import BYTE_CAPS, TRIANGLE_CAPS  # noqa: E402
 
-BONE_NAMES = (
-    "Head", "Jaw", "Gill.L", "Gill.R",
-    "Spine.01", "Spine.02", "Spine.03",
-    "Tail.01", "Tail.02", "TailFin",
-    "Pectoral.L", "Pectoral.R", "Pelvic.L", "Pelvic.R",
-    "Dorsal", "AnalFin",
-)
-BONE_SPECS = (
-    ("Root", (-0.95, 0.0, 0.0), (-0.90, 0.0, 0.0), None, False),
-    ("Head", (-1.00, 0.0, 0.0), (-0.55, 0.0, 0.0), "Root", True),
-    ("Spine.01", (-0.55, 0.0, 0.0), (-0.15, 0.0, 0.0), "Head", True),
-    ("Spine.02", (-0.15, 0.0, 0.0), (0.25, 0.0, 0.0), "Spine.01", True),
-    ("Spine.03", (0.25, 0.0, 0.0), (0.55, 0.0, 0.0), "Spine.02", True),
-    ("Tail.01", (0.55, 0.0, 0.0), (0.75, 0.0, 0.0), "Spine.03", True),
-    ("Tail.02", (0.75, 0.0, 0.0), (0.90, 0.0, 0.0), "Tail.01", True),
-    ("TailFin", (0.80, 0.0, 0.0), (1.00, 0.0, 0.0), "Tail.02", True),
-    ("Jaw", (-0.95, 0.0, -0.05), (-1.02, 0.0, -0.08), "Head", True),
-    ("Gill.L", (-0.62, -0.10, 0.0), (-0.62, -0.10, 0.20), "Head", True),
-    ("Gill.R", (-0.62, 0.10, 0.0), (-0.62, 0.10, 0.20), "Head", True),
-    ("Pectoral.L", (-0.40, -0.10, -0.05), (-0.15, -0.30, -0.20), "Spine.01", True),
-    ("Pectoral.R", (-0.40, 0.10, -0.05), (-0.15, 0.30, -0.20), "Spine.01", True),
-    ("Pelvic.L", (-0.33, -0.05, -0.20), (-0.10, -0.10, -0.32), "Spine.01", True),
-    ("Pelvic.R", (-0.33, 0.05, -0.20), (-0.10, 0.10, -0.32), "Spine.01", True),
-    ("Dorsal", (-0.35, 0.0, 0.30), (0.30, 0.0, 0.35), "Spine.02", True),
-    ("AnalFin", (-0.20, 0.0, -0.22), (0.35, 0.0, -0.30), "Spine.02", True),
-)
 
 LOD_PARAMS = {
     "high": {"fin_roots": 11, "columns": 4, "eye_segments": 20, "eye_rings": 12,
@@ -466,14 +443,18 @@ class Builder:
         bpy.context.view_layer.objects.active = rig
         rig.select_set(True)
         bpy.ops.object.mode_set(mode="EDIT")
-        for name, head, tail, parent, deform in BONE_SPECS:
+        self.bone_specs = bone_specs(self.spec)
+        for name, head, tail, parent, deform in self.bone_specs:
             bone = armature.edit_bones.new(name)
             bone.head = Vector(head)
             bone.tail = Vector(tail)
             bone.use_deform = deform
             if parent:
-                bone.parent = armature.edit_bones[parent]
-                if name.startswith("Spine.") or name.startswith("Tail."):
+                parent_bone = armature.edit_bones[parent]
+                bone.parent = parent_bone
+                # Connect only where the head already sits on the parent tail, so
+                # chained segments stay welded without moving detail bones.
+                if (Vector(head) - parent_bone.tail).length <= 1e-6:
                     bone.use_connect = True
         bpy.ops.object.mode_set(mode="OBJECT")
         for pose_bone in rig.pose.bones:
@@ -492,12 +473,14 @@ class Builder:
                 return {name_a: 1.0 - blend, name_b: blend}
         return {centers[-1][0]: 1.0}
 
-    def projection_spans(self, vertices, roots, tips):
-        spans = []
+    def projection_map(self, vertices, roots, tips):
+        """(span along the nearest ray, row fraction across the fin, root point)."""
+        rows = max(1, len(roots) - 1)
+        result = []
         for vertex in vertices:
             point = Vector(vertex.co)
-            best_distance, best_span = 1e9, 0.0
-            for root, tip in zip(roots, tips):
+            best_distance, best_span, best_row = 1e9, 0.0, 0
+            for index, (root, tip) in enumerate(zip(roots, tips)):
                 start, end = Vector(root), Vector(tip)
                 axis = end - start
                 length_squared = axis.length_squared
@@ -506,9 +489,18 @@ class Builder:
                 span = clamp((point - start).dot(axis) / length_squared)
                 distance = (point - (start + axis * span)).length_squared
                 if distance < best_distance:
-                    best_distance, best_span = distance, span
-            spans.append(best_span)
-        return spans
+                    best_distance, best_span, best_row = distance, span, index
+            result.append((best_span, best_row / rows, tuple(roots[best_row])))
+        return result
+
+    def top_four(self, weights):
+        """Keep the four strongest influences and renormalise to one."""
+        kept = sorted(((value, name) for name, value in weights.items() if value > 1e-6),
+                      reverse=True)[:4]
+        total = sum(value for value, _ in kept)
+        if total <= 0.0:
+            raise ValueError("no positive skin weight")
+        return {name: value / total for value, name in kept}
 
     def weights_for(self, obj):
         part = obj["fish_part"]
@@ -542,18 +534,41 @@ class Builder:
         if part.startswith("gill."):
             name = "Gill." + part[-1]
             return [{name: 1.0} for _ in obj.data.vertices]
-        base = {
-            "dorsal": ("Spine.02", "Dorsal"),
-            "caudal": ("Tail.02", "TailFin"),
-            "anal": ("Spine.02", "AnalFin"),
-            "pectoral.L": ("Spine.01", "Pectoral.L"),
-            "pectoral.R": ("Spine.01", "Pectoral.R"),
-            "pelvic.L": ("Spine.01", "Pelvic.L"),
-            "pelvic.R": ("Spine.01", "Pelvic.R"),
-        }[part]
         roots, tips = self.fin_data[obj]
-        spans = self.projection_spans(obj.data.vertices, roots, tips)
-        return [{base[0]: 1.0 - span, base[1]: span} for span in spans]
+        projections = self.projection_map(obj.data.vertices, roots, tips)
+        _, _, centre, spread = caudal_span(self.spec)
+        result = []
+        for vertex, (span, row, root) in zip(obj.data.vertices, projections):
+            # Only the attachment band stays on the body chain; the rest of the
+            # fin is owned by its own bones so it can flex along the rays.
+            attached = body_attachment(span)
+            # A fin's root belongs to one body segment, not a blend of two: the
+            # nearest bone in the spine chain, so a pectoral rides the shoulder.
+            chain = self.chain_weights(root[0])
+            anchor = max(chain.items(), key=lambda item: item[1])[0]
+            weights = {anchor: attached}
+            share = 1.0 - attached
+            if part == "caudal":
+                lobe = caudal_lobe_weights((vertex.co.z - centre) / max(spread, 1e-6))
+                weights["TailFin"] = weights.get("TailFin", 0.0) + share * (1.0 - span)
+                for name, value in zip(("TailFin.U", "TailFin.L"), lobe):
+                    weights[name] = weights.get(name, 0.0) + share * span * value
+            elif part == "dorsal":
+                names = ("Dorsal", "Dorsal.Mid", "Dorsal.Tip")
+                for name, value in zip(names, dorsal_chain_weights(row)):
+                    weights[name] = weights.get(name, 0.0) + share * value
+            elif part == "anal":
+                for name, value in zip(("AnalFin", "AnalFin.Tip"), span_weights(row)):
+                    weights[name] = weights.get(name, 0.0) + share * value
+            elif part.startswith("pectoral."):
+                name = "Pectoral." + part[-1]
+                for bone, value in zip((name, name + ".Tip"), span_weights(span)):
+                    weights[bone] = weights.get(bone, 0.0) + share * value
+            else:
+                name = "Pelvic." + part[-1]
+                weights[name] = weights.get(name, 0.0) + share
+            result.append(self.top_four(weights))
+        return result
 
     def skin_parts(self):
         for obj in self.meshes:
@@ -620,9 +635,12 @@ class Builder:
                 total = sum(group.weight for group in vertex.groups)
                 if abs(total - 1.0) > 1e-4:
                     raise ValueError("weights do not sum to one on %s vertex %d" % (obj.name, vertex.index))
-                for group in vertex.groups:
-                    if group.weight > 0:
-                        weighted.add(obj.vertex_groups[group.group].name)
+                influences = [group for group in vertex.groups if group.weight > 0]
+                if len(influences) > 4:
+                    raise ValueError("more than four influences on %s vertex %d"
+                                     % (obj.name, vertex.index))
+                for group in influences:
+                    weighted.add(obj.vertex_groups[group.group].name)
         missing = set(BONE_NAMES) - weighted
         if missing:
             raise ValueError("bones without weighted vertices: " + ", ".join(sorted(missing)))
