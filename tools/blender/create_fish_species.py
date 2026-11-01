@@ -692,6 +692,28 @@ class Builder:
                                        -0.055 * math.sin(scull + 1.5))
             rotations["Pelvic.L"] = (0.020 * math.sin(scull + 1.2), 0.0, 0.0)
             rotations["Pelvic.R"] = (0.020 * math.sin(scull + 1.9), 0.0, 0.0)
+            # Caudal torsion. The fin rolls about its own chord axis a quarter
+            # cycle ahead of the heave, so it presents a face on the power stroke
+            # and feathers on recovery. The root roll is small because the bone
+            # head sits on the peduncle; the skin blends it toward a larger lobe
+            # roll, which is the graded twist a real fin shows.
+            rotations["TailFin"] = (0.0, 0.12 * math.sin(tail + math.pi / 2),
+                                    rotations["TailFin"][2])
+            lobe_phase = tail + math.pi / 2.0 - math.tau * 0.06
+            cup = 0.05 * math.sin(tail + math.pi)
+            rotations["TailFin.U"] = (0.0, 0.20 * math.sin(lobe_phase), cup)
+            rotations["TailFin.L"] = (0.0, 0.20 * math.sin(lobe_phase), -cup)
+            # Outer pectoral halves feather 90 degrees out of the stroke, so the
+            # recovery stroke slices instead of pushing water.
+            rotations["Pectoral.L.Tip"] = (0.0, 0.10 * math.sin(scull + math.pi / 2 + 0.3), 0.0)
+            rotations["Pectoral.R.Tip"] = (0.0, 0.10 * math.sin(scull + math.pi / 2 + 1.2), 0.0)
+            # Median fins ripple front to back, each segment lagging its neighbour.
+            rotations["Dorsal.Mid"] = (0.0, 0.0, 0.014 * math.sin(
+                tail - dorsal_phase - math.tau * 0.05))
+            rotations["Dorsal.Tip"] = (0.0, 0.0, 0.010 * math.sin(
+                tail - dorsal_phase - math.tau * 0.10))
+            rotations["AnalFin.Tip"] = (0.0, 0.0, 0.012 * math.sin(
+                tail - anal_phase - math.tau * 0.05))
             rotations["Gill.L"] = (0.060 * opening, 0.0, 0.0)
             rotations["Gill.R"] = (-0.060 * opening, 0.0, 0.0)
             rotations["Jaw"] = (0.030 * opening, 0.0, 0.0)
@@ -709,6 +731,13 @@ class Builder:
         for curve in curves:
             for key in curve.keyframe_points:
                 key.interpolation = "LINEAR"
+        keyed = set()
+        for curve in curves:
+            if curve.data_path.startswith('pose.bones["'):
+                keyed.add(curve.data_path.split('"')[1])
+        missing = set(BONE_NAMES) - keyed
+        if missing:
+            raise ValueError("action missing bone: " + ", ".join(sorted(missing)))
         self.scene.frame_set(1)
         self.scene.frame_end = 25
         self.action = action
