@@ -40,6 +40,14 @@ Select Cauvery or use **Enter Water**, encounter the persistent fish school, sel
 
 India uses pinned Natural Earth India point-of-view geometry, actual Cauvery river/lake centerlines and georeferenced shaded relief. This is generalized 1:10-million cartography—not ten-metre accuracy or elevation data. Source versions, public-domain licensing and boundary policy appear in the preview dialog and [map provenance](content/maps/README.md). Real geography does not establish polar-parrot occurrence or reconstruct a particular Cauvery reach.
 
+## Native fish rig and motion
+
+The six native fish (one arulius barb, five zebrafish variants) share one 24-bone rig: sixteen deform bones, `Root`, and seven detail bones—`TailFin.U`, `TailFin.L`, `Pectoral.L.Tip`, `Pectoral.R.Tip`, `Dorsal.Mid`, `Dorsal.Tip` and `AnalFin.Tip`—so each fin flexes and twists along its rays instead of swinging as a hinged plate. Skin weights ramp along each fin's span and rows, body attachment stops inside the first quarter of the span, and no vertex takes more than four influences.
+
+Every LOD carries one `Swim` clip that authors the body wave plus the caudal roll and chordwise torsion. The browser re-scales that bake by speed, then layers what a single clip cannot express: an independent gill oscillator, pectoral rowing that tucks as speed rises, a phase-lagged dorsal/anal ripple, and a turn flare with a capped spine C-bend. Offsets compose onto the pose the mixer produced, so a fish held at zero speed keeps its stroke instead of stacking the same offset each frame. Pause and reduced motion still freeze every bone.
+
+Gates: `tools/assets/check_fins.py` asserts the detail bones, the three caudal bones and the four-influence ceiling; `tools/assets/check_swim.py` asserts one clip, the tail-beat rate, yaw amplitude and a seamless loop; `tools/blender/check_caudal_bend.py` fits the best rigid swing of the caudal fan and requires a torsional residual, so a hinged tail fails; and the eighteen-file asset suite checks every LOD against the shared byte and triangle caps. `artifacts/fish-production/review/locomotion-caudal.png` compares the pre-torsion and current caudal fan across one beat; `locomotion-high.png` and `locomotion-low.png` are production-build captures from the browser check that found no console errors and no HIGH/MID fetch after switching to LOW.
+
 ## Fixture and accessibility
 
 The page validates local JSON in `content/fixtures/pipeline-test.json` at build time. The active asset is `/models/polar-parrot-study-v1-animated.glb`, preserving the user's preferred v1 appearance with extended motion, labelled **Polar parrot — reference study**. It is an original procedural visual study based on the user-supplied photo, not a verified native Indian species or a production asset. The original `/models/pipeline-test.glb` and Blender probe remain unchanged.
