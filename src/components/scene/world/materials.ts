@@ -86,13 +86,82 @@ export function plantShader(uniforms: WorldUniforms) {
   return (shader: Shader) => {
     shader.uniforms.uWorldTime = uniforms.time;
     shader.uniforms.uFlow = uniforms.flow;
-    shader.vertexShader = "uniform float uWorldTime; uniform vec3 uFlow;\n" + shader.vertexShader;
+    shader.vertexShader = `
+      uniform float uWorldTime;
+      uniform vec3 uFlow;
+      attribute float aWind;
+      attribute float aPhase;
+      varying float vLeafWind;
+      varying float vLeafPhase;
+      varying vec3 vLeafWorld;
+    ` + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
+      {
+        float normalT = clamp(aWind, 0.0, 1.0);
+        float normalT2 = normalT * normalT;
+        float normalT4 = normalT2 * normalT2;
+        vec3 normalInstanceX = normalize(instanceMatrix[0].xyz);
+        vec3 normalInstanceZ = normalize(instanceMatrix[2].xyz);
+        vec2 normalFlow = vec2(
+          dot(vec2(uFlow.x, uFlow.z), normalInstanceX.xz),
+          dot(vec2(uFlow.x, uFlow.z), normalInstanceZ.xz)
+        );
+        float normalPhase = aPhase + instanceMatrix[3].x * 0.7 + instanceMatrix[3].z * 0.4;
+        vec3 normalRootWorld = (modelMatrix * instanceMatrix * vec4(vec3(0.0), 1.0)).xyz;
+        float normalGust = sin(normalRootWorld.x * 0.31 + normalRootWorld.z * 0.24 - uWorldTime * 0.8);
+        float normalFast = sin(uWorldTime * 1.75 + normalPhase * 1.7) * 0.012;
+        float normalBendX = normalFlow.x * 0.11 + sin(uWorldTime * 0.55 + normalPhase) * 0.045 + normalGust * 0.026;
+        float normalBendZ = normalFlow.y * 0.11 + cos(uWorldTime * 0.47 + normalPhase) * 0.035 + normalGust * 0.026 * 0.8;
+        float normalHeight = max(position.y / max(normalT, 0.001), 0.25);
+        float normalSlopeX = (2.0 * normalT * normalBendX + 5.0 * normalFast * normalT4) / normalHeight;
+        float normalSlopeZ = (2.0 * normalT * normalBendZ + 3.5 * normalFast * normalT4) / normalHeight;
+        objectNormal.y -= normalSlopeX * objectNormal.x + normalSlopeZ * objectNormal.z;
+        float normalTwist = sin(uWorldTime * 0.72 + normalPhase) * 0.12 * normalT2 * normalT;
+        objectNormal.xz = mat2(cos(normalTwist), -sin(normalTwist), sin(normalTwist), cos(normalTwist)) * objectNormal.xz;
+        objectNormal = normalize(objectNormal);
+      }`);
     shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
-      float tip = max(position.y, 0.0);
+      float t = clamp(aWind, 0.0, 1.0);
+      float bendWeight = t * t;
+      float tipWeight = bendWeight * t;
+      vec3 instanceX = normalize(instanceMatrix[0].xyz);
+      vec3 instanceZ = normalize(instanceMatrix[2].xyz);
+      vec2 flowLocal = vec2(
+        dot(vec2(uFlow.x, uFlow.z), instanceX.xz),
+        dot(vec2(uFlow.x, uFlow.z), instanceZ.xz)
+      );
       float rootPhase = instanceMatrix[3].x * 0.7 + instanceMatrix[3].z * 0.4;
-      transformed.x *= 1.0 - tip * 0.9;
-      transformed.x += tip * tip * (uFlow.x * 0.75 + sin(uWorldTime * 0.9 + rootPhase) * 0.06);
-      transformed.z += tip * tip * (uFlow.z * 0.6 + sin(uWorldTime * 0.7 + rootPhase) * 0.075);`);
+      float phase = aPhase + rootPhase;
+      vec3 baseWorld = (modelMatrix * instanceMatrix * vec4(vec3(0.0), 1.0)).xyz;
+      float gust = sin(baseWorld.x * 0.31 + baseWorld.z * 0.24 - uWorldTime * 0.8);
+      float slowSway = sin(uWorldTime * 0.55 + phase) * 0.045;
+      float fastFlutter = sin(uWorldTime * 1.75 + phase * 1.7) * 0.012 * tipWeight;
+      float travelingGust = gust * 0.026;
+      transformed.x += (flowLocal.x * 0.11 + slowSway + fastFlutter + travelingGust) * bendWeight;
+      transformed.z += (flowLocal.y * 0.11 + cos(uWorldTime * 0.47 + phase) * 0.035 + fastFlutter * 0.7 + travelingGust * 0.8) * bendWeight;
+      float riverTwist = sin(uWorldTime * 0.72 + phase) * 0.12 * tipWeight;
+      float twistCos = cos(riverTwist), twistSin = sin(riverTwist);
+      transformed.xz = mat2(twistCos, -twistSin, twistSin, twistCos) * transformed.xz;
+      vLeafWind = t;
+      vLeafPhase = phase;
+      vLeafWorld = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;`);
+
+    shader.fragmentShader = NOISE_GLSL + `
+      uniform float uWorldTime;
+      varying float vLeafWind;
+      varying float vLeafPhase;
+      varying vec3 vLeafWorld;
+    ` + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
+      float leafMottle = riverFbm(vLeafWorld.xz * 2.8 + vec2(vLeafPhase, vLeafPhase * 0.73));
+      float rootSilt = (1.0 - smoothstep(0.0, 0.28, vLeafWind)) * 0.16;
+      diffuseColor.rgb *= 0.9 + leafMottle * 0.16 - rootSilt;
+      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.04, 0.82), smoothstep(0.78, 1.0, vLeafWind) * 0.18);`);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+      roughnessFactor = clamp(mix(0.85, 0.5, vLeafWind), 0.35, 0.95);`);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <aomap_fragment>", `#include <aomap_fragment>
+      float riverRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.0);
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * riverRim * (0.11 + 0.07 * sin(vLeafPhase + uWorldTime * 0.4));`);
   };
 }
 
