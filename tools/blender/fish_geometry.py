@@ -81,8 +81,22 @@ def loft(spec, rings: int, sides: int) -> Geometry:
     return Geometry(vertices, faces, uvs)
 
 
+def _length(value):
+    return sqrt(value[0] ** 2 + value[1] ** 2 + value[2] ** 2)
+
+
+def _clamp01(value):
+    return max(0.0, min(1.0, value))
+
+
 def fin(roots, tips, thickness: float, columns: int) -> Geometry:
-    """Build a double-sided fin with a closed rim around its perimeter."""
+    """Build a double-sided fin with a closed rim around its perimeter.
+
+    The membrane is not a flat ruled sheet: it bows out along the normal by a
+    fraction of each ray's length, each ray sits slightly proud of its
+    neighbours, and the thickness tapers from the base to a thin trailing edge.
+    Together those three cues read as fin rather than paper at grazing angles.
+    """
     if len(roots) != len(tips) or len(roots) < 2:
         raise ValueError("roots and tips must have at least two matching points")
     if columns < 1:
@@ -107,6 +121,23 @@ def fin(roots, tips, thickness: float, columns: int) -> Geometry:
             normal_row.append(normal)
         normals.append(normal_row)
 
+    def relief(row, column):
+        """Normal offset of the membrane's mid-surface at one vertex."""
+        row_frac = row / (rows - 1)
+        v = column / columns
+        ray = _length(_sub(tips[row], roots[row]))
+        camber = 0.07 * ray * (row_frac ** 0.7) * sin(pi * v)
+        # Alternate rays sit a hair proud of their neighbours, which catches a
+        # rim light and breaks the membrane into rays.
+        ridge = 0.30 * thickness * (row % 2) * sin(pi * row_frac)
+        return camber + ridge
+
+    def half_thickness(row, column):
+        """Thick at the base, thin at the trailing edge and on outer rays."""
+        row_frac = row / (rows - 1)
+        edge = _clamp01((column / columns - 0.82) / 0.18)
+        return 0.5 * thickness * (1.0 - 0.40 * row_frac) * (1.0 - 0.55 * edge ** 1.5)
+
     vertices, uvs = [], []
     top = [[0] * cols for _ in range(rows)]
     bottom = [[0] * cols for _ in range(rows)]
@@ -116,15 +147,17 @@ def fin(roots, tips, thickness: float, columns: int) -> Geometry:
             v = column / columns
             point = points[row][column]
             normal = normals[row][column]
+            middle = _add(point, _mul(normal, relief(row, column)))
             top[row][column] = len(vertices)
-            vertices.append(_add(point, _mul(normal, thickness / 2.0)))
+            vertices.append(_add(middle, _mul(normal, half_thickness(row, column))))
             uvs.append((u, v))
     for row in range(rows):
         for column in range(cols):
             point = points[row][column]
             normal = normals[row][column]
+            middle = _add(point, _mul(normal, relief(row, column)))
             bottom[row][column] = len(vertices)
-            vertices.append(_sub(point, _mul(normal, thickness / 2.0)))
+            vertices.append(_sub(middle, _mul(normal, half_thickness(row, column))))
             uvs.append((row / (rows - 1), column / columns))
 
     faces = []
@@ -149,12 +182,19 @@ def fin(roots, tips, thickness: float, columns: int) -> Geometry:
     return Geometry(vertices, faces, uvs)
 
 
-def sphere(center, radii, segments: int, rings: int) -> Geometry:
-    """Build a UV sphere with triangular caps."""
+def sphere(center, radii, segments: int, rings: int, uv="equirect") -> Geometry:
+    """Build a UV sphere with triangular caps.
+
+    `uv="equirect"` wraps the texture around the globe. `uv="disc"` projects it
+    down the lateral (y) axis instead, so a texture painted as a disc lands on
+    the visible face of an eye rather than wrapping it as a band.
+    """
     if segments < 3 or rings < 2:
         raise ValueError("segments >= 3 and rings >= 2 required")
     if min(radii) <= 0:
         raise ValueError("radii must be positive")
+    if uv not in ("equirect", "disc"):
+        raise ValueError('uv must be "equirect" or "disc"')
     cx, cy, cz = center
     rx, ry, rz = radii
     stride = segments + 1
@@ -163,10 +203,15 @@ def sphere(center, radii, segments: int, rings: int) -> Geometry:
         phi = pi * ring / rings
         for segment in range(segments + 1):
             theta = 2.0 * pi * segment / segments
-            vertices.append((cx + rx * sin(phi) * cos(theta),
-                             cy + ry * sin(phi) * sin(theta),
-                             cz + rz * cos(phi)))
-            uvs.append((segment / segments, ring / rings))
+            x = cx + rx * sin(phi) * cos(theta)
+            y = cy + ry * sin(phi) * sin(theta)
+            z = cz + rz * cos(phi)
+            vertices.append((x, y, z))
+            if uv == "disc":
+                uvs.append((0.5 + 0.5 * (x - cx) / rx,
+                            0.5 + 0.5 * (z - cz) / rz))
+            else:
+                uvs.append((segment / segments, ring / rings))
 
     def index(ring, segment):
         return ring * stride + segment

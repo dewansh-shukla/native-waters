@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 import { Vector3 } from "three";
 import { plantShader, substrateShader, type WorldUniforms } from "./materials";
 
-type FakeShader = ReturnType<typeof fakeShader>;
-
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
   return {
-    vertexShader: "#include <begin_vertex>",
-    fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>\n#include <lights_physical_fragment>",
+    vertexShader: "#include <beginnormal_vertex>\n#include <begin_vertex>",
+    fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>\n#include <lights_physical_fragment>\n#include <aomap_fragment>",
     uniforms: {},
   };
 }
@@ -47,11 +45,57 @@ describe("substrateShader", () => {
 });
 
 describe("plantShader", () => {
-  it("registers flow and time uniforms for the sway", () => {
+  it("registers flow and time uniforms and the per-vertex blade attributes", () => {
     const shader = fakeShader();
     plantShader(worldUniforms())(shader as never);
     expect(shader.uniforms.uFlow).toBeDefined();
     expect(shader.uniforms.uWorldTime).toBeDefined();
     expect(shader.vertexShader).toContain("uFlow");
+    expect(shader.vertexShader).toContain("attribute float aWind");
+    expect(shader.vertexShader).toContain("attribute float aPhase");
+    expect(shader.fragmentShader).toContain("uniform float uWorldTime");
+  });
+
+  it("bends on a wind weight so roots never move, with clump + blade phase", () => {
+    const shader = fakeShader();
+    plantShader(worldUniforms())(shader as never);
+    expect(shader.vertexShader).toContain("bendWeight = t * t");
+    expect(shader.vertexShader).toContain("fastFlutter");
+    expect(shader.vertexShader).toContain("instanceMatrix[3]");
+    expect(shader.vertexShader).not.toContain("transformed.x *=");
+  });
+
+  it("layers lean, slow sway, fast flutter and a traveling gust on the flow direction", () => {
+    const shader = fakeShader();
+    plantShader(worldUniforms())(shader as never);
+    const body = shader.vertexShader.slice(shader.vertexShader.indexOf("#include <begin_vertex>"));
+    expect(body).toContain("flowLocal.x * 0.11");
+    expect(body).toContain("uFlow.x, uFlow.z");
+    expect(body).toContain("sin(uWorldTime * 0.55");
+    expect(body).toContain("sin(uWorldTime * 1.75");
+    expect(body).toContain("baseWorld.x * 0.31 + baseWorld.z * 0.24 - uWorldTime * 0.8");
+  });
+
+  it("twists blades after displacement so highlights crawl along the leaf", () => {
+    const shader = fakeShader();
+    plantShader(worldUniforms())(shader as never);
+    const body = shader.vertexShader.slice(shader.vertexShader.indexOf("riverTwist"));
+    expect(body).toContain("mat2(");
+    expect(body.split("mat2(").length).toBe(2);
+    const normalBody = shader.vertexShader.slice(shader.vertexShader.indexOf("#include <beginnormal_vertex>"));
+    expect(normalBody).toContain("normalSlopeX");
+    expect(normalBody).toContain("objectNormal.y -=");
+    expect(normalBody).toContain("normalTwist");
+  });
+
+  it("shades leaves: fbm mottling, root silt, wet tip roughness and rim translucency", () => {
+    const shader = fakeShader();
+    plantShader(worldUniforms())(shader as never);
+    const fragment = shader.fragmentShader;
+    expect(fragment).toContain("varying float vLeafWind");
+    expect(fragment).toContain("riverFbm");
+    expect(fragment).toContain("roughnessFactor = clamp(mix(0.85, 0.5, vLeafWind)");
+    expect(fragment).toContain("riverRim");
+    expect(fragment).toContain("reflectedLight");
   });
 });

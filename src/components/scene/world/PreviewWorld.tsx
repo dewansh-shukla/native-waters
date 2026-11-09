@@ -2,14 +2,14 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, Fog, HemisphereLight, InstancedMesh, PlaneGeometry, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, HemisphereLight, InstancedMesh, PlaneGeometry, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
 import { plantShader, substrateShader, surfaceFragment, surfaceVertex } from "./materials";
-import { createGravelGeometry, createPlantGeometry, createRockGeometry, fillBatch } from "./worldAssets";
+import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
@@ -19,6 +19,10 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const underwaterAmbient = useRef<AmbientLight>(null);
   const keyLight = useRef<DirectionalLight>(null), fillLight = useRef<DirectionalLight>(null), backlight = useRef<DirectionalLight>(null);
   const placements = useMemo(() => createPlacements(), []);
+  const grassPlacements = useMemo(() => placements.plants.map(item => ({
+    ...item,
+    scale: [item.scale[0] * .85, item.scale[1] * .6, item.scale[2] * .85] as [number, number, number],
+  })), [placements]);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
@@ -57,9 +61,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
     fillBatch(rocks.current, placements.rocks, "#6b6055", { spin: true, stretch: true, skipFirst: OBSTACLES.length });
     fillBatch(gravel.current, placements.gravel, "#8a7a60", { spin: true, colorSpread: .42 });
-    fillBatch(plants.current, placements.plants, "#3d8b3a");
-    fillBatch(plants2.current, placements.plants, "#2d6b28");
-  }, [placements]);
+    fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
+    fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
+  }, [placements, grassPlacements]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
     return () => { updateAtmosphere(scene, atmosphere, false); };
@@ -67,20 +71,15 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useEffect(() => () => terrain.dispose(), [terrain]);
   useEffect(() => () => env.dispose(), [env]);
 
-  // Rock/gravel/plant geometry lives in worldAssets: radial noise displacement
-  // (crag detail on boulders, worn relief on pebbles) plus blade vertex shading.
+  // Rock/gravel/plant geometry lives in worldAssets: radial stone relief and
+  // rooted multi-blade clumps with per-vertex wind, phase and leaf shading.
   const rockGeometry = useMemo(() => createRockGeometry(), []);
   useEffect(() => () => rockGeometry.dispose(), [rockGeometry]);
   const gravelGeometry = useMemo(() => createGravelGeometry(), []);
   useEffect(() => () => gravelGeometry.dispose(), [gravelGeometry]);
 
-  // Plant: single blade with baked taper, arch and root-to-tip shading. Sway via plantShader.
-  const plantGeometry = useMemo(() => createPlantGeometry(), []);
-  const plantGeometry2 = useMemo(() => {
-    const geo = createPlantGeometry();
-    geo.rotateY(Math.PI / 2);
-    return geo;
-  }, []);
+  const plantGeometry = useMemo(() => createPlantClumpGeometry("ribbon"), []);
+  const plantGeometry2 = useMemo(() => createPlantClumpGeometry("grass"), []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
   useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
 
@@ -132,7 +131,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
       <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>
-    <instancedMesh ref={plants2} args={[plantGeometry2, undefined, placements.plants.length]} frustumCulled={false}>
+    <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>

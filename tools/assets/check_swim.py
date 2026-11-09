@@ -14,7 +14,8 @@ import sys
 
 
 def read_glb(path):
-    data = open(path, "rb").read()
+    with open(path, "rb") as handle:
+        data = handle.read()
     magic, version, length = struct.unpack("<III", data[:12])
     if magic != 0x46546C67:
         raise SystemExit("not a GLB: %s" % path)

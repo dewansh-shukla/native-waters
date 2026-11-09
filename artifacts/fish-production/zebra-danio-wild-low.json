@@ -1,8 +1,8 @@
 {
   "species": "zebra-danio",
   "lod": "low",
-  "triangles": 1132,
-  "vertices": 647,
+  "triangles": 1384,
+  "vertices": 773,
   "materials": [
     "FishBody",
     "FishFin"
@@ -14,18 +14,24 @@
     "Spine.02",
     "Spine.03",
     "Tail.01",
-    "Tail.02",
     "TailFin",
+    "TailFin.U",
+    "TailFin.L",
     "Dorsal",
+    "Dorsal.Ray.1",
+    "Dorsal.Ray.2",
+    "Dorsal.Ray.3",
     "AnalFin",
+    "AnalRay.1",
+    "AnalRay.2",
     "Pectoral.L",
-    "Pectoral.R",
     "Pelvic.L",
+    "Pectoral.R",
     "Pelvic.R",
     "Jaw",
     "Gill.L",
     "Gill.R"
   ],
-  "bytes": 156972,
+  "bytes": 195032,
   "variant": "zebra-danio-wild"
 }

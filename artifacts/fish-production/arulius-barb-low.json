@@ -1,8 +1,8 @@
 {
   "species": "arulius-barb",
   "lod": "low",
-  "triangles": 1192,
-  "vertices": 687,
+  "triangles": 1444,
+  "vertices": 813,
   "materials": [
     "FishBody",
     "FishFin"
@@ -14,18 +14,24 @@
     "Spine.02",
     "Spine.03",
     "Tail.01",
-    "Tail.02",
     "TailFin",
-    "Dorsal",
+    "TailFin.U",
+    "TailFin.L",
     "AnalFin",
+    "AnalRay.1",
+    "AnalRay.2",
+    "Dorsal",
+    "Dorsal.Ray.1",
+    "Dorsal.Ray.2",
+    "Dorsal.Ray.3",
     "Pectoral.L",
-    "Pectoral.R",
     "Pelvic.L",
+    "Pectoral.R",
     "Pelvic.R",
     "Jaw",
     "Gill.L",
     "Gill.R"
   ],
-  "bytes": 152540,
+  "bytes": 195688,
   "variant": "arulius-barb"
 }

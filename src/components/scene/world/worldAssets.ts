@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Object3D, PlaneGeometry } from "three";
+import { BufferAttribute, BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Object3D } from "three";
 import type { Placement } from "./worldMotion";
 
 // Radial noise shared by both stone geometries: low octaves set the mass,
@@ -43,24 +43,85 @@ export function createGravelGeometry() {
   return displaceIcosahedron(new IcosahedronGeometry(1, 1), gravelHeight);
 }
 
-// One grass blade: slight baked taper, arch out of the flat plane (the sway
-// shader bends on top of this), and a per-vertex root-to-tip shade gradient
-// so blades self-shade with the shared green material.
-export function createPlantGeometry() {
-  const geo = new PlaneGeometry(0.16, 1, 1, 8);
-  geo.translate(0, 0.5, 0);
-  const pos = geo.getAttribute("position");
-  const colors = new Float32Array(pos.count * 3);
-  const color = new Color();
-  for (let i = 0; i < pos.count; i++) {
-    const y = pos.getY(i);
-    pos.setZ(i, y * y * 0.05);
-    pos.setX(i, pos.getX(i) * (1 - y * 0.3));
-    const shade = 1.0 + y * 0.35;
-    color.setRGB(shade * (1 + y * 0.08), shade, shade);
-    color.toArray(colors, i * 3);
+export type PlantVariant = "ribbon" | "grass";
+
+// Ribbon: tall Vallisneria-like strap leaves. Grass: shorter fine understory
+// blades. rows = length segments; vertex count is blades*(rows+1)*3.
+const PLANT_CLUMP_SPECS = {
+  ribbon: { blades: 7, rows: 7, width: .075, radius: .15, leanBase: .14, leanRange: .2, widthJitter: .45 },
+  grass: { blades: 11, rows: 5, width: .028, radius: .24, leanBase: .08, leanRange: .14, widthJitter: .35 },
+} as const;
+
+// Blade-level deterministic hash (instanceVariation keys instances; this keys
+// the blades inside one clump).
+function bladeRandom(blade: number, salt: number) {
+  let seed = (blade * 1973 + salt * 9277 + 2654435761) >>> 0;
+  seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+  return seed / 4294967296;
+}
+
+// One clump of blades rooted at the bed. Each blade is a tapered, twisted
+// 3-column ribbon (shallow V cross-section) arched outward with per-blade
+// height/lean/yaw, plus baked root silt / bright mid / yellow tip shading.
+// Per-vertex `aWind` (0 root -> 1 tip) and `aPhase` (one random phase per
+// blade) drive the layered sway in plantShader. Clump space spans y 0..1 so
+// existing placement scale.y keeps working, roots pinned at y=0.
+export function createPlantClumpGeometry(variant: PlantVariant = "ribbon") {
+  const { blades, rows, width, radius, leanBase, leanRange, widthJitter } = PLANT_CLUMP_SPECS[variant];
+  const positions: number[] = [], colors: number[] = [], winds: number[] = [], phases: number[] = [], indices: number[] = [];
+
+  for (let blade = 0; blade < blades; blade++) {
+    const yaw = bladeRandom(blade, 1) * Math.PI * 2;
+    const reach = radius * (.35 + bladeRandom(blade, 2) * .65);
+    const baseX = Math.cos(yaw) * reach, baseZ = Math.sin(yaw) * reach;
+    const height = blade === 0 ? 1 : .52 + bladeRandom(blade, 3) * .43;
+    const leanAngle = yaw + (bladeRandom(blade, 4) - .5) * 1.7;
+    const lean = leanBase + bladeRandom(blade, 5) * leanRange;
+    const twistTotal = .5 + bladeRandom(blade, 6) * .8;
+    const w0 = width * (1 - widthJitter + bladeRandom(blade, 7) * widthJitter * 2);
+    const age = bladeRandom(blade, 8);
+    const bladePhase = bladeRandom(blade, 9) * Math.PI * 2;
+
+    for (let row = 0; row <= rows; row++) {
+      const t = row / rows;
+      const tipPinch = t > .88 ? Math.max(.08, 1 - (t - .88) * 7.5) : 1;
+      const w = w0 * (1 - t * .68) * tipPinch;
+      const ridge = w * .18;
+      const bend = t * t * lean;
+      const leanX = Math.cos(leanAngle) * bend, leanZ = Math.sin(leanAngle) * bend;
+      const y = t * height;
+      for (let col = 0; col < 3; col++) {
+        const lx = (col - 1) * (w / 2);
+        const lz = col === 1 ? ridge : 0;
+        const co = Math.cos(twistTotal * t), si = Math.sin(twistTotal * t);
+        positions.push(baseX + leanX + lx * co - lz * si, y, baseZ + leanZ + lx * si + lz * co);
+        winds.push(t);
+        phases.push(bladePhase);
+        const luma = .26 + t * (.95 + age * .14);
+        const silt = Math.max(0, 1 - t * 5);
+        colors.push(
+          luma * (1 + silt * .55 + t * .22),
+          luma * (.97 - silt * .35),
+          luma * (.9 - silt * .55 - t * .05),
+        );
+      }
+    }
+    const first = blade * (rows + 1) * 3;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < 2; c++) {
+        const a = first + r * 3 + c;
+        const b0 = a + 3;
+        indices.push(a, b0, b0 + 1, a, b0 + 1, a + 1);
+      }
+    }
   }
-  geo.setAttribute("color", new BufferAttribute(colors, 3));
+
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute("color", new BufferAttribute(new Float32Array(colors), 3));
+  geo.setAttribute("aWind", new BufferAttribute(new Float32Array(winds), 1));
+  geo.setAttribute("aPhase", new BufferAttribute(new Float32Array(phases), 1));
+  geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
 }

@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.assets.fish_budgets import (  # noqa: E402
-    BYTE_CAPS, LODS, PRIMITIVE_CAPS, REQUIRED_BONES, SPECIES, TRIANGLE_CAPS, glb_path,
+    BYTE_CAPS, LODS, PRIMITIVE_CAPS, SPECIES, TRIANGLE_CAPS, glb_path, required_bones,
 )
 
 CLI = ROOT / "tools/assets/validate_fish_glb.py"
@@ -36,7 +36,7 @@ class FishAssetContract(unittest.TestCase):
                 "--triangles", str(TRIANGLE_CAPS[slug][lod]),
                 "--primitives", str(PRIMITIVE_CAPS[lod]),
                 "--bytes", str(BYTE_CAPS[lod]), "--clip", "Swim"]
-        for bone in REQUIRED_BONES:
+        for bone in required_bones(lod):
             args += ["--bone", bone]
         result = subprocess.run(args, capture_output=True, text=True)
         facts = json.loads(result.stdout)

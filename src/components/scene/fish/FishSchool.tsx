@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
+import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, Quaternion, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { prepareFishMaterials } from "./fishMaterials";
+import { driveFins, gillHz, pectoralRowHz } from "./finMotion";
 import { bankAngle, swimTimeScale } from "./motion";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
 
@@ -17,8 +18,20 @@ const hitGeometry = new SphereGeometry(1, 12, 8);
 const hitMaterial = new MeshBasicMaterial({ visible: false });
 const noRaycast = () => {};
 
-function Fish({ source, animations, fish, runtime, index, paused, visible, onSelect, onHover }: {
-  source: Object3D; animations: AnimationClip[]; fish: FishState; runtime: FishSchoolProps["runtime"]; index: number;
+// An animated glTF joint is rest * pose, so the procedural layer needs the
+// rest rotation to rescale or replace it. The source scene is never animated
+// (only clones are), so its pose stays rest forever.
+function captureRest(root: Object3D): Map<string, Quaternion> {
+  const rest = new Map<string, Quaternion>();
+  root.traverse(node => {
+    if (node.name) rest.set(node.name, node.quaternion.clone());
+  });
+  return rest;
+}
+
+function Fish({ source, animations, rest, fish, runtime, index, paused, visible, onSelect, onHover }: {
+  source: Object3D; animations: AnimationClip[]; rest: ReadonlyMap<string, Quaternion>;
+  fish: FishState; runtime: FishSchoolProps["runtime"]; index: number;
   paused: boolean; visible: boolean; onSelect: FishSchoolProps["onSelect"]; onHover: FishSchoolProps["onHover"];
 }) {
   const model = useMemo(() => {
@@ -42,6 +55,11 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
   }, [source, index]);
   const mixer = useRef<AnimationMixer | null>(null);
   const swim = useRef<AnimationAction | null>(null);
+  // The locomotion action whose local time supplies the swim cycle. Kept
+  // separate from `swim` so single-clip GLBs keep their mixer-level retiming.
+  const phase = useRef<AnimationAction | null>(null);
+  const gillClock = useRef(0);
+  const pectoralClock = useRef(0);
   const lastTime = useRef(runtime.current.time);
   const lastForward = useRef(new Vector3(-1, 0, 0));
   const forwardRef = useRef(new Vector3(-1, 0, 0));
@@ -64,6 +82,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
     for (const clip of clips) {
       const action = instance.clipAction(clip).play();
       action.time = clip.duration * index / 13;
+      if (!phase.current && (clip.name === "Swim" || clips.length === 1)) phase.current = action;
       if (animations.length > 1 && clip.name === "Swim") swim.current = action;
     }
     instance.update(0);
@@ -73,6 +92,7 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
       model.rig.traverse(node => { if (node instanceof SkinnedMesh) node.skeleton.dispose(); });
       mixer.current = null;
       swim.current = null;
+      phase.current = null;
     };
   }, [animations, model, index]);
 
@@ -112,6 +132,21 @@ function Fish({ source, animations, fish, runtime, index, paused, visible, onSel
         mixer.current.timeScale = speed;
       }
       mixer.current.update(delta);
+      // Detail bones read the clip's own phase, so fin lag stays coherent with
+      // the baked wave at any time scale and never drifts.
+      const action = phase.current;
+      const clip = action ? action.getClip() : null;
+      const blps = fish.velocity.length() / Math.max(model.length, 1e-3);
+      gillClock.current = (gillClock.current + delta * gillHz(blps)) % 1;
+      pectoralClock.current = (pectoralClock.current + delta * pectoralRowHz(blps)) % 1;
+      driveFins(model.rig, {
+        cycle: action && clip && clip.duration > 0 ? (action.time / clip.duration) % 1 : 0,
+        blps,
+        turnRate,
+        gillPhase: gillClock.current,
+        pectoralPhase: pectoralClock.current,
+        rest,
+      });
     }
   });
 
@@ -161,8 +196,9 @@ export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, 
     onReady();
   }, [scene, onReady]);
   const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;
+  const rest = useMemo(() => captureRest(scene), [scene]);
   return <>{fishToRender.map((fish, index) => <Fish key={fish.id}
-    source={scene} animations={animations} fish={fish} runtime={runtime} index={index} paused={paused}
+    source={scene} animations={animations} rest={rest} fish={fish} runtime={runtime} index={index} paused={paused}
     visible={visibleIds.includes(fish.id) || selectedId === fish.id}
     onSelect={onSelect} onHover={onHover}
   />)}</>;
