@@ -294,7 +294,8 @@ it("advances breathing and fins at rest, accelerates only swim, and freezes ever
 // One swim clip plus the detail bones the procedural layer addresses. Every
 // bone is keyed, as the exporter guarantees, so per-frame offsets cannot stack.
 function finModel() {
-  const names = ["Spine.01", "TailFin", "TailFin.U", "Pectoral.L", "Pectoral.R", "Gill.L", "Gill.R"];
+  const names = ["Spine.01", "TailFin", "TailFin.U", "Pectoral.L", "Pectoral.R", "Gill.L", "Gill.R",
+    "Dorsal.Ray.1", "AnalRay.1"];
   const bones = names.map(name => { const bone = new Bone(); bone.name = name; return bone; });
   const rest = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.4);
   bones.find(bone => bone.name === "Gill.L")!.quaternion.copy(rest);

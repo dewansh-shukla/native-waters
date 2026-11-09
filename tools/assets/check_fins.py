@@ -16,11 +16,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools.assets.check_swim import accessor, quaternion_delta, read_glb  # noqa: E402
-from tools.blender.fish_rig import DETAIL_BONES  # noqa: E402
+from tools.blender.fish_rig import detail_bones as rig_detail_bones  # noqa: E402
 
-# The caudal fan is one fin split across three bones; a rigid hinge would use
-# only the root bone.
-CAUDAL_BONES = ("TailFin", "TailFin.U", "TailFin.L")
+# The caudal fan is shared across the peduncle, two lobes and a fan of ray
+# bones; a rigid hinge would use only the root bone.
+CAUDAL_PREFIX = "TailFin"
 TWIST_BONE = "TailFin.U"
 MIN_TWIST_DEG = 0.5
 MAX_TWIST_DEG = 30.0
@@ -29,6 +29,14 @@ WEIGHT_EPS = 1e-4
 MAX_INFLUENCES = 4
 SUM_TOLERANCE = 1e-3
 REPORT_LIMIT = 5
+
+
+def lod_of(path):
+    """Infer the LOD from the GLB filename (`<variant>-<lod>.glb`)."""
+    for lod in ("high", "mid", "low"):
+        if Path(path).stem.endswith("-" + lod):
+            return lod
+    return "high"
 
 
 def _survey(gltf, binary):
@@ -68,7 +76,7 @@ def _survey(gltf, binary):
                          for joint, value in zip(joints, values) if value > WEIGHT_EPS]
                 for name, value in pairs:
                     weights[name] = weights.get(name, 0.0) + value
-                if sum(1 for name, _ in pairs if name in CAUDAL_BONES) >= 2:
+                if sum(1 for name, _ in pairs if name.startswith(CAUDAL_PREFIX)) >= 2:
                     caudal_split += 1
 
     return {
@@ -128,12 +136,14 @@ def facts(path):
     survey = _survey(gltf, binary)
     twist = _twist(gltf, binary, TWIST_BONE)
     skins = gltf.get("skins") or [{"joints": []}]
+    detail = rig_detail_bones(lod_of(path))
     return {
         "bones": len(skins[0]["joints"]),
-        "detail_bones": sorted(name for name in DETAIL_BONES
+        "detail_bones": sorted(name for name in detail
                                if survey["weights"].get(name, 0.0) > WEIGHT_EPS),
-        "caudal_bones": sorted(name for name in CAUDAL_BONES
-                               if survey["weights"].get(name, 0.0) > WEIGHT_EPS),
+        "caudal_bones": sorted(name for name in survey["weights"]
+                               if name.startswith(CAUDAL_PREFIX)
+                               and survey["weights"][name] > WEIGHT_EPS),
         "caudal_split_vertices": survey["caudal_split"],
         "max_influences": survey["max_influences"],
         "twist": None if twist is None else twist["range"],
@@ -144,9 +154,13 @@ def check(path):
     """Return a list of failures; empty means the fin rig is sound."""
     gltf, binary = read_glb(path)
     survey = _survey(gltf, binary)
+    detail = rig_detail_bones(lod_of(path))
+    caudal = [name for name in survey["weights"]
+              if name.startswith(CAUDAL_PREFIX)
+              and survey["weights"][name] > WEIGHT_EPS]
     failures = []
 
-    for name in DETAIL_BONES:
+    for name in detail:
         if name not in survey["node_by_name"]:
             failures.append("detail bone %s is missing from the node list" % name)
         if name not in survey["slot_by_name"]:
@@ -165,8 +179,6 @@ def check(path):
         failures.append("%d skin influences on one vertex exceeds the %d-influence limit"
                         % (survey["max_influences"], MAX_INFLUENCES))
 
-    caudal = [name for name in CAUDAL_BONES
-              if survey["weights"].get(name, 0.0) > WEIGHT_EPS]
     if len(caudal) < 2:
         failures.append("caudal fin is skinned to only %s" % (", ".join(caudal) or "nothing"))
     elif survey["caudal_split"] == 0:

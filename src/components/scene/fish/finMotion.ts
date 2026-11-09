@@ -25,8 +25,9 @@ import { Euler, Object3D, Quaternion, Vector3 } from "three";
 const TAU = Math.PI * 2;
 const LOCAL_X = new Vector3(1, 0, 0);
 
-const WAVE_BONES = ["Spine.01", "Spine.02", "Spine.03", "Tail.01", "Tail.02", "TailFin"];
-const BEND_BONES = ["Spine.01", "Spine.02", "Spine.03"];
+// Bone names are discovered from the loaded rig instead of hardcoded: the
+// hero arulius carries twelve dorsal and eight anal rays while the distance
+// LODs carry fewer, and both must ripple correctly from one runtime layer.
 
 const scratchEuler = new Euler();
 const scratchQuaternion = new Quaternion();
@@ -37,6 +38,90 @@ const axis = new Vector3();
 
 function clamp(value: number, low: number, high: number): number {
   return Math.max(low, Math.min(high, value));
+}
+
+const indexByRoot = new WeakMap<Object3D, Map<string, Object3D>>();
+
+/** Name -> bone lookup, built once per loaded fish. */
+function boneIndex(root: Object3D): Map<string, Object3D> {
+  let index = indexByRoot.get(root);
+  if (!index) {
+    index = new Map<string, Object3D>();
+    root.traverse((object) => {
+      if (object.name) {
+        index!.set(object.name, object);
+      }
+    });
+    indexByRoot.set(root, index);
+  }
+  return index;
+}
+
+function findBone(root: Object3D, name: string): Object3D | undefined {
+  return boneIndex(root).get(name);
+}
+
+function numberIn(name: string, prefix: string): number | null {
+  if (!name.startsWith(prefix)) {
+    return null;
+  }
+  const suffix = name.slice(prefix.length);
+  return /^\d+$/.test(suffix) ? Number(suffix) : null;
+}
+
+interface RayBone {
+  /** Ray number as authored in the bone name, 1-based. */
+  index: number;
+  bone: Object3D;
+}
+
+interface BoneSets {
+  wave: Object3D[];
+  bend: Object3D[];
+  dorsalRays: RayBone[];
+  analRays: RayBone[];
+}
+
+const setsByRoot = new WeakMap<Object3D, BoneSets>();
+
+function boneSets(root: Object3D): BoneSets {
+  let sets = setsByRoot.get(root);
+  if (!sets) {
+    const wave: { order: number; bone: Object3D }[] = [];
+    const bend: { order: number; bone: Object3D }[] = [];
+    const dorsalRays: RayBone[] = [];
+    const analRays: RayBone[] = [];
+    for (const [name, bone] of boneIndex(root)) {
+      const spine = /^Spine\.(\d+)$/.exec(name);
+      const tail = /^Tail\.(\d+)$/.exec(name);
+      if (spine) {
+        wave.push({ order: Number(spine[1]), bone });
+        bend.push({ order: Number(spine[1]), bone });
+      } else if (tail) {
+        wave.push({ order: 100 + Number(tail[1]), bone });
+      } else if (name === "TailFin") {
+        wave.push({ order: 200, bone });
+      }
+      const dorsal = numberIn(name, "Dorsal.Ray.");
+      if (dorsal !== null) {
+        dorsalRays.push({ index: dorsal, bone });
+      }
+      const anal = numberIn(name, "AnalRay.");
+      if (anal !== null) {
+        analRays.push({ index: anal, bone });
+      }
+    }
+    const ordered = (entries: { order: number; bone: Object3D }[]) =>
+      entries.sort((a, b) => a.order - b.order).map((entry) => entry.bone);
+    sets = {
+      wave: ordered(wave),
+      bend: ordered(bend),
+      dorsalRays: dorsalRays.sort((a, b) => a.index - b.index),
+      analRays: analRays.sort((a, b) => a.index - b.index),
+    };
+    setsByRoot.set(root, sets);
+  }
+  return sets;
 }
 
 /** Body-wave amplitude gain: 0.75 at 0.5 BL/s, 1.20 at 2.5 BL/s. */
@@ -188,22 +273,20 @@ export function driveFins(root: Object3D, state: FinState): void {
   const tuck = pectoralTuck(state.blps);
   const flare = turnFlare(state.turnRate);
   const bend = bodyBend(state.turnRate);
+  const sets = boneSets(root);
 
   // 1. Body wave. The clip already authors the caudal roll and torsion at the
   // right phase, so the layer only rescales that rotation here; adding the same
   // term again doubled it into a ribbon (see the Task 7 render review).
-  for (const name of WAVE_BONES) {
-    const bone = root.getObjectByName(name);
-    if (bone) {
-      placeBone(root, bone, state.rest?.get(name), gain, 0, 0, 0);
-    }
+  for (const bone of sets.wave) {
+    placeBone(root, bone, state.rest?.get(bone.name), gain, 0, 0, 0);
   }
 
   // 2. Gills: their own oscillator replaces the bake, not adds to it. They are
   // never read back, so they are not tracked.
   const opening = 0.5 - 0.5 * Math.cos(state.gillPhase * TAU);
   for (const [name, side] of [["Gill.L", -1], ["Gill.R", 1]] as const) {
-    const bone = root.getObjectByName(name);
+    const bone = findBone(root, name);
     if (!bone) {
       continue;
     }
@@ -220,7 +303,7 @@ export function driveFins(root: Object3D, state: FinState): void {
   // lobes only get a cup and the turn flare; their per-beat torsion is baked.
   const cup = 0.05 * Math.sin(phase + Math.PI);
   for (const [name, side] of [["TailFin.U", 1], ["TailFin.L", -1]] as const) {
-    const bone = root.getObjectByName(name);
+    const bone = findBone(root, name);
     if (bone) {
       placeBone(root, bone, state.rest?.get(name), gain,
         0, 0, side * (cup + 0.3 * flare));
@@ -229,34 +312,54 @@ export function driveFins(root: Object3D, state: FinState): void {
 
   const rowRoll = 0.1 * Math.sin(scull + Math.PI / 2);
   for (const [name, side] of [["Pectoral.L.Tip", -1], ["Pectoral.R.Tip", 1]] as const) {
-    const bone = root.getObjectByName(name);
+    const bone = findBone(root, name);
     if (bone) {
       placeBone(root, bone, undefined, 1, 0, rowRoll + (side > 0 ? flare : -flare), 0);
     }
   }
   for (const [name, side] of [["Pectoral.L", -1], ["Pectoral.R", 1]] as const) {
-    const bone = root.getObjectByName(name);
+    const bone = findBone(root, name);
     if (bone) {
       placeBone(root, bone, undefined, 1, 0, 0, side * tuck * 0.55);
     }
   }
 
-  for (const [name, amplitude, lag] of [
-    ["Dorsal.Mid", 0.014, 0.05],
-    ["Dorsal.Tip", 0.01, 0.1],
-    ["AnalFin.Tip", 0.012, 0.05],
-  ] as const) {
-    const bone = root.getObjectByName(name);
-    if (bone) {
-      placeBone(root, bone, undefined, 1, 0, 0, amplitude * Math.sin(phase - TAU * lag));
+  // 4. Median-fin rays: the clip already ripples them at the swim rate and adds
+  // a 2 Hz membrane flutter. This layer scales that motion with speed and lets
+  // a faster ripple travel outward, so the outer rays lead the base. The ray
+  // count comes from the rig, so the same code drives every LOD.
+  for (const [rays, sign] of [[sets.dorsalRays, 1], [sets.analRays, -1]] as const) {
+    for (const { index, bone } of rays) {
+      const step = index - 1;
+      const amplitude = (0.008 + 0.005 * step) * gain;
+      placeBone(
+        root,
+        bone,
+        undefined,
+        1,
+        0,
+        0,
+        sign * amplitude * Math.sin(2 * phase - 0.7 * step),
+      );
     }
   }
 
-  // 4. Turn C-bend, shared along the spine so the head stays put.
-  for (const name of BEND_BONES) {
-    const bone = root.getObjectByName(name);
+  // 5. Eyes and jaw: a slow independent drift keeps the head from freezing
+  // when the fish loiters. The baked clip still carries the breathing beat.
+  for (const [name, side] of [["Eye.L", -1], ["Eye.R", 1]] as const) {
+    const bone = findBone(root, name);
     if (bone) {
-      placeBone(root, bone, state.rest?.get(name), gain, 0, 0, bend / BEND_BONES.length);
+      placeBone(root, bone, state.rest?.get(name), 1,
+        0, 0, side * 0.035 * Math.sin(scull));
     }
+  }
+  const jaw = findBone(root, "Jaw");
+  if (jaw) {
+    placeBone(root, jaw, state.rest?.get("Jaw"), 1, 0.018 * opening, 0, 0);
+  }
+
+  // 6. Turn C-bend, shared along the spine so the head stays put.
+  for (const bone of sets.bend) {
+    placeBone(root, bone, state.rest?.get(bone.name), gain, 0, 0, bend / sets.bend.length);
   }
 }

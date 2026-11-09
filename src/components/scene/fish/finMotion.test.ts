@@ -55,7 +55,9 @@ describe("driveFins", () => {
       "Gill.L",
       "Gill.R",
       "Dorsal",
-      "Dorsal.Mid",
+      "Dorsal.Ray.1",
+      "Dorsal.Ray.4",
+      "AnalRay.1",
     ]) {
       const bone = new Object3D();
       bone.name = name;
@@ -102,6 +104,41 @@ describe("driveFins", () => {
       const q = root.getObjectByName(name)!.quaternion;
       expect(Number.isFinite(q.x + q.y + q.z + q.w)).toBe(true);
       expect(Math.abs(q.length() - 1)).toBeLessThan(1e-6);
+    }
+  });
+
+  it("ripples the median-fin rays with a lag down the fin", () => {
+    const root = build();
+    driveFins(root, { cycle: 0.31, blps: 1.4, turnRate: 0, gillPhase: 0 });
+    const inner = root.getObjectByName("Dorsal.Ray.1")!.quaternion;
+    const outer = root.getObjectByName("Dorsal.Ray.4")!.quaternion;
+    expect(inner.angleTo(new Quaternion())).toBeGreaterThan(1e-4);
+    expect(outer.angleTo(new Quaternion())).toBeGreaterThan(1e-4);
+    // The outer rays sway further, so the fin bends along its span rather than
+    // swinging as one plate.
+    expect(outer.angleTo(new Quaternion())).toBeGreaterThan(inner.angleTo(new Quaternion()));
+  });
+
+  it("discovers every ray bone of the hero rig, not a fixed count", () => {
+    const root = new Object3D();
+    const rig = ["Spine.01", "Spine.06", "Tail.01", "Tail.03", "TailFin"];
+    const rays: string[] = [];
+    for (let index = 1; index <= 12; index += 1) {
+      rays.push(`Dorsal.Ray.${index}`);
+    }
+    for (let index = 1; index <= 8; index += 1) {
+      rays.push(`AnalRay.${index}`);
+    }
+    for (const name of [...rig, ...rays]) {
+      const bone = new Object3D();
+      bone.name = name;
+      root.add(bone);
+    }
+    driveFins(root, { cycle: 0.27, blps: 1.3, turnRate: 0, gillPhase: 0 });
+    for (const name of rays) {
+      expect(root.getObjectByName(name)!.quaternion.angleTo(new Quaternion())).toBeGreaterThan(
+        1e-5,
+      );
     }
   });
 });

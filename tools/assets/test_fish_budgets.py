@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.assets.fish_budgets import (  # noqa: E402
-    BYTE_CAPS, LODS, PRIMITIVE_CAPS, REQUIRED_BONES, SPECIES, TRIANGLE_CAPS, glb_path,
+    BYTE_CAPS, LODS, PRIMITIVE_CAPS, SPECIES, TRIANGLE_CAPS, glb_path, required_bones,
 )
 
 
@@ -27,13 +27,20 @@ class BudgetTests(unittest.TestCase):
         self.assertEqual(PRIMITIVE_CAPS, {"high": 6, "mid": 6, "low": 4})
 
     def test_required_bones_and_family_paths(self):
-        self.assertEqual(len(REQUIRED_BONES), 23)
-        self.assertIn("Gill.L", REQUIRED_BONES)
-        self.assertIn("AnalFin", REQUIRED_BONES)
-        # The detail bones must be required, or a species left on the 17-bone
-        # rig would still pass this suite.
-        self.assertIn("TailFin.U", REQUIRED_BONES)
-        self.assertIn("AnalFin.Tip", REQUIRED_BONES)
+        # The joint list is LOD-dependent: HIGH is the hero rig, LOW the sparse
+        # distance rig.
+        self.assertEqual(len(required_bones("low")), 22)
+        self.assertEqual(len(required_bones("mid")), 36)
+        self.assertEqual(len(required_bones("high")), 49)
+        self.assertIn("Gill.L", required_bones("high"))
+        self.assertIn("AnalFin", required_bones("high"))
+        # The detail bones must be required, or a species left on the old
+        # 24-bone rig would still pass this suite.
+        self.assertIn("TailFin.U", required_bones("high"))
+        self.assertIn("Dorsal.Ray.12", required_bones("high"))
+        self.assertIn("AnalRay.8", required_bones("high"))
+        self.assertIn("Eye.L", required_bones("mid"))
+        self.assertNotIn("Eye.L", required_bones("low"))
         self.assertEqual(glb_path("arulius-barb", "high").as_posix(),
                          "public/models/fish/arulius-barb/arulius-barb-high.glb")
         self.assertEqual(glb_path("zebra-danio-wild", "low").as_posix(),

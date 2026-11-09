@@ -83,7 +83,12 @@ class FinCheckTests(unittest.TestCase):
 
     def test_real_asset_reports_every_detail_bone(self):
         report = facts(HIGH)
-        self.assertEqual(set(report["caudal_bones"]), {"TailFin", "TailFin.U", "TailFin.L"})
+        # The fan is shared across the peduncle, two lobes, five ray bones per
+        # lobe and two trailing-edge tips on the hero rig.
+        self.assertTrue({"TailFin", "TailFin.U", "TailFin.L",
+                         "TailFin.U.1", "TailFin.L.1",
+                         "TailFin.U.Tip", "TailFin.L.Tip"} <= set(report["caudal_bones"]))
+        self.assertTrue(all(name.startswith("TailFin") for name in report["caudal_bones"]))
         low, high = report["twist"]
         self.assertLess(low, -0.5)
         self.assertGreater(high, 0.5)

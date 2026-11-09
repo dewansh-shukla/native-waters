@@ -62,7 +62,7 @@ ARULIUS = SpeciesSpec(
     height=0.267,
     width=0.105,
     variants=(
-        Variant("arulius-barb", "Arulius Barb", "#d3cfb6", "#0b0b0d", "#c0655a", "#c07a3a"),
+        Variant("arulius-barb", "Arulius Barb", "#cfc9b8", "#0b0f08", "#c24a2e", "#a8964f"),
     ),
     body_length=1.8,
     arch=0.10,
