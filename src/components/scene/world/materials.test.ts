@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Vector3 } from "three";
-import { plantShader, substrateShader, type WorldUniforms } from "./materials";
+import { SRGBColorSpace, Texture, Vector3 } from "three";
+import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, type WorldUniforms } from "./materials";
 
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
   return {
@@ -97,5 +97,75 @@ describe("plantShader", () => {
     expect(fragment).toContain("roughnessFactor = clamp(mix(0.85, 0.5, vLeafWind)");
     expect(fragment).toContain("riverRim");
     expect(fragment).toContain("reflectedLight");
+  });
+});
+
+const rockTextures = () => ({ map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() });
+
+describe("rockShader", () => {
+  it("registers the scanned map samplers plus scale and dampness uniforms", () => {
+    const shader = fakeShader(), textures = rockTextures();
+    rockShader(textures, worldUniforms(), { dampness: .14 })(shader as never);
+    expect(shader.uniforms.uRockColorMap).toBeDefined();
+    expect(shader.uniforms.uRockColorMap.value).toBe(textures.map);
+    expect(shader.uniforms.uRockNormalMap.value).toBe(textures.normalMap);
+    expect(shader.uniforms.uRockRoughnessMap.value).toBe(textures.roughnessMap);
+    expect(shader.uniforms.uRockScale).toBeDefined();
+    expect(shader.uniforms.uDamp.value).toBe(.14);
+  });
+
+  it("declares color spaces: base color sRGB, normal and roughness as data", () => {
+    const textures = rockTextures();
+    declareRockTextureColorSpaces(textures);
+    expect(textures.map.colorSpace).toBe(SRGBColorSpace);
+    expect(textures.normalMap.colorSpace).toBe("");
+    expect(textures.roughnessMap.colorSpace).toBe("");
+  });
+
+  it("samples each scanned map in world-space triplanar projections, weighted by the abs world normal", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const fragment = shader.fragmentShader;
+    expect(fragment).toContain("varying vec3 vRockWorld");
+    expect(fragment).toContain("varying vec3 vRockNormal");
+    for (const needle of ["rockUvX", "rockUvY", "rockUvZ", "rockBlend"]) {
+      expect(fragment).toContain(needle);
+    }
+    expect(fragment).toContain("texture2D(uRockColorMap");
+    expect(fragment).toContain("texture2D(uRockRoughnessMap");
+    expect(fragment).toContain("texture2D(uRockNormalMap");
+    expect(shader.vertexShader).toContain("vRockWorld");
+    expect(shader.vertexShader).toContain("instanceMatrix");
+  });
+
+  it("drives roughness from the scanned map with a restrained silt dampness overlay", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms(), { dampness: .12 })(shader as never);
+    const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
+    expect(afterRoughness).toContain("rockRough");
+    expect(afterRoughness).toContain("uDamp");
+    expect(shader.fragmentShader).not.toContain("metalnessFactor =");
+  });
+
+  it("perturbs the fragment normal after it is computed with reoriented triplanar samples", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
+    expect(afterNormals).toContain("rockNormalSample");
+    expect(afterNormals).toContain("normal = normalize(normal");
+  });
+
+  it("breaks up repeated tiling with a deterministic per-chunk offset and 90-degree rotation", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const fragment = shader.fragmentShader;
+    expect(fragment).toContain("riverHash");
+    expect(fragment).toMatch(/rockTileOffset|rockTileRotate/);
+  });
+
+  it("leaves the substrate shader untouched when only the rock shader is applied", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    expect(shader.fragmentShader).not.toContain("caustic");
   });
 });
