@@ -84,6 +84,25 @@ export function substrateShader(uniforms: WorldUniforms) {
 
 export type RockTextures = { map: Texture; normalMap: Texture; roughnessMap: Texture };
 export type RockShaderOptions = { scale?: number; dampness?: number };
+export type RockProjectionAxis = "x" | "y" | "z";
+
+// CPU reference for the shader's signed tangent-basis reconstruction. The
+// texture normal is stored in a tile rotated by +quarterTurns; undo that UV
+// rotation before mapping its tangent frame onto the signed world projection.
+export function reorientRockNormal(
+  sample: readonly [number, number, number],
+  axis: RockProjectionAxis,
+  faceSign: number,
+  quarterTurns: number,
+): [number, number, number] {
+  const angle = quarterTurns * Math.PI / 2;
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const tangentU = c * sample[0] + s * sample[1];
+  const tangentV = -s * sample[0] + c * sample[1];
+  if (axis === "x") return [sample[2] * faceSign, tangentU, tangentV * faceSign];
+  if (axis === "y") return [tangentV, sample[2] * faceSign, tangentU * faceSign];
+  return [tangentU, tangentV * faceSign, sample[2] * faceSign];
+}
 
 // Declares the scanned maps' color semantics: base color is sRGB imagery,
 // while the normal and roughness encodings must stay raw data or their
@@ -107,14 +126,22 @@ const ROCK_TRIPANAR_GLSL = `
   uniform float uDamp;
   // Deterministic per-tile 90-degree rotation so the stone never reads as one
   // repeating photograph across the river bed.
+  float rockTileAngle(vec2 uv) {
+    return floor(riverHash(floor(uv)) * 4.0) * 1.5707963;
+  }
   vec2 rockTileRotate(vec2 local, float angle) {
     float c = cos(angle), s = sin(angle);
-    return mat2(c, -s, s, c) * local;
+    return vec2(c * local.x - s * local.y, s * local.x + c * local.y);
+  }
+  vec2 rockTileUnrotateNormal(vec2 tangent, vec2 uv) {
+    float angle = rockTileAngle(uv);
+    float c = cos(angle), s = sin(angle);
+    return vec2(c * tangent.x + s * tangent.y, -s * tangent.x + c * tangent.y);
   }
   vec2 rockTileOffset(vec2 uv) {
     vec2 cell = floor(uv), local = fract(uv);
     float h = riverHash(cell);
-    return cell + rockTileRotate(local - .5, floor(h * 4.0) * 1.5707963) + (vec2(h, riverHash(cell + 31.7)) - .5) * .12 + .5;
+    return cell + rockTileRotate(local - .5, rockTileAngle(uv)) + (vec2(h, riverHash(cell + 31.7)) - .5) * .12 + .5;
   }
 `;
 
@@ -155,18 +182,24 @@ const ROCK_ROUGHNESS_GLSL = `
 const ROCK_NORMAL_GLSL = `
   #include <normal_fragment_maps>
   {
-    vec2 rockUvX = rockTileOffset(vRockWorld.yz * vec2(1.0, sign(vRockNormal.x)) * uRockScale);
-    vec2 rockUvY = rockTileOffset(vRockWorld.zx * vec2(sign(vRockNormal.y), 1.0) * uRockScale);
-    vec2 rockUvZ = rockTileOffset(vRockWorld.xy * vec2(1.0, sign(vRockNormal.z)) * uRockScale);
+    vec2 rockUvInputX = vRockWorld.yz * vec2(1.0, sign(vRockNormal.x)) * uRockScale;
+    vec2 rockUvInputY = vRockWorld.zx * vec2(sign(vRockNormal.y), 1.0) * uRockScale;
+    vec2 rockUvInputZ = vRockWorld.xy * vec2(1.0, sign(vRockNormal.z)) * uRockScale;
+    vec2 rockUvX = rockTileOffset(rockUvInputX);
+    vec2 rockUvY = rockTileOffset(rockUvInputY);
+    vec2 rockUvZ = rockTileOffset(rockUvInputZ);
     vec3 sX = texture2D(uRockNormalMap, rockUvX).rgb * 2.0 - 1.0;
     vec3 sY = texture2D(uRockNormalMap, rockUvY).rgb * 2.0 - 1.0;
     vec3 sZ = texture2D(uRockNormalMap, rockUvZ).rgb * 2.0 - 1.0;
+    sX.xy = rockTileUnrotateNormal(sX.xy, rockUvInputX);
+    sY.xy = rockTileUnrotateNormal(sY.xy, rockUvInputY);
+    sZ.xy = rockTileUnrotateNormal(sZ.xy, rockUvInputZ);
     float rockSignX = sign(vRockNormal.x);
     float rockSignY = sign(vRockNormal.y);
     float rockSignZ = sign(vRockNormal.z);
     // Rebuild each projection through its own tangent basis into world space.
     vec3 rockNX = vec3(sX.z * rockSignX, sX.x, sX.y * rockSignX);
-    vec3 rockNY = vec3(sY.y * rockSignY, sY.z * rockSignY, sY.x);
+    vec3 rockNY = vec3(sY.y, sY.z * rockSignY, sY.x * rockSignY);
     vec3 rockNZ = vec3(sZ.x, sZ.y * rockSignZ, sZ.z * rockSignZ);
     vec3 rockBlend = abs(vRockNormal);
     rockBlend /= max(rockBlend.x + rockBlend.y + rockBlend.z, 1e-5);
