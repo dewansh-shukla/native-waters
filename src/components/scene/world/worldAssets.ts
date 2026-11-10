@@ -1,9 +1,10 @@
 import { BufferAttribute, BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Object3D } from "three";
 import type { Placement } from "./worldMotion";
 
-// Radial noise shared by both stone geometries: low octaves set the mass,
-// high octaves set the surface crag. Deterministic in pure math, no RNG.
-function displaceIcosahedron(geo: BufferGeometry, height: (nx: number, ny: number, nz: number) => number) {
+// Radial displacement shared by every stone geometry: rewrites the radius of
+// each icosahedron vertex from a pure function of its unit direction.
+// Deterministic in pure math, no RNG.
+function radiallyDisplaced(geo: BufferGeometry, height: (nx: number, ny: number, nz: number) => number) {
   const pos = geo.getAttribute("position");
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
@@ -12,7 +13,6 @@ function displaceIcosahedron(geo: BufferGeometry, height: (nx: number, ny: numbe
     const radius = 1 + height(nx, ny, nz);
     pos.setXYZ(i, nx * len * radius, ny * len * radius, nz * len * radius);
   }
-  geo.computeVertexNormals();
   return geo;
 }
 
@@ -35,12 +35,121 @@ function gravelHeight(nx: number, ny: number, nz: number) {
   return n1 + n2 + n3;
 }
 
-export function createRockGeometry() {
-  return displaceIcosahedron(new IcosahedronGeometry(1, 3), rockHeight);
+function vertexRadii(pos: { count: number; getX: (i: number) => number; getY: (i: number) => number; getZ: (i: number) => number }) {
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i < pos.count; i++) {
+    const radius = Math.hypot(pos.getX(i), pos.getY(i), pos.getZ(i));
+    min = Math.min(min, radius); max = Math.max(max, radius);
+  }
+  return { min, max };
 }
 
-export function createGravelGeometry() {
-  return displaceIcosahedron(new IcosahedronGeometry(1, 1), gravelHeight);
+// Deterministic per-variant hash in [0, 1), keyed by seed and salt.
+function variantHash(seed: number, salt: number) {
+  let state = (Math.imul(seed >>> 0, 1973) + Math.imul(salt >>> 0, 9277) + 2654435761) >>> 0;
+  state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+  return state / 4294967296;
+}
+
+type VariantShape = { ratios: [number, number, number]; spinY: number; spinX: number; fracture: number };
+
+// Seeded anisotropy: an ellipsoidal stretch (area compensated on the third
+// axis) rotated on a seeded axis, plus a restrained medium-scale fracture
+// band. River-worn stones stay convex but never spherical; high-frequency
+// detail is left to the PBR maps.
+function variantShape(seed: number, low: number, high: number, fractureAmp: number): VariantShape {
+  const rx = low + variantHash(seed, 1) * (high - low);
+  const ry = low + variantHash(seed, 2) * (high - low);
+  return {
+    ratios: [rx, ry, Math.abs(rx * ry)],
+    spinY: variantHash(seed, 3) * Math.PI,
+    spinX: (variantHash(seed, 4) - .5) * 1.1,
+    fracture: fractureAmp * (.6 + variantHash(seed, 5) * .8),
+  };
+}
+
+// Affine radial refit: pushes the variant's radius range back to the legacy
+// envelope [min..max] without touching directions, so no variant can poke
+// outside the volume the collision proxies assume.
+function refitRadii(pos: { count: number; getX: (i: number) => number; getY: (i: number) => number; getZ: (i: number) => number; setXYZ: (i: number, x: number, y: number, z: number) => void }, legacy: { min: number; max: number }) {
+  const current = vertexRadii(pos);
+  const scale = (legacy.max - legacy.min) / Math.max(current.max - current.min, 1e-9);
+  const center = (legacy.min + legacy.max) / 2;
+  const currentCenter = (current.min + current.max) / 2;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const len = Math.hypot(x, y, z) || 1;
+    const fitted = center + (len - currentCenter) * scale;
+    pos.setXYZ(i, x / len * fitted, y / len * fitted, z / len * fitted);
+  }
+}
+
+// Legacy envelopes: refit targets measured once from the seed-0 builds so a
+// variant's vertices can never leave the volume the current rocks/pebbles
+// (and their collision proxies) already occupy.
+const envelopeCache = new Map<string, { min: number; max: number }>();
+function legacyEnvelope(kind: "rock" | "gravel") {
+  let envelope = envelopeCache.get(kind);
+  if (!envelope) {
+    envelope = kind === "rock"
+      ? vertexRadii(radiallyDisplaced(new IcosahedronGeometry(1, 3), rockHeight).getAttribute("position"))
+      : vertexRadii(radiallyDisplaced(new IcosahedronGeometry(1, 1), gravelHeight).getAttribute("position"));
+    envelopeCache.set(kind, envelope);
+  }
+  return envelope;
+}
+
+// Applies the seeded anisotropic stretch + fracture to already-displaced
+// vertex data, then refits radii into the legacy envelope.
+function seedDisplace(geo: BufferGeometry, shape: VariantShape) {
+  const pos = geo.getAttribute("position");
+  const cy = Math.cos(shape.spinY), sy = Math.sin(shape.spinY);
+  const cx = Math.cos(shape.spinX), sx = Math.sin(shape.spinX);
+  for (let i = 0; i < pos.count; i++) {
+    let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    // Rotate onto the anisotropy axis, stretch, rotate back (in-place basis).
+    let ax = cy * x + sy * z, az = -sy * x + cy * z;
+    ax *= shape.ratios[0]; y *= shape.ratios[1]; az *= 1 / Math.max(shape.ratios[2], .2);
+    x = cy * ax - sy * az; z = sy * ax + cy * az;
+    let bx = cx * y - sx * z, bz = sx * y + cx * z;
+    bx *= 1; bz *= 1; y = bx; z = bz;
+    const len = Math.hypot(x, y, z) || 1;
+    const nx = x / len, ny = y / len, nz = z / len;
+    const len2 = len + shape.fracture * (Math.sin(nx * 5.7 + shape.spinY * 3.1) * Math.cos(ny * 4.3 + shape.spinX) + Math.sin(nz * 6.9 + shape.spinX * 2.2) * .5);
+    pos.setXYZ(i, nx * len2, ny * len2, nz * len2);
+  }
+  return geo;
+}
+
+export function createRockGeometry(seed: number) {
+  const geo = radiallyDisplaced(new IcosahedronGeometry(1, 3), rockHeight);
+  if (seed !== 0) {
+    seedDisplace(geo, variantShape(seed, .88, 1.08, .022));
+    refitRadii(geo.getAttribute("position"), legacyEnvelope("rock"));
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+export function createGravelGeometry(seed: number) {
+  const geo = radiallyDisplaced(new IcosahedronGeometry(1, 1), gravelHeight);
+  if (seed !== 0) {
+    seedDisplace(geo, variantShape(seed, .93, 1.06, .008));
+    refitRadii(geo.getAttribute("position"), legacyEnvelope("gravel"));
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Partitions placements into one array per geometry variant. Membership keys
+// off the ORIGINAL placement index, never the bucket order, so every batch
+// stays deterministic and balanced ((i + salt) % variantCount), including
+// the collision-exact obstacle placements.
+export function bucketPlacementsByVariant(placements: Placement[], variantCount: number, salt: number) {
+  const buckets: Placement[][] = Array.from({ length: variantCount }, () => []);
+  const offset = ((salt % variantCount) + variantCount) % variantCount;
+  for (let i = 0; i < placements.length; i++) buckets[(i + offset) % variantCount].push(placements[i]);
+  return buckets;
 }
 
 export type PlantVariant = "ribbon" | "grass";
