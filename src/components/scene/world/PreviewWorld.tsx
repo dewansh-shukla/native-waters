@@ -66,8 +66,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
 
   useLayoutEffect(() => {
     // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
-    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, "#6b6055", { spin: true, stretch: true, skipFirst: plan.skipFirst }));
-    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, "#8a7a60", { spin: true, colorSpread: .42 }));
+    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, "#6b6055", { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
+    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, "#8a7a60", { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
     fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
     fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
   }, [rockPlans, gravelPlans, placements, grassPlacements]);

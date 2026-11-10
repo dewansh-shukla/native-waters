@@ -35,6 +35,7 @@ describe("stone batch plan", () => {
     const covered: string[] = [];
     for (const batch of plan) {
       expect(typeof batch.seed).toBe("number");
+      expect(batch.sourceIndices).toEqual(batch.placements.map(item => rocks.indexOf(item)));
       covered.push(...batch.placements.map(item => exactKey(item.position)));
     }
     expect(covered.length).toBe(rocks.length);
@@ -128,6 +129,35 @@ describe("stone batch plan", () => {
         expect(instance!.rotation.x).toBeCloseTo(0, 6);
         expect(instance!.rotation.y).toBeCloseTo(0, 6);
         expect(instance!.rotation.z).toBeCloseTo(0, 6);
+      }
+    }
+  });
+
+  it("preserves each placement's pre-batch transform and color variation", () => {
+    const { rocks, gravel } = createPlacements();
+    for (const [source, variantCount, exactCount, tint, options] of [
+      [rocks, 4, OBSTACLES.length, "#6b6055", { spin: true, stretch: true }],
+      [gravel, 3, 0, "#8a7a60", { spin: true, colorSpread: .42 }],
+    ] as const) {
+      const geometry = new IcosahedronGeometry(1, 1);
+      const baseline = new InstancedMesh(geometry, new MeshStandardMaterial(), source.length);
+      fillBatch(baseline, source, tint, { ...options, skipFirst: exactCount });
+      const plan = planStoneBatches(source, variantCount, 0, exactCount);
+      for (const batch of plan) {
+        const actual = new InstancedMesh(geometry, new MeshStandardMaterial(), batch.placements.length);
+        fillBatch(actual, batch.placements, tint, { ...options, skipFirst: batch.skipFirst, variationIndices: batch.sourceIndices });
+        for (let localIndex = 0; localIndex < batch.placements.length; localIndex++) {
+          const sourceIndex = source.indexOf(batch.placements[localIndex]);
+          expect(sourceIndex).toBeGreaterThanOrEqual(0);
+          const expectedMatrix = new Matrix4(), actualMatrix = new Matrix4();
+          baseline.getMatrixAt(sourceIndex, expectedMatrix);
+          actual.getMatrixAt(localIndex, actualMatrix);
+          expect(actualMatrix.elements).toEqual(expectedMatrix.elements);
+          const expectedColor = new Color(), actualColor = new Color();
+          baseline.getColorAt(sourceIndex, expectedColor);
+          actual.getColorAt(localIndex, actualColor);
+          expect(actualColor.toArray()).toEqual(expectedColor.toArray());
+        }
       }
     }
   });

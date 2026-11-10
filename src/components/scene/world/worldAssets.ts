@@ -152,7 +152,7 @@ export function bucketPlacementsByVariant(placements: Placement[], variantCount:
   return buckets;
 }
 
-export type StoneBatchPlan = { seed: number; placements: Placement[]; skipFirst: number };
+export type StoneBatchPlan = { seed: number; placements: Placement[]; sourceIndices: number[]; skipFirst: number };
 
 // Wire plan for the scene's instanced batches: bucketPlacementsByVariant plus
 // two wiring facts per batch — the geometry seed to build (bucket 0 is the
@@ -162,12 +162,15 @@ export type StoneBatchPlan = { seed: number; placements: Placement[]; skipFirst:
 // preserve source order, so skipFirst covers exactly those.
 export function planStoneBatches(placements: Placement[], variantCount: number, salt: number, exactCount: number): StoneBatchPlan[] {
   const offset = ((salt % variantCount) + variantCount) % variantCount;
-  return bucketPlacementsByVariant(placements, variantCount, salt).map((bucket, bucketIndex) => {
+  const buckets = bucketPlacementsByVariant(placements, variantCount, salt);
+  const sourceIndices: number[][] = Array.from({ length: variantCount }, () => []);
+  for (let i = 0; i < placements.length; i++) sourceIndices[(i + offset) % variantCount].push(i);
+  return buckets.map((bucket, bucketIndex) => {
     let skipFirst = 0;
     for (let i = 0; i < exactCount; i++) {
       if ((i + offset) % variantCount === bucketIndex) skipFirst++;
     }
-    return { seed: bucketIndex, placements: bucket, skipFirst };
+    return { seed: bucketIndex, placements: bucket, sourceIndices: sourceIndices[bucketIndex], skipFirst };
   });
 }
 
@@ -269,6 +272,7 @@ export type BatchOptions = {
   colorSpread?: number;
   colorSalt?: number;
   skipFirst?: number;
+  variationIndices?: number[];
 };
 
 // Instanced placement fill. With no options this is the legacy behavior:
@@ -277,21 +281,21 @@ export type BatchOptions = {
 // skipping the first N indices so collision-exact obstacles stay untouched.
 export function fillBatch(mesh: InstancedMesh | null, placements: Placement[], tint: string, options: BatchOptions = {}) {
   if (!mesh) return;
-  const { spin, stretch, spinAmount = .35, stretchAmount = .16, colorSpread, colorSalt = 11, skipFirst = 0 } = options;
+  const { spin, stretch, spinAmount = .35, stretchAmount = .16, colorSpread, colorSalt = 11, skipFirst = 0, variationIndices } = options;
   const transform = new Object3D(), color = new Color(tint);
   for (let i = 0; i < placements.length; i++) {
-    const item = placements[i], varied = i >= skipFirst;
+    const item = placements[i], varied = i >= skipFirst, variationIndex = variationIndices?.[i] ?? i;
     transform.position.fromArray(item.position);
     transform.scale.fromArray(item.scale);
-    if (stretch && varied) transform.scale.y = item.scale[1] * (1 - stretchAmount + instanceVariation(i, 3) * stretchAmount * 2);
+    if (stretch && varied) transform.scale.y = item.scale[1] * (1 - stretchAmount + instanceVariation(variationIndex, 3) * stretchAmount * 2);
     transform.rotation.set(
-      spin && varied ? (instanceVariation(i, 5) - .5) * spinAmount : 0,
+      spin && varied ? (instanceVariation(variationIndex, 5) - .5) * spinAmount : 0,
       item.rotation,
-      spin && varied ? (instanceVariation(i, 9) - .5) * spinAmount : 0,
+      spin && varied ? (instanceVariation(variationIndex, 9) - .5) * spinAmount : 0,
     );
     transform.updateMatrix();
     mesh.setMatrixAt(i, transform.matrix);
-    const factor = colorSpread !== undefined ? .72 + instanceVariation(i, colorSalt) * colorSpread : .72 + (i % 13) / 26;
+    const factor = colorSpread !== undefined ? .72 + instanceVariation(variationIndex, colorSalt) * colorSpread : .72 + (variationIndex % 13) / 26;
     mesh.setColorAt(i, color.clone().multiplyScalar(factor));
   }
   mesh.instanceMatrix.needsUpdate = true;
