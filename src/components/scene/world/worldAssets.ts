@@ -152,6 +152,25 @@ export function bucketPlacementsByVariant(placements: Placement[], variantCount:
   return buckets;
 }
 
+export type StoneBatchPlan = { seed: number; placements: Placement[]; skipFirst: number };
+
+// Wire plan for the scene's instanced batches: bucketPlacementsByVariant plus
+// two wiring facts per batch — the geometry seed to build (bucket 0 is the
+// legacy seed-0 shape), and how many of the batch's leading instances must
+// keep verbatim transforms. The first `exactCount` source placements (swim
+// obstacle boulders) always sit at the front of their bucket because buckets
+// preserve source order, so skipFirst covers exactly those.
+export function planStoneBatches(placements: Placement[], variantCount: number, salt: number, exactCount: number): StoneBatchPlan[] {
+  const offset = ((salt % variantCount) + variantCount) % variantCount;
+  return bucketPlacementsByVariant(placements, variantCount, salt).map((bucket, bucketIndex) => {
+    let skipFirst = 0;
+    for (let i = 0; i < exactCount; i++) {
+      if ((i + offset) % variantCount === bucketIndex) skipFirst++;
+    }
+    return { seed: bucketIndex, placements: bucket, skipFirst };
+  });
+}
+
 export type PlantVariant = "ribbon" | "grass";
 
 // Ribbon: tall Vallisneria-like strap leaves. Grass: shorter fine understory

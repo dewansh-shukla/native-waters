@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Matrix4, Object3D } from "three";
+import { BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Object3D, Quaternion, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
 import type { Placement } from "./worldMotion";
 import { createPlacements } from "./worldMotion";
-import { bucketPlacementsByVariant, createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation } from "./worldAssets";
+import { bucketPlacementsByVariant, createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation, planStoneBatches } from "./worldAssets";
 
 const ROCK_SEEDS = [0, 1, 2, 3] as const;
 const GRAVEL_SEEDS = [0, 1, 2] as const;
@@ -21,6 +21,117 @@ function maxAbsVertexDifference(a: BufferGeometry, b: BufferGeometry) {
   }
   return worst;
 }
+
+describe("stone batch plan", () => {
+  // Instance translations ride through a Float32 instanced attribute (~1e-7
+  // noise), so keys quantize at 1e-5 to be robust for coverage matching.
+  const exactKey = (position: readonly number[]) => position.map(v => Math.round(v * 1e5)).join("|");
+
+  it("plans four boulder batches covering all 73 placements exactly once", () => {
+    const { rocks } = createPlacements();
+    const snapshot = rocks.map(item => ({ position: [...item.position], scale: [...item.scale], rotation: item.rotation }));
+    const plan = planStoneBatches(rocks, 4, 0, OBSTACLES.length);
+    expect(plan.length).toBe(4);
+    const covered: string[] = [];
+    for (const batch of plan) {
+      expect(typeof batch.seed).toBe("number");
+      covered.push(...batch.placements.map(item => exactKey(item.position)));
+    }
+    expect(covered.length).toBe(rocks.length);
+    expect(new Set(covered).size).toBe(rocks.length);
+    expect(JSON.stringify(rocks)).toBe(JSON.stringify(snapshot));
+  });
+
+  it("plans three pebble batches covering all source placements exactly once", () => {
+    const { gravel } = createPlacements();
+    const plan = planStoneBatches(gravel, 3, 0, 0);
+    expect(plan.length).toBe(3);
+    const covered: string[] = [];
+    for (const batch of plan) covered.push(...batch.placements.map(item => exactKey(item.position)));
+    expect(covered.length).toBe(gravel.length);
+    expect(new Set(covered).size).toBe(gravel.length);
+    for (const batch of plan) expect(batch.skipFirst).toBe(0);
+  });
+
+  it("flags every obstacle boulder exact at the front of its bucket and no others", () => {
+    const { rocks } = createPlacements();
+    const plan = planStoneBatches(rocks, 4, 0, OBSTACLES.length);
+    const exactCenters = OBSTACLES.map(obstacle => [...obstacle.center].join(","));
+    let exactCount = 0;
+    for (const batch of plan) {
+      for (let j = 0; j < batch.skipFirst; j++) {
+        exactCount++;
+        const item = batch.placements[j];
+        expect(exactCenters).toContain(item.position.join(","));
+        expect(item.scale).toEqual(Array(3).fill(item.scale[0]));
+        expect(item.rotation).toBe(0);
+      }
+      for (let j = batch.skipFirst; j < Math.min(batch.skipFirst + 40, batch.placements.length); j++) {
+        const item = batch.placements[j];
+        expect(exactCenters).not.toContain(item.position.join(","));
+      }
+    }
+    expect(exactCount).toBe(OBSTACLES.length);
+  });
+
+  it("renders every placement exactly once across real instanced batches, obstacles verbatim", () => {
+    const { rocks, gravel } = createPlacements();
+    for (const [plans, legacy, options, obstaclesExact] of [
+      [planStoneBatches(rocks, 4, 0, OBSTACLES.length), "#6b6055", { spin: true, stretch: true }, true],
+      [planStoneBatches(gravel, 3, 0, 0), "#8a7a60", { spin: true, colorSpread: .42 }, false],
+    ] as const) {
+      const rendered: { position: number[]; scale: number[]; rotation: { x: number; y: number; z: number; w: number } }[] = [];
+      for (const batch of plans) {
+        const mesh = new InstancedMesh(new IcosahedronGeometry(1, 1), new MeshStandardMaterial(), batch.placements.length);
+        fillBatch(mesh, batch.placements, legacy, batch.skipFirst > 0 ? { ...options, skipFirst: batch.skipFirst } : options);
+        const matrix = new Matrix4(), position = new Vector3(), quaternion = new Quaternion(), scale = new Vector3();
+        for (let j = 0; j < batch.placements.length; j++) {
+          mesh.getMatrixAt(j, matrix);
+          matrix.decompose(position, quaternion, scale);
+          rendered.push({ position: position.toArray(), scale: scale.toArray(), rotation: quaternion.clone() });
+        }
+      }
+      // Bijective translation matching: instance translations pass through a
+      // Float32 attribute (~1e-7 noise), so match within 1e-4 per axis rather
+      // than by exact grid keys. length equality + injective match = coverage.
+      const source = plans.flatMap(batch => batch.placements);
+      expect(rendered.length).toBe(source.length);
+      const consumed = new Array<boolean>(source.length).fill(false);
+      const gridSize = 1e-4;
+      let matched = 0;
+      for (const instance of rendered) {
+        let found = -1;
+        for (let i = 0; i < source.length; i++) {
+          if (consumed[i]) continue;
+          const target = source[i].position;
+          if (Math.abs(target[0] - instance.position[0]) < gridSize
+            && Math.abs(target[1] - instance.position[1]) < gridSize
+            && Math.abs(target[2] - instance.position[2]) < gridSize) {
+            found = i;
+            break;
+          }
+        }
+        expect(found, `instance ${JSON.stringify(instance.position)} matches no unconsumed placement`).toBeGreaterThanOrEqual(0);
+        consumed[found] = true;
+        matched++;
+      }
+      expect(matched).toBe(source.length);
+      // Obstacles: scale and rotation exactly as authored after decompose.
+      if (!obstaclesExact) continue;
+      for (const obstacle of OBSTACLES) {
+        const instance = rendered.find(item => Math.abs(item.position[0] - obstacle.center[0]) < gridSize
+          && Math.abs(item.position[1] - obstacle.center[1]) < gridSize
+          && Math.abs(item.position[2] - obstacle.center[2]) < gridSize);
+        expect(instance, `obstacle ${JSON.stringify(obstacle.center)} unmatched in kind with ${rendered.length} instances`).toBeDefined();
+        for (const axis of instance!.scale) expect(axis, `scale@${obstacle.center} axis=${axis}`).toBeCloseTo(obstacle.radius, 6);
+        expect(instance!.rotation.w, `rot.w@${obstacle.center} full=${JSON.stringify({ rotation: instance!.rotation, scale: instance!.scale })}`).toBeCloseTo(1, 6);
+        expect(instance!.rotation.x).toBeCloseTo(0, 6);
+        expect(instance!.rotation.y).toBeCloseTo(0, 6);
+        expect(instance!.rotation.z).toBeCloseTo(0, 6);
+      }
+    }
+  });
+});
 
 describe("world rock geometry", () => {
   it("stays an icosahedron at detail 3 but displaces radius into a craggy boulder", () => {
