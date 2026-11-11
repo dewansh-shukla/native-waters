@@ -32,6 +32,13 @@ describe("shared-time particle motion", () => {
     expect(p.x).toBeCloseTo(velocity.x * .02, 8);
     expect(p.z).toBeCloseTo(-2 + velocity.z * .02, 8);
   });
+  it("sinks marine snow slowly while it drifts", () => {
+    // At this spot and time the shared current has no vertical component, so
+    // the only downward motion is the settling drift.
+    const p = new Vector3(0, -1.5, -2), scratch = new Vector3();
+    advanceParticle(p, 2.02, 2, scratch);
+    expect(p.y).toBeCloseTo(-1.5 - 0.02 * 0.02, 8);
+  });
   it("caps delayed frames, ignores reverse/nonfinite time, and recycles all axes", () => {
     const p = new Vector3(0, -1.5, 0), scratch = new Vector3();
     advanceParticle(p, 100, 0, scratch);
