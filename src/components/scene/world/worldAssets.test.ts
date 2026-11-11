@@ -1,11 +1,185 @@
 import { describe, expect, it } from "vitest";
-import { Color, IcosahedronGeometry, InstancedMesh, Matrix4, Object3D } from "three";
+import { BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Object3D, Quaternion, Vector3 } from "three";
+import { OBSTACLES } from "@/experience/habitat";
 import type { Placement } from "./worldMotion";
-import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation } from "./worldAssets";
+import { createPlacements } from "./worldMotion";
+import { bucketPlacementsByVariant, createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation, planStoneBatches } from "./worldAssets";
+
+const ROCK_SEEDS = [0, 1, 2, 3] as const;
+const GRAVEL_SEEDS = [0, 1, 2] as const;
+
+function radiiOf(geo: BufferGeometry) {
+  const pos = geo.getAttribute("position");
+  return Array.from({ length: pos.count }, (_, i) => Math.hypot(pos.getX(i), pos.getY(i), pos.getZ(i)));
+}
+
+function maxAbsVertexDifference(a: BufferGeometry, b: BufferGeometry) {
+  const pa = a.getAttribute("position"), pb = b.getAttribute("position");
+  let worst = 0;
+  for (let i = 0; i < pa.count; i++) {
+    worst = Math.max(worst, Math.hypot(pa.getX(i) - pb.getX(i), pa.getY(i) - pb.getY(i), pa.getZ(i) - pb.getZ(i)));
+  }
+  return worst;
+}
+
+describe("stone batch plan", () => {
+  // Instance translations ride through a Float32 instanced attribute (~1e-7
+  // noise), so keys quantize at 1e-5 to be robust for coverage matching.
+  const exactKey = (position: readonly number[]) => position.map(v => Math.round(v * 1e5)).join("|");
+
+  it("plans four boulder batches covering all 73 placements exactly once", () => {
+    const { rocks } = createPlacements();
+    const snapshot = rocks.map(item => ({ position: [...item.position], scale: [...item.scale], rotation: item.rotation }));
+    const plan = planStoneBatches(rocks, 4, 0, OBSTACLES.length);
+    expect(plan.length).toBe(4);
+    const covered: string[] = [];
+    for (const batch of plan) {
+      expect(typeof batch.seed).toBe("number");
+      expect(batch.sourceIndices).toEqual(batch.placements.map(item => rocks.indexOf(item)));
+      covered.push(...batch.placements.map(item => exactKey(item.position)));
+    }
+    expect(covered.length).toBe(rocks.length);
+    expect(new Set(covered).size).toBe(rocks.length);
+    expect(JSON.stringify(rocks)).toBe(JSON.stringify(snapshot));
+  });
+
+  it("plans three pebble batches covering all source placements exactly once", () => {
+    const { gravel } = createPlacements();
+    const plan = planStoneBatches(gravel, 3, 0, 0);
+    expect(plan.length).toBe(3);
+    const covered: string[] = [];
+    for (const batch of plan) covered.push(...batch.placements.map(item => exactKey(item.position)));
+    expect(covered.length).toBe(gravel.length);
+    expect(new Set(covered).size).toBe(gravel.length);
+    for (const batch of plan) expect(batch.skipFirst).toBe(0);
+  });
+
+  it("flags every obstacle boulder exact at the front of its bucket and no others", () => {
+    const { rocks } = createPlacements();
+    const plan = planStoneBatches(rocks, 4, 0, OBSTACLES.length);
+    const exactCenters = OBSTACLES.map(obstacle => [...obstacle.center].join(","));
+    let exactCount = 0;
+    for (const batch of plan) {
+      for (let j = 0; j < batch.skipFirst; j++) {
+        exactCount++;
+        const item = batch.placements[j];
+        expect(exactCenters).toContain(item.position.join(","));
+        expect(item.scale).toEqual(Array(3).fill(item.scale[0]));
+        expect(item.rotation).toBe(0);
+      }
+      for (let j = batch.skipFirst; j < Math.min(batch.skipFirst + 40, batch.placements.length); j++) {
+        const item = batch.placements[j];
+        expect(exactCenters).not.toContain(item.position.join(","));
+      }
+    }
+    expect(exactCount).toBe(OBSTACLES.length);
+  });
+
+  it("renders every placement exactly once across real instanced batches, obstacles verbatim", () => {
+    const { rocks, gravel } = createPlacements();
+    for (const [plans, legacy, options, obstaclesExact] of [
+      [planStoneBatches(rocks, 4, 0, OBSTACLES.length), "#6b6055", { spin: true, stretch: true }, true],
+      [planStoneBatches(gravel, 3, 0, 0), "#8a7a60", { spin: true, colorSpread: .42 }, false],
+    ] as const) {
+      const rendered: { position: number[]; scale: number[]; rotation: { x: number; y: number; z: number; w: number } }[] = [];
+      for (const batch of plans) {
+        const mesh = new InstancedMesh(new IcosahedronGeometry(1, 1), new MeshStandardMaterial(), batch.placements.length);
+        fillBatch(mesh, batch.placements, legacy, batch.skipFirst > 0 ? { ...options, skipFirst: batch.skipFirst } : options);
+        const matrix = new Matrix4(), position = new Vector3(), quaternion = new Quaternion(), scale = new Vector3();
+        for (let j = 0; j < batch.placements.length; j++) {
+          mesh.getMatrixAt(j, matrix);
+          matrix.decompose(position, quaternion, scale);
+          rendered.push({ position: position.toArray(), scale: scale.toArray(), rotation: quaternion.clone() });
+        }
+      }
+      // Bijective translation matching: instance translations pass through a
+      // Float32 attribute (~1e-7 noise), so match within 1e-4 per axis rather
+      // than by exact grid keys. length equality + injective match = coverage.
+      const source = plans.flatMap(batch => batch.placements);
+      expect(rendered.length).toBe(source.length);
+      const consumed = new Array<boolean>(source.length).fill(false);
+      const gridSize = 1e-4;
+      let matched = 0;
+      for (const instance of rendered) {
+        let found = -1;
+        for (let i = 0; i < source.length; i++) {
+          if (consumed[i]) continue;
+          const target = source[i].position;
+          if (Math.abs(target[0] - instance.position[0]) < gridSize
+            && Math.abs(target[1] - instance.position[1]) < gridSize
+            && Math.abs(target[2] - instance.position[2]) < gridSize) {
+            found = i;
+            break;
+          }
+        }
+        expect(found, `instance ${JSON.stringify(instance.position)} matches no unconsumed placement`).toBeGreaterThanOrEqual(0);
+        consumed[found] = true;
+        matched++;
+      }
+      expect(matched).toBe(source.length);
+      // Obstacles: scale and rotation exactly as authored after decompose.
+      if (!obstaclesExact) continue;
+      for (const obstacle of OBSTACLES) {
+        const instance = rendered.find(item => Math.abs(item.position[0] - obstacle.center[0]) < gridSize
+          && Math.abs(item.position[1] - obstacle.center[1]) < gridSize
+          && Math.abs(item.position[2] - obstacle.center[2]) < gridSize);
+        expect(instance, `obstacle ${JSON.stringify(obstacle.center)} unmatched in kind with ${rendered.length} instances`).toBeDefined();
+        for (const axis of instance!.scale) expect(axis, `scale@${obstacle.center} axis=${axis}`).toBeCloseTo(obstacle.radius, 6);
+        expect(instance!.rotation.w, `rot.w@${obstacle.center} full=${JSON.stringify({ rotation: instance!.rotation, scale: instance!.scale })}`).toBeCloseTo(1, 6);
+        expect(instance!.rotation.x).toBeCloseTo(0, 6);
+        expect(instance!.rotation.y).toBeCloseTo(0, 6);
+        expect(instance!.rotation.z).toBeCloseTo(0, 6);
+      }
+    }
+  });
+
+  it("preserves each placement's pre-batch transform and color variation", () => {
+    const { rocks, gravel } = createPlacements();
+    for (const [source, variantCount, exactCount, tint, options] of [
+      [rocks, 4, OBSTACLES.length, "#6b6055", { spin: true, stretch: true }],
+      [gravel, 3, 0, "#8a7a60", { spin: true, colorSpread: .42 }],
+    ] as const) {
+      const geometry = new IcosahedronGeometry(1, 1);
+      const baseline = new InstancedMesh(geometry, new MeshStandardMaterial(), source.length);
+      fillBatch(baseline, source, tint, { ...options, skipFirst: exactCount });
+      const plan = planStoneBatches(source, variantCount, 0, exactCount);
+      for (const batch of plan) {
+        const actual = new InstancedMesh(geometry, new MeshStandardMaterial(), batch.placements.length);
+        fillBatch(actual, batch.placements, tint, { ...options, skipFirst: batch.skipFirst, variationIndices: batch.sourceIndices });
+        for (let localIndex = 0; localIndex < batch.placements.length; localIndex++) {
+          const sourceIndex = source.indexOf(batch.placements[localIndex]);
+          expect(sourceIndex).toBeGreaterThanOrEqual(0);
+          const expectedMatrix = new Matrix4(), actualMatrix = new Matrix4();
+          baseline.getMatrixAt(sourceIndex, expectedMatrix);
+          actual.getMatrixAt(localIndex, actualMatrix);
+          expect(actualMatrix.elements).toEqual(expectedMatrix.elements);
+          const expectedColor = new Color(), actualColor = new Color();
+          baseline.getColorAt(sourceIndex, expectedColor);
+          actual.getColorAt(localIndex, actualColor);
+          expect(actualColor.toArray()).toEqual(expectedColor.toArray());
+        }
+      }
+    }
+  });
+});
 
 describe("world rock geometry", () => {
+  it("defaults unseeded rocks and gravel to their stable base variants", () => {
+    for (const [actual, expected] of [
+      [createRockGeometry(), createRockGeometry(0)],
+      [createGravelGeometry(), createGravelGeometry(0)],
+    ]) {
+      const a = actual.getAttribute("position"), b = expected.getAttribute("position");
+      expect(a.count).toBe(b.count);
+      for (let i = 0; i < a.count; i++) {
+        expect(a.getX(i)).toBe(b.getX(i));
+        expect(a.getY(i)).toBe(b.getY(i));
+        expect(a.getZ(i)).toBe(b.getZ(i));
+      }
+    }
+  });
   it("stays an icosahedron at detail 3 but displaces radius into a craggy boulder", () => {
-    const geo = createRockGeometry();
+    const geo = createRockGeometry(0);
     expect(geo.getAttribute("position").count).toBe(new IcosahedronGeometry(1, 3).getAttribute("position").count);
     const pos = geo.getAttribute("position"), normal = geo.getAttribute("normal");
     let min = Infinity, max = -Infinity;
@@ -22,12 +196,7 @@ describe("world rock geometry", () => {
     expect(max).toBeLessThan(1.55);
   });
   it("carries high-frequency crag detail: radius reverses direction often along the vertex span", () => {
-    const pos = createRockGeometry().getAttribute("position");
-    const radii: number[] = [];
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      radii.push(Math.sqrt(x * x + y * y + z * z));
-    }
+    const radii = radiiOf(createRockGeometry(0));
     let reversals = 0;
     for (let i = 1; i < radii.length - 1; i++) {
       if ((radii[i] - radii[i - 1]) * (radii[i + 1] - radii[i]) < 0) reversals++;
@@ -35,7 +204,7 @@ describe("world rock geometry", () => {
     expect(reversals).toBeGreaterThan(80);
   });
   it("is deterministic", () => {
-    const a = createRockGeometry().getAttribute("position"), b = createRockGeometry().getAttribute("position");
+    const a = createRockGeometry(0).getAttribute("position"), b = createRockGeometry(0).getAttribute("position");
     for (let i = 0; i < a.count; i++) {
       expect(a.getX(i)).toBe(b.getX(i));
       expect(a.getZ(i)).toBe(b.getZ(i));
@@ -43,9 +212,50 @@ describe("world rock geometry", () => {
   });
 });
 
+describe("seeded boulder variants", () => {
+  it("keeps the detail-3 topology and finite vertices/normals for every seed", () => {
+    for (const seed of ROCK_SEEDS) {
+      const geo = createRockGeometry(seed);
+      expect(geo.getAttribute("position").count).toBe(new IcosahedronGeometry(1, 3).getAttribute("position").count);
+      const pos = geo.getAttribute("position"), normal = geo.getAttribute("normal");
+      for (let i = 0; i < pos.count; i++) {
+        expect(Number.isFinite(pos.getX(i)) && Number.isFinite(pos.getY(i)) && Number.isFinite(pos.getZ(i))).toBe(true);
+        expect(Number.isFinite(normal.getX(i)) && Number.isFinite(normal.getY(i)) && Number.isFinite(normal.getZ(i))).toBe(true);
+      }
+    }
+  });
+  it("is deterministic per seed", () => {
+    for (const seed of ROCK_SEEDS) {
+      const a = createRockGeometry(seed).getAttribute("position"), b = createRockGeometry(seed).getAttribute("position");
+      for (let i = 0; i < a.count; i++) {
+        expect(a.getX(i)).toBe(b.getX(i));
+        expect(a.getY(i)).toBe(b.getY(i));
+        expect(a.getZ(i)).toBe(b.getZ(i));
+      }
+    }
+  });
+  it("renders visibly distinct shapes across the four seeds", () => {
+    const geos = ROCK_SEEDS.map(createRockGeometry);
+    for (let a = 0; a < geos.length; a++) {
+      for (let b = a + 1; b < geos.length; b++) {
+        expect(maxAbsVertexDifference(geos[a], geos[b])).toBeGreaterThan(.03);
+      }
+    }
+  });
+  it("never grows a variant past the legacy seed-0 geometry envelope", () => {
+    const legacy = radiiOf(createRockGeometry(0));
+    const legacyMax = Math.max(...legacy), legacyMin = Math.min(...legacy);
+    for (const seed of ROCK_SEEDS.slice(1)) {
+      const radii = radiiOf(createRockGeometry(seed));
+      expect(Math.max(...radii)).toBeLessThanOrEqual(legacyMax + 1e-6);
+      expect(Math.min(...radii)).toBeGreaterThanOrEqual(legacyMin - 1e-6);
+    }
+  });
+});
+
 describe("world gravel geometry", () => {
   it("subdivides to detail 1 and wears the facets down with smaller relief than boulders", () => {
-    const geo = createGravelGeometry();
+    const geo = createGravelGeometry(0);
     expect(geo.getAttribute("position").count).toBe(new IcosahedronGeometry(1, 1).getAttribute("position").count);
     const pos = geo.getAttribute("position");
     let min = Infinity, max = -Infinity;
@@ -59,13 +269,86 @@ describe("world gravel geometry", () => {
     expect(min).toBeLessThan(.985);
     expect(relief).toBeGreaterThan(.03);
     expect(relief).toBeLessThan(.3);
-    const rockPos = createRockGeometry().getAttribute("position");
+    const rockPos = createRockGeometry(0).getAttribute("position");
     const rockRadii: number[] = [];
     for (let i = 0; i < rockPos.count; i++) {
       const x = rockPos.getX(i), y = rockPos.getY(i), z = rockPos.getZ(i);
       rockRadii.push(Math.sqrt(x * x + y * y + z * z));
     }
     expect(relief).toBeLessThan(Math.max(...rockRadii) - Math.min(...rockRadii));
+  });
+});
+
+describe("seeded pebble variants", () => {
+  it("keeps the detail-1 topology, finite geometry, and determinism for every seed", () => {
+    for (const seed of GRAVEL_SEEDS) {
+      const geo = createGravelGeometry(seed);
+      expect(geo.getAttribute("position").count).toBe(new IcosahedronGeometry(1, 1).getAttribute("position").count);
+      const pos = geo.getAttribute("position"), normal = geo.getAttribute("normal");
+      for (let i = 0; i < pos.count; i++) {
+        expect(Number.isFinite(pos.getX(i)) && Number.isFinite(pos.getY(i)) && Number.isFinite(pos.getZ(i))).toBe(true);
+        expect(Number.isFinite(normal.getX(i)) && Number.isFinite(normal.getY(i)) && Number.isFinite(normal.getZ(i))).toBe(true);
+      }
+      const again = createGravelGeometry(seed).getAttribute("position");
+      for (let i = 0; i < pos.count; i++) {
+        expect(again.getX(i)).toBe(pos.getX(i));
+        expect(again.getZ(i)).toBe(pos.getZ(i));
+      }
+    }
+  });
+  it("renders visibly distinct and stays inside the legacy pebble envelope", () => {
+    const geos = GRAVEL_SEEDS.map(createGravelGeometry);
+    for (let a = 0; a < geos.length; a++) {
+      for (let b = a + 1; b < geos.length; b++) {
+        expect(maxAbsVertexDifference(geos[a], geos[b])).toBeGreaterThan(.06);
+      }
+    }
+    const legacy = radiiOf(createGravelGeometry(0));
+    const legacyMax = Math.max(...legacy), legacyMin = Math.min(...legacy);
+    for (const seed of GRAVEL_SEEDS.slice(1)) {
+      const radii = radiiOf(createGravelGeometry(seed));
+      expect(Math.max(...radii)).toBeLessThanOrEqual(legacyMax + 1e-6);
+      expect(Math.min(...radii)).toBeGreaterThanOrEqual(legacyMin - 1e-6);
+    }
+  });
+});
+
+describe("bucketPlacementsByVariant", () => {
+  it("partitions every source placement exactly once with transforms preserved verbatim", () => {
+    const { rocks } = createPlacements();
+    const snapshot = rocks.map(item => ({ position: [...item.position], scale: [...item.scale], rotation: item.rotation }));
+    const buckets = bucketPlacementsByVariant(rocks, 4, 0);
+    expect(buckets.length).toBe(4);
+    const flattened = buckets.flat();
+    expect(flattened.length).toBe(rocks.length);
+    const keys = new Map(snapshot.map(item => [JSON.stringify(item), 0]));
+    for (const item of flattened) {
+      const key = JSON.stringify(item);
+      expect(keys.has(key)).toBe(true);
+      keys.set(key, (keys.get(key) ?? 0) + 1);
+    }
+    for (const [, count] of keys) expect(count).toBe(1);
+    // The three collision-obstacle transforms exist in the partition, somewhere.
+    for (let i = 0; i < 3; i++) expect(keys.has(JSON.stringify(rocks[i]))).toBe(true);
+    expect(JSON.stringify(rocks)).toBe(JSON.stringify(snapshot));
+  });
+  it("keeps the first three obstacle transforms exact and invariant across the first buckets", () => {
+    const { rocks } = createPlacements();
+    for (let i = 0; i < 3; i++) {
+      expect(rocks[i].position).toEqual([...OBSTACLES[i].center]);
+      expect(rocks[i].scale).toEqual(Array(3).fill(OBSTACLES[i].radius));
+      expect(rocks[i].rotation).toBe(0);
+    }
+    const again = bucketPlacementsByVariant(rocks, 4, 0);
+    expect(JSON.stringify(again)).toBe(JSON.stringify(bucketPlacementsByVariant(rocks, 4, 0)));
+  });
+  it("shifts bucket membership with the salt so neighboring instances separate", () => {
+    const placements: Placement[] = Array.from({ length: 8 }, () => ({ position: [0, 0, 0], scale: [1, 1, 1], rotation: 0 }));
+    const salted = bucketPlacementsByVariant(placements, 4, 1);
+    expect(salted.flat().length).toBe(8);
+    const index0Salt0 = bucketPlacementsByVariant(placements, 4, 0).findIndex(bucket => bucket.length > 0);
+    const index0Salt1 = salted.findIndex(bucket => bucket[0] === placements[0]);
+    expect(index0Salt0).not.toEqual(index0Salt1);
   });
 });
 

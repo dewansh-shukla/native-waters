@@ -1,4 +1,4 @@
-import type { MeshStandardMaterial, Vector3 } from "three";
+import { NoColorSpace, SRGBColorSpace, type MeshStandardMaterial, type Texture, type Vector3 } from "three";
 
 type Shader = Parameters<MeshStandardMaterial["onBeforeCompile"]>[0];
 export type WorldUniforms = { time: { value: number }; richness: { value: number }; flow: { value: Vector3 } };
@@ -79,6 +79,170 @@ export function substrateShader(uniforms: WorldUniforms) {
       }
       vec3 riverGradView = (viewMatrix * vec4(riverGrad3D, 0.0)).xyz;
       normal = normalize(normal + riverGradView * -0.28);`);
+  };
+}
+
+export type RockTextures = { map: Texture; normalMap: Texture; roughnessMap: Texture };
+export type RockShaderOptions = { scale?: number; dampness?: number };
+export type RockProjectionAxis = "x" | "y" | "z";
+
+// CPU reference for the shader's signed tangent-basis reconstruction. The
+// texture normal is stored in a tile rotated by +quarterTurns; undo that UV
+// rotation before mapping its tangent frame onto the signed world projection.
+export function reorientRockNormal(
+  sample: readonly [number, number, number],
+  axis: RockProjectionAxis,
+  faceSign: number,
+  quarterTurns: number,
+): [number, number, number] {
+  const angle = quarterTurns * Math.PI / 2;
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const tangentU = c * sample[0] + s * sample[1];
+  const tangentV = -s * sample[0] + c * sample[1];
+  if (axis === "x") return [sample[2] * faceSign, tangentU, tangentV * faceSign];
+  if (axis === "y") return [tangentV, sample[2] * faceSign, tangentU * faceSign];
+  return [tangentU, tangentV * faceSign, sample[2] * faceSign];
+}
+
+// Declares the scanned maps' color semantics: base color is sRGB imagery,
+// while the normal and roughness encodings must stay raw data or their
+// sampler values would be rescaled before lighting sees them.
+export function declareRockTextureColorSpaces(textures: RockTextures) {
+  textures.map.colorSpace = SRGBColorSpace;
+  textures.normalMap.colorSpace = NoColorSpace;
+  textures.roughnessMap.colorSpace = NoColorSpace;
+}
+
+// Stone-only triplanar material hook. The icosahedron geometry has no UVs,
+// so the scanned maps ride in as custom sampler uniforms and are sampled
+// against the WORLD position on the three dominant axis projections. All
+// blending keys off the interpolated world normal; nothing else in the
+// material pipeline (metalness, lighting, fog) is touched.
+const ROCK_TRIPANAR_GLSL = `
+  uniform sampler2D uRockColorMap;
+  uniform sampler2D uRockNormalMap;
+  uniform sampler2D uRockRoughnessMap;
+  uniform float uRockScale;
+  uniform float uDamp;
+  // Deterministic per-tile 90-degree rotation so the stone never reads as one
+  // repeating photograph across the river bed.
+  float rockTileAngle(vec2 uv) {
+    return floor(riverHash(floor(uv)) * 4.0) * 1.5707963;
+  }
+  vec2 rockTileRotate(vec2 local, float angle) {
+    float c = cos(angle), s = sin(angle);
+    return vec2(c * local.x - s * local.y, s * local.x + c * local.y);
+  }
+  vec2 rockTileUnrotateNormal(vec2 tangent, vec2 uv) {
+    float angle = rockTileAngle(uv);
+    float c = cos(angle), s = sin(angle);
+    return vec2(c * tangent.x + s * tangent.y, -s * tangent.x + c * tangent.y);
+  }
+  vec2 rockTileOffset(vec2 uv) {
+    vec2 cell = floor(uv), local = fract(uv);
+    float h = riverHash(cell);
+    return cell + rockTileRotate(local - .5, rockTileAngle(uv)) + (vec2(h, riverHash(cell + 31.7)) - .5) * .12 + .5;
+  }
+`;
+
+const ROCK_COLOR_GLSL = `
+  #include <color_fragment>
+  {
+    vec3 rockBlend = abs(vRockNormal);
+    rockBlend /= max(rockBlend.x + rockBlend.y + rockBlend.z, 1e-5);
+    vec2 rockUvX = rockTileOffset(vRockWorld.yz * vec2(1.0, sign(vRockNormal.x)) * uRockScale);
+    vec2 rockUvY = rockTileOffset(vRockWorld.zx * vec2(sign(vRockNormal.y), 1.0) * uRockScale);
+    vec2 rockUvZ = rockTileOffset(vRockWorld.xy * vec2(1.0, sign(vRockNormal.z)) * uRockScale);
+    vec3 rockColorSample = texture2D(uRockColorMap, rockUvX).rgb * rockBlend.x +
+                           texture2D(uRockColorMap, rockUvY).rgb * rockBlend.y +
+                           texture2D(uRockColorMap, rockUvZ).rgb * rockBlend.z;
+    diffuseColor.rgb *= rockColorSample;
+  }
+`;
+
+const ROCK_ROUGHNESS_GLSL = `
+  #include <roughnessmap_fragment>
+  {
+    vec2 rockUvX = rockTileOffset(vRockWorld.yz * vec2(1.0, sign(vRockNormal.x)) * uRockScale);
+    vec2 rockUvY = rockTileOffset(vRockWorld.zx * vec2(sign(vRockNormal.y), 1.0) * uRockScale);
+    vec2 rockUvZ = rockTileOffset(vRockWorld.xy * vec2(1.0, sign(vRockNormal.z)) * uRockScale);
+    vec3 rockRoughSample = vec3(
+      texture2D(uRockRoughnessMap, rockUvX).r,
+      texture2D(uRockRoughnessMap, rockUvY).r,
+      texture2D(uRockRoughnessMap, rockUvZ).r
+    );
+    vec3 rockBlend = abs(vRockNormal);
+    rockBlend /= max(rockBlend.x + rockBlend.y + rockBlend.z, 1e-5);
+    float rockRough = dot(rockRoughSample, rockBlend);
+    float rockSilt = 1.0 - smoothstep(-2.2, -1.2, vRockWorld.y);
+    roughnessFactor = clamp(rockRough * (0.9 + 0.2 * riverFbm(vRockWorld.xz * 3.1)) - uDamp * rockSilt, 0.2, 1.0);
+  }
+`;
+
+const ROCK_NORMAL_GLSL = `
+  #include <normal_fragment_maps>
+  {
+    vec2 rockUvInputX = vRockWorld.yz * vec2(1.0, sign(vRockNormal.x)) * uRockScale;
+    vec2 rockUvInputY = vRockWorld.zx * vec2(sign(vRockNormal.y), 1.0) * uRockScale;
+    vec2 rockUvInputZ = vRockWorld.xy * vec2(1.0, sign(vRockNormal.z)) * uRockScale;
+    vec2 rockUvX = rockTileOffset(rockUvInputX);
+    vec2 rockUvY = rockTileOffset(rockUvInputY);
+    vec2 rockUvZ = rockTileOffset(rockUvInputZ);
+    vec3 sX = texture2D(uRockNormalMap, rockUvX).rgb * 2.0 - 1.0;
+    vec3 sY = texture2D(uRockNormalMap, rockUvY).rgb * 2.0 - 1.0;
+    vec3 sZ = texture2D(uRockNormalMap, rockUvZ).rgb * 2.0 - 1.0;
+    sX.xy = rockTileUnrotateNormal(sX.xy, rockUvInputX);
+    sY.xy = rockTileUnrotateNormal(sY.xy, rockUvInputY);
+    sZ.xy = rockTileUnrotateNormal(sZ.xy, rockUvInputZ);
+    float rockSignX = sign(vRockNormal.x);
+    float rockSignY = sign(vRockNormal.y);
+    float rockSignZ = sign(vRockNormal.z);
+    // Rebuild each projection through its own tangent basis into world space.
+    vec3 rockNX = vec3(sX.z * rockSignX, sX.x, sX.y * rockSignX);
+    vec3 rockNY = vec3(sY.y, sY.z * rockSignY, sY.x * rockSignY);
+    vec3 rockNZ = vec3(sZ.x, sZ.y * rockSignZ, sZ.z * rockSignZ);
+    vec3 rockBlend = abs(vRockNormal);
+    rockBlend /= max(rockBlend.x + rockBlend.y + rockBlend.z, 1e-5);
+    vec3 rockNormalSample = normalize(rockNX * rockBlend.x + rockNY * rockBlend.y + rockNZ * rockBlend.z);
+    vec3 rockNormalView = (viewMatrix * vec4(rockNormalSample, 0.0)).xyz;
+    normal = normalize(normal + rockNormalView * 0.9 - normal * 0.45);
+  }
+`;
+
+const ROCK_VERTEX_GLSL = `
+  varying vec3 vRockWorld;
+  varying vec3 vRockNormal;
+`;
+
+export function rockShader(textures: RockTextures, uniforms: WorldUniforms, options: RockShaderOptions = {}) {
+  return (shader: Shader) => {
+    shader.uniforms.uWorldTime = uniforms.time;
+    shader.uniforms.uRockColorMap = { value: textures.map };
+    shader.uniforms.uRockNormalMap = { value: textures.normalMap };
+    shader.uniforms.uRockRoughnessMap = { value: textures.roughnessMap };
+    shader.uniforms.uRockScale = { value: options.scale ?? .38 };
+    shader.uniforms.uDamp = { value: options.dampness ?? .12 };
+
+    shader.vertexShader = ROCK_VERTEX_GLSL + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+        vec4 rockObject = instanceMatrix * vec4(position, 1.0);
+      #else
+        vec4 rockObject = vec4(position, 1.0);
+      #endif
+      vRockWorld = (modelMatrix * rockObject).xyz;
+      #ifdef USE_INSTANCING
+        mat3 rockNMat = mat3(instanceMatrix);
+        vec3 rockNN = objectNormal / vec3(dot(rockNMat[0], rockNMat[0]), dot(rockNMat[1], rockNMat[1]), dot(rockNMat[2], rockNMat[2]));
+        vRockNormal = normalize(mat3(modelMatrix) * (rockNMat * rockNN));
+      #else
+        vRockNormal = normalize(mat3(modelMatrix) * objectNormal);
+      #endif`);
+    shader.fragmentShader = NOISE_GLSL + "\n" + ROCK_TRIPANAR_GLSL + "\n" +
+      "varying vec3 vRockWorld;\nvarying vec3 vRockNormal;\n" + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", ROCK_COLOR_GLSL);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", ROCK_ROUGHNESS_GLSL);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", ROCK_NORMAL_GLSL);
   };
 }
 

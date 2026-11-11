@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, HemisphereLight, InstancedMesh, PlaneGeometry, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
-import { plantShader, substrateShader, surfaceFragment, surfaceVertex } from "./materials";
-import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch } from "./worldAssets";
+import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
+import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
-  const rocks = useRef<InstancedMesh>(null), gravel = useRef<InstancedMesh>(null), plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
+  const worldGroup = useRef<Group>(null);
+  const rockBatches = useRef<(InstancedMesh | null)[]>([]);
+  const gravelBatches = useRef<(InstancedMesh | null)[]>([]);
+  const plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
   const keyLight = useRef<DirectionalLight>(null), fillLight = useRef<DirectionalLight>(null), backlight = useRef<DirectionalLight>(null);
   const placements = useMemo(() => createPlacements(), []);
+  // Rock/pebble variant plan: index-keyed buckets ((i + salt) % variantCount)
+  // so every placement renders exactly once across the batches; obstacle
+  // boulders keep verbatim transforms via per-batch skip counts.
+  const rockPlans = useMemo(() => planStoneBatches(placements.rocks, 4, 0, OBSTACLES.length), [placements]);
+  const gravelPlans = useMemo(() => planStoneBatches(placements.gravel, 3, 0, 0), [placements]);
   const grassPlacements = useMemo(() => placements.plants.map(item => ({
     ...item,
     scale: [item.scale[0] * .85, item.scale[1] * .6, item.scale[2] * .85] as [number, number, number],
@@ -59,11 +67,14 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
 
   useLayoutEffect(() => {
     // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
-    fillBatch(rocks.current, placements.rocks, "#6b6055", { spin: true, stretch: true, skipFirst: OBSTACLES.length });
-    fillBatch(gravel.current, placements.gravel, "#8a7a60", { spin: true, colorSpread: .42 });
+    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, "#6b6055", { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
+    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, "#8a7a60", { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
     fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
     fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
-  }, [placements, grassPlacements]);
+  }, [rockPlans, gravelPlans, placements, grassPlacements]);
+  useLayoutEffect(() => {
+    if (worldGroup.current) worldGroup.current.userData.underwaterEnvironment = env;
+  }, [env]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
     return () => { updateAtmosphere(scene, atmosphere, false); };
@@ -73,15 +84,71 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
 
   // Rock/gravel/plant geometry lives in worldAssets: radial stone relief and
   // rooted multi-blade clumps with per-vertex wind, phase and leaf shading.
-  const rockGeometry = useMemo(() => createRockGeometry(), []);
-  useEffect(() => () => rockGeometry.dispose(), [rockGeometry]);
-  const gravelGeometry = useMemo(() => createGravelGeometry(), []);
-  useEffect(() => () => gravelGeometry.dispose(), [gravelGeometry]);
+  // One geometry variant per batch: bucket 0 keeps the legacy seed-0 shape.
+  const rockGeometries = useMemo(() => rockPlans.map(plan => createRockGeometry(plan.seed)), [rockPlans]);
+  const gravelGeometries = useMemo(() => gravelPlans.map(plan => createGravelGeometry(plan.seed)), [gravelPlans]);
+  useEffect(() => () => rockGeometries.forEach(geometry => geometry.dispose()), [rockGeometries]);
+  useEffect(() => () => gravelGeometries.forEach(geometry => geometry.dispose()), [gravelGeometries]);
 
   const plantGeometry = useMemo(() => createPlantClumpGeometry("ribbon"), []);
   const plantGeometry2 = useMemo(() => createPlantClumpGeometry("grass"), []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
   useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
+
+  // Shared 1K scanned stone maps (CC0, see public/textures/world/rocks)
+  // loaded once for all seven batches. Until they arrive — or forever, if the
+  // request fails — the batches keep the procedural substrate shader as a
+  // graceful fallback instead of breaking the scene.
+  const [rockTextures, setRockTextures] = useState<RockTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new TextureLoader();
+    const load = (url: string) => new Promise<Texture>((resolve, reject) => loader.load(url, resolve, undefined, reject));
+    const anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy());
+    Promise.all([
+      load("/textures/world/rocks/rock-color.jpg"),
+      load("/textures/world/rocks/rock-normal.png"),
+      load("/textures/world/rocks/rock-roughness.jpg"),
+    ]).then(([map, normalMap, roughnessMap]) => {
+      if (cancelled) {
+        map.dispose(); normalMap.dispose(); roughnessMap.dispose();
+        return;
+      }
+      for (const texture of [map, normalMap, roughnessMap]) {
+        // rockTileOffset jitters/rotates sample UVs; wrap keeps those reads valid.
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.anisotropy = anisotropy;
+      }
+      declareRockTextureColorSpaces({ map, normalMap, roughnessMap });
+      setRockTextures({ map, normalMap, roughnessMap });
+    }).catch(() => { /* fallback stays */ });
+    return () => { cancelled = true; };
+  }, [gl]);
+
+  useEffect(() => () => {
+    if (rockTextures) {
+      rockTextures.map.dispose(); rockTextures.normalMap.dispose(); rockTextures.roughnessMap.dispose();
+    }
+  }, [rockTextures]);
+
+  // Scanned-triplanar materials: one program per stone kind; instance colors
+  // from fillBatch still tint the scanned albedo. Metalness stays 0 (stone).
+  const boulderMaterial = useMemo(() => {
+    if (!rockTextures) return null;
+    const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .38, dampness: .12 });
+    material.customProgramCacheKey = () => "river-rock-boulder";
+    return material;
+  }, [rockTextures, uniforms]);
+  const pebbleMaterial = useMemo(() => {
+    if (!rockTextures) return null;
+    const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .9, dampness: .12 });
+    material.customProgramCacheKey = () => "river-rock-pebble";
+    return material;
+  }, [rockTextures, uniforms]);
+  useEffect(() => () => boulderMaterial?.dispose(), [boulderMaterial]);
+  useEffect(() => () => pebbleMaterial?.dispose(), [pebbleMaterial]);
 
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
@@ -112,7 +179,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     motion.previousTime = time;
   });
 
-  return <group visible={visible} name="PreviewWorld">
+  return <group ref={worldGroup} visible={visible} name="PreviewWorld">
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
     <directionalLight ref={keyLight} position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
@@ -122,12 +189,20 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
     </mesh>
-    <instancedMesh ref={rocks} args={[rockGeometry, undefined, placements.rocks.length]}>
-      <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
-    </instancedMesh>
-    <instancedMesh ref={gravel} args={[gravelGeometry, undefined, placements.gravel.length]}>
-      <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
-    </instancedMesh>
+    {rockPlans.map((plan, k) => (
+      <instancedMesh key={k} ref={mesh => { rockBatches.current[k] = mesh; }} args={[rockGeometries[k], undefined, plan.placements.length]}>
+        {boulderMaterial
+          ? <primitive object={boulderMaterial} attach="material" />
+          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+      </instancedMesh>
+    ))}
+    {gravelPlans.map((plan, k) => (
+      <instancedMesh key={k} ref={mesh => { gravelBatches.current[k] = mesh; }} args={[gravelGeometries[k], undefined, plan.placements.length]}>
+        {pebbleMaterial
+          ? <primitive object={pebbleMaterial} attach="material" />
+          : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+      </instancedMesh>
+    ))}
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
       <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>

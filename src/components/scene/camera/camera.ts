@@ -4,7 +4,7 @@ import { INDIA_BOUNDS, MAP_TOP, projectLonLat } from "@/experience/geography";
 import { HABITAT, OBSTACLES } from "@/experience/habitat";
 
 export type CameraStep = Omit<ExperienceCameraProps, "runtime" | "onEntered"> & {
-  runtime: SceneRuntime; hidden: boolean; aspect: number; fov: number;
+  runtime: SceneRuntime; hidden: boolean; aspect: number; fov: number; frameDelta?: number;
 };
 export type Pose = { position: Vector3; target: Vector3 };
 export function applyCameraPose(camera: Camera, pose: Pose, aspect: number) {
@@ -95,9 +95,14 @@ export class CameraController {
   position = new Vector3(); target = new Vector3(); input = new CameraInput();
   private phase: Phase | null = null;
   private lastTime: number | null = null;
-  private entryStart = 0;
+  private entryElapsed = 0;
+  private discardNextFrameDelta = false;
   private entered = false;
   private overview: Pose | null = null;
+
+  skipNextFrameDelta() {
+    this.discardNextFrameDelta = true;
+  }
 
   update(step: CameraStep): boolean {
     const { runtime, phase, paused, hidden, ready, reducedMotion, aspect, fov, entryAnchor, selectedId } = step;
@@ -105,15 +110,16 @@ export class CameraController {
     const initial = this.phase === null;
     const rawDelta = this.lastTime === null ? 0 : Math.max(0, runtime.time - this.lastTime);
     const delta = paused || hidden || !ready ? 0 : Math.min(rawDelta, 0.05);
+    const discardVisibleFrame = !hidden && this.discardNextFrameDelta;
+    if (!hidden) this.discardNextFrameDelta = false;
     this.lastTime = runtime.time;
     this.phase = phase;
     if (changed && phase === "entering") {
       if (!initial) runtime.entryProgress = 0;
-      this.entryStart = runtime.time - runtime.entryProgress * 5;
+      this.entryElapsed = runtime.entryProgress * 5;
       this.entered = false;
       this.overview = overviewPose(aspect, fov);
     }
-    if (phase === "entering" && !changed) this.entryStart += rawDelta - delta;
     if (phase === "entering" && !ready) {
       const pose = entryPose(runtime.entryProgress, entryAnchor, this.overview ?? overviewPose(aspect, fov), aspect);
       this.position.copy(pose.position); this.target.copy(pose.target);
@@ -134,7 +140,14 @@ export class CameraController {
     }
     if ((paused || hidden) && !initial) return false;
     if (phase === "entering") {
-      runtime.entryProgress = clamp((runtime.time - this.entryStart) / 5, 0, 1);
+      // Entry is presentation time, not simulation time. `runtime.time` caps
+      // each simulation step at 50 ms to prevent fish teleporting after a
+      // stalled frame; tying the five-second dive to that clock makes it take
+      // minutes on a slow renderer. Use the actual frame delta when available,
+      // while keeping the camera's other smoothing and fish physics bounded.
+      const frameDelta = discardVisibleFrame ? 0 : (step.frameDelta ?? delta);
+      this.entryElapsed = Math.min(5, this.entryElapsed + frameDelta);
+      runtime.entryProgress = clamp(this.entryElapsed / 5, 0, 1);
       if (runtime.entryProgress > 1 - 1e-9) runtime.entryProgress = 1;
       const pose = entryPose(runtime.entryProgress, entryAnchor, this.overview ?? overviewPose(aspect, fov), aspect);
       this.position.copy(pose.position); this.target.copy(pose.target);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Vector3 } from "three";
-import { plantShader, substrateShader, type WorldUniforms } from "./materials";
+import { SRGBColorSpace, Texture, Vector3 } from "three";
+import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, type WorldUniforms } from "./materials";
 
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
   return {
@@ -97,5 +97,111 @@ describe("plantShader", () => {
     expect(fragment).toContain("roughnessFactor = clamp(mix(0.85, 0.5, vLeafWind)");
     expect(fragment).toContain("riverRim");
     expect(fragment).toContain("reflectedLight");
+  });
+});
+
+const rockTextures = () => ({ map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() });
+
+describe("rockShader", () => {
+  it("registers the scanned map samplers plus scale and dampness uniforms", () => {
+    const shader = fakeShader(), textures = rockTextures();
+    rockShader(textures, worldUniforms(), { dampness: .14 })(shader as never);
+    expect(shader.uniforms.uRockColorMap).toBeDefined();
+    expect(shader.uniforms.uRockColorMap.value).toBe(textures.map);
+    expect(shader.uniforms.uRockNormalMap.value).toBe(textures.normalMap);
+    expect(shader.uniforms.uRockRoughnessMap.value).toBe(textures.roughnessMap);
+    expect(shader.uniforms.uRockScale).toBeDefined();
+    expect(shader.uniforms.uDamp.value).toBe(.14);
+  });
+
+  it("declares color spaces: base color sRGB, normal and roughness as data", () => {
+    const textures = rockTextures();
+    declareRockTextureColorSpaces(textures);
+    expect(textures.map.colorSpace).toBe(SRGBColorSpace);
+    expect(textures.normalMap.colorSpace).toBe("");
+    expect(textures.roughnessMap.colorSpace).toBe("");
+  });
+
+  it("samples each scanned map in world-space triplanar projections, weighted by the abs world normal", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const fragment = shader.fragmentShader;
+    expect(fragment).toContain("varying vec3 vRockWorld");
+    expect(fragment).toContain("varying vec3 vRockNormal");
+    for (const needle of ["rockUvX", "rockUvY", "rockUvZ", "rockBlend"]) {
+      expect(fragment).toContain(needle);
+    }
+    expect(fragment).toContain("texture2D(uRockColorMap");
+    expect(fragment).toContain("texture2D(uRockRoughnessMap");
+    expect(fragment).toContain("texture2D(uRockNormalMap");
+    expect(shader.vertexShader).toContain("vRockWorld");
+    expect(shader.vertexShader).toContain("instanceMatrix");
+  });
+
+  it("drives roughness from the scanned map with a restrained silt dampness overlay", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms(), { dampness: .12 })(shader as never);
+    const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
+    expect(afterRoughness).toContain("rockRough");
+    expect(afterRoughness).toContain("uDamp");
+    expect(shader.fragmentShader).not.toContain("metalnessFactor =");
+  });
+
+  it("perturbs the fragment normal after it is computed with reoriented triplanar samples", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
+    expect(afterNormals).toContain("rockNormalSample");
+    expect(afterNormals).toContain("normal = normalize(normal");
+    expect(afterNormals).toContain("rockTileUnrotateNormal(sX.xy, rockUvInputX)");
+    expect(afterNormals).toContain("rockTileUnrotateNormal(sY.xy, rockUvInputY)");
+    expect(afterNormals).toContain("rockTileUnrotateNormal(sZ.xy, rockUvInputZ)");
+    expect(shader.fragmentShader).toContain("return vec2(c * tangent.x + s * tangent.y, -s * tangent.x + c * tangent.y)");
+    expect(afterNormals).toContain("vec3 rockNX = vec3(sX.z * rockSignX, sX.x, sX.y * rockSignX)");
+    expect(afterNormals).toContain("vec3 rockNY = vec3(sY.y, sY.z * rockSignY, sY.x * rockSignY)");
+    expect(afterNormals).toContain("vec3 rockNZ = vec3(sZ.x, sZ.y * rockSignZ, sZ.z * rockSignZ)");
+  });
+
+  it("reorients flat and directional normal samples for every signed axis and 90-degree tile turn", () => {
+    const axes = ["x", "y", "z"] as const;
+    const rotate = (x: number, y: number, quarterTurns: number) => {
+      const angle = quarterTurns * Math.PI / 2;
+      return [x * Math.cos(angle) - y * Math.sin(angle), x * Math.sin(angle) + y * Math.cos(angle)];
+    };
+    const expectedFlat = (axis: typeof axes[number], sign: number): [number, number, number] =>
+      axis === "x" ? [sign, 0, 0] : axis === "y" ? [0, sign, 0] : [0, 0, sign];
+    const expectedDirectional = (axis: typeof axes[number], sign: number, sample: [number, number, number]): [number, number, number] =>
+      axis === "x" ? [sample[2] * sign, sample[0], sample[1] * sign]
+        : axis === "y" ? [sample[1], sample[2] * sign, sample[0] * sign]
+          : [sample[0], sample[1] * sign, sample[2] * sign];
+
+    for (const axis of axes) for (const sign of [-1, 1] as const) for (let quarterTurns = 0; quarterTurns < 4; quarterTurns++) {
+      const flat = reorientRockNormal([0, 0, 1], axis, sign, quarterTurns);
+      expect(flat[0]).toBeCloseTo(expectedFlat(axis, sign)[0], 8);
+      expect(flat[1]).toBeCloseTo(expectedFlat(axis, sign)[1], 8);
+      expect(flat[2]).toBeCloseTo(expectedFlat(axis, sign)[2], 8);
+
+      const tangent: [number, number, number] = [.6, .2, Math.sqrt(.6)];
+      const [rotatedX, rotatedY] = rotate(tangent[0], tangent[1], quarterTurns);
+      const actual = reorientRockNormal([rotatedX, rotatedY, tangent[2]], axis, sign, quarterTurns);
+      const expected = expectedDirectional(axis, sign, tangent);
+      expect(actual[0]).toBeCloseTo(expected[0], 8);
+      expect(actual[1]).toBeCloseTo(expected[1], 8);
+      expect(actual[2]).toBeCloseTo(expected[2], 8);
+    }
+  });
+
+  it("breaks up repeated tiling with a deterministic per-chunk offset and 90-degree rotation", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    const fragment = shader.fragmentShader;
+    expect(fragment).toContain("riverHash");
+    expect(fragment).toMatch(/rockTileOffset|rockTileRotate/);
+  });
+
+  it("leaves the substrate shader untouched when only the rock shader is applied", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms())(shader as never);
+    expect(shader.fragmentShader).not.toContain("caustic");
   });
 });

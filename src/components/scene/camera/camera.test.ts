@@ -69,6 +69,30 @@ describe("camera trajectory", () => {
     o.hidden = false; o.runtime.time += 20; c.update(o);
     expect(o.runtime.entryProgress - p).toBeLessThanOrEqual(0.010001);
   });
+  it("completes the entry on wall time even when simulation deltas are capped", () => {
+    const c = new CameraController(); const o = options(); o.phase = "entering";
+    c.update(o);
+    let completions = 0;
+    for (let i = 0; i < 10; i++) {
+      o.runtime.time += 0.05;
+      Object.assign(o, { frameDelta: 0.5 });
+      completions += Number(c.update(o));
+    }
+    expect(o.runtime.time).toBeCloseTo(0.5);
+    expect(o.runtime.entryProgress).toBe(1);
+    expect(completions).toBe(1);
+  });
+  it("does not carry a resumed-frame discard into an entry that starts later", () => {
+    const c = new CameraController(), o = options();
+    c.update(o);
+    c.skipNextFrameDelta();
+    o.phase = "exploring";
+    c.update(o);
+    o.phase = "entering";
+    Object.assign(o, { frameDelta: .5 });
+    c.update(o);
+    expect(o.runtime.entryProgress).toBeCloseTo(.1);
+  });
   it.each([false, true])("holds entry completion until recovered graphics are ready (reduced=%s)", (reducedMotion) => {
     const c = new CameraController(); const o = options(); o.phase = "entering"; o.ready = false; o.reducedMotion = reducedMotion;
     o.runtime.entryProgress = .4;
