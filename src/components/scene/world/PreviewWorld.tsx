@@ -10,6 +10,7 @@ import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
 import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics } from "./waterOptics";
+import { createGodRayMaterial, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
@@ -162,6 +163,16 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [water]);
   useEffect(() => () => particleMaterial.dispose(), [particleMaterial]);
 
+  // God rays are a HIGH-tier overlay only: a clip-space quad, so it costs one
+  // additive full-screen draw and never touches scene depth.
+  const godRays = useMemo(() => createGodRayMaterial({
+    uSunScreen: { value: new Vector3() },
+    uWorldTime: uniforms.time,
+    uRichness: uniforms.richness,
+  }), [uniforms]);
+  const godRayGeometry = useMemo(() => new PlaneGeometry(2, 2), []);
+  useEffect(() => () => { godRays.dispose(); godRayGeometry.dispose(); }, [godRays, godRayGeometry]);
+
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
     const underwater = visible && camera.position.y < -.08;
@@ -180,6 +191,10 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     const { uniforms, motion } = mutable.current;
     uniforms.time.value = time;
     uniforms.richness.value = quality === "HIGH" ? 1 : .25;
+    if (quality === "HIGH") {
+      const sun = sunScreenPosition(camera, time, godRays.uniforms.uSunScreen.value);
+      sun.z *= underwater ? .35 : 0;
+    }
     currentAt(motion.center, time, uniforms.flow.value);
     if (visible && time !== motion.previousTime) {
       for (let i = 0; i < motion.particles.length; i++) {
@@ -242,5 +257,6 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       </bufferGeometry>
       <primitive object={particleMaterial} attach="material" />
     </points>
+    {quality === "HIGH" && <mesh frustumCulled={false} renderOrder={999} geometry={godRayGeometry} material={godRays} />}
   </group>;
 }
