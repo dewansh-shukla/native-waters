@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { Group, Mesh, MeshStandardMaterial, SphereGeometry } from "three";
 import { prepareFishMaterials } from "./fishMaterials";
+import { createWaterOptics } from "../world/waterOptics";
 
 function meshNamed(name: string) {
   return new Mesh(new SphereGeometry(1, 8, 8), new MeshStandardMaterial({ name }));
+}
+
+function runInjection(material: MeshStandardMaterial) {
+  const shader = { vertexShader: "", fragmentShader: "#include <fog_fragment>", uniforms: {} as Record<string, unknown> };
+  material.onBeforeCompile?.(shader as never, undefined as never);
+  return shader;
 }
 
 describe("prepareFishMaterials", () => {
@@ -34,5 +41,57 @@ describe("prepareFishMaterials", () => {
     prepareFishMaterials(root);
 
     expect((body.material as MeshStandardMaterial).envMapIntensity).toBe(0.8);
+  });
+
+  it("applies per-channel water absorption to body and fin when water optics are provided", () => {
+    const body = meshNamed("FishBody"), fin = meshNamed("FishFin"), eye = meshNamed("FishEye");
+    const root = new Group();
+    root.add(body, fin, eye);
+
+    prepareFishMaterials(root, createWaterOptics());
+
+    for (const mesh of [body, fin]) {
+      const material = mesh.material as MeshStandardMaterial;
+      expect(material.customProgramCacheKey()).toBe("fish-underwater-fog");
+      const shader = runInjection(material);
+      expect(shader.fragmentShader).toContain("uWaterAbsorb");
+      expect(shader.fragmentShader).not.toContain("#include <fog_fragment>");
+    }
+    expect((eye.material as MeshStandardMaterial).customProgramCacheKey()).not.toBe("fish-underwater-fog");
+    expect(runInjection(eye.material as MeshStandardMaterial).fragmentShader).toContain("#include <fog_fragment>");
+  });
+
+  it("absorbs descriptive study-fish skin and fin materials but keeps eye optics clear", () => {
+    const skin = meshNamed("Icy silver barred skin");
+    const fin = meshNamed("Blue smoke translucent fin membrane");
+    const cornea = meshNamed("Glossy corneal surface");
+    const pupil = meshNamed("Black pupil");
+    const root = new Group();
+    root.add(skin, fin, cornea, pupil);
+
+    prepareFishMaterials(root, createWaterOptics());
+
+    for (const mesh of [skin, fin]) {
+      const material = mesh.material as MeshStandardMaterial;
+      expect(material.customProgramCacheKey()).toBe("fish-underwater-fog");
+      expect(runInjection(material).fragmentShader).toContain("uWaterAbsorb");
+    }
+    for (const mesh of [cornea, pupil]) {
+      const material = mesh.material as MeshStandardMaterial;
+      expect(material.customProgramCacheKey()).not.toBe("fish-underwater-fog");
+      expect(runInjection(material).fragmentShader).toContain("#include <fog_fragment>");
+    }
+  });
+
+  it("leaves materials on the default pipeline when no water optics are given", () => {
+    const body = meshNamed("FishBody");
+    const root = new Group();
+    root.add(body);
+
+    prepareFishMaterials(root);
+
+    const material = body.material as MeshStandardMaterial;
+    expect(material.customProgramCacheKey()).not.toBe("fish-underwater-fog");
+    expect(runInjection(material).fragmentShader).toContain("#include <fog_fragment>");
   });
 });

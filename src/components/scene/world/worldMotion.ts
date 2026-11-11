@@ -43,6 +43,8 @@ export function advanceParticle(position: Vector3, time: number, previousTime: n
   if (!Number.isFinite(elapsed) || elapsed <= 0) return;
   currentAt(position, previousTime, scratch);
   position.addScaledVector(scratch, Math.min(elapsed, .05));
+  // Marine snow settles under its own weight as it rides the current.
+  position.y -= 0.02 * Math.min(elapsed, .05);
   position.set(wrap(position.x, -12, 12), wrap(position.y, -2.8, -.15), wrap(position.z, -9, 9));
 }
 

@@ -2,13 +2,15 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, PointsMaterial, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
 import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
+import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
+import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
@@ -32,10 +34,11 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     scale: [item.scale[0] * .85, item.scale[1] * .6, item.scale[2] * .85] as [number, number, number],
   })), [placements]);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
+  const water = useMemo(() => createWaterOptics(), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
-  const substrate = useMemo(() => substrateShader(uniforms), [uniforms]);
-  const plant = useMemo(() => plantShader(uniforms), [uniforms]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#082b36", 4.5, 27), background: new Color("#09262e"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const substrate = useMemo(() => substrateShader(uniforms, water), [uniforms, water]);
+  const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
+  const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
@@ -57,7 +60,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       const x = positions.getX(i), z = positions.getZ(i);
       positions.setY(i, bedHeight(x, z));
       const silt = .5 + .5 * Math.sin(x * .45 + Math.sin(z * .7));
-      color.setRGB(.24 + silt * .12, .20 + silt * .09, .12 + silt * .05);
+      color.setRGB(.19 + silt * .10, .22 + silt * .08, .13 + silt * .05);
       color.toArray(colors, i * 3);
     }
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
@@ -136,19 +139,39 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const boulderMaterial = useMemo(() => {
     if (!rockTextures) return null;
     const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
-    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .38, dampness: .12 });
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .38, dampness: .12 }, water);
     material.customProgramCacheKey = () => "river-rock-boulder";
     return material;
-  }, [rockTextures, uniforms]);
+  }, [rockTextures, uniforms, water]);
   const pebbleMaterial = useMemo(() => {
     if (!rockTextures) return null;
     const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
-    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .9, dampness: .12 });
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .9, dampness: .12 }, water);
     material.customProgramCacheKey = () => "river-rock-pebble";
     return material;
-  }, [rockTextures, uniforms]);
+  }, [rockTextures, uniforms, water]);
   useEffect(() => () => boulderMaterial?.dispose(), [boulderMaterial]);
   useEffect(() => () => pebbleMaterial?.dispose(), [pebbleMaterial]);
+
+  // Marine snow joins the water column: absorption fades each mote with the
+  // same optics as the rest of the world.
+  const particleMaterial = useMemo(() => {
+    const material = new PointsMaterial({ color: "#cfe0c0", size: .03, transparent: true, opacity: .3, depthWrite: false, sizeAttenuation: true });
+    material.onBeforeCompile = shader => applyUnderwaterFog(shader, water);
+    material.customProgramCacheKey = () => "river-marine-snow";
+    return material;
+  }, [water]);
+  useEffect(() => () => particleMaterial.dispose(), [particleMaterial]);
+
+  // God rays are a HIGH-tier overlay only: a clip-space quad, so it costs one
+  // additive full-screen draw and never touches scene depth.
+  const godRays = useMemo(() => createGodRayMaterial({
+    uSunScreen: { value: new Vector3() },
+    uWorldTime: uniforms.time,
+    uRichness: uniforms.richness,
+  }), [uniforms]);
+  const godRayGeometry = useMemo(() => new PlaneGeometry(2, 2), []);
+  useEffect(() => () => { godRays.dispose(); godRayGeometry.dispose(); }, [godRays, godRayGeometry]);
 
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
@@ -168,6 +191,10 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     const { uniforms, motion } = mutable.current;
     uniforms.time.value = time;
     uniforms.richness.value = quality === "HIGH" ? 1 : .25;
+    if (quality === "HIGH") {
+      const sun = sunScreenPosition(camera, time, godRays.uniforms.uSunScreen.value);
+      sun.z *= godRayStrength(quality, underwater);
+    }
     currentAt(motion.center, time, uniforms.flow.value);
     if (visible && time !== motion.previousTime) {
       for (let i = 0; i < motion.particles.length; i++) {
@@ -228,7 +255,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 : 80 }}>
         <bufferAttribute ref={particleAttribute} attach="attributes-position" args={[motion.positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#c8d8b0" size={.022} transparent opacity={.26} depthWrite={false} sizeAttenuation />
+      <primitive object={particleMaterial} attach="material" />
     </points>
+    {quality === "HIGH" && <mesh frustumCulled={false} renderOrder={999} geometry={godRayGeometry} material={godRays} />}
   </group>;
 }
+
