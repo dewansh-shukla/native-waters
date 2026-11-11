@@ -1,4 +1,5 @@
 import { NoColorSpace, SRGBColorSpace, type MeshStandardMaterial, type Texture, type Vector3 } from "three";
+import { applyUnderwaterFog, type WaterOptics } from "./waterOptics";
 
 type Shader = Parameters<MeshStandardMaterial["onBeforeCompile"]>[0];
 export type WorldUniforms = { time: { value: number }; richness: { value: number }; flow: { value: Vector3 } };
@@ -23,18 +24,22 @@ const NOISE_GLSL = `
   }
 `;
 
-export function substrateShader(uniforms: WorldUniforms) {
+export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
   return (shader: Shader) => {
     shader.uniforms.uWorldTime = uniforms.time;
     shader.uniforms.uRichness = uniforms.richness;
-    shader.vertexShader = "varying vec3 vRiverPosition;\n" + shader.vertexShader;
+    shader.vertexShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal;\n" + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
       vec4 riverPosition = vec4(position, 1.0);
       #ifdef USE_INSTANCING
         riverPosition = instanceMatrix * riverPosition;
+        vec3 riverNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+      #else
+        vec3 riverNormal = normalize(mat3(modelMatrix) * objectNormal);
       #endif
-      vRiverPosition = (modelMatrix * riverPosition).xyz;`);
-    shader.fragmentShader = "varying vec3 vRiverPosition; uniform float uWorldTime; uniform float uRichness;\n" + NOISE_GLSL + "\n" + shader.fragmentShader;
+      vRiverPosition = (modelMatrix * riverPosition).xyz;
+      vRiverNormal = riverNormal;`);
+    shader.fragmentShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal; uniform float uWorldTime; uniform float uRichness;\n" + NOISE_GLSL + "\n" + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
       vec2 p = vRiverPosition.xz;
       float grain = riverHash(floor(p * 85.0));
@@ -42,8 +47,21 @@ export function substrateShader(uniforms: WorldUniforms) {
       float mottle = riverFbm(p * 1.0);
       float patchNoise = riverNoise(p * 3.1 + 19.7);
       diffuseColor.rgb *= 0.84 + mottle * 0.16 + patchNoise * 0.10 + grain * 0.06 + silt * 0.08;
-      float caustic = pow(max(0.0, sin(p.x * 3.4 + sin(p.y * 2.7 + uWorldTime * 0.32)) * sin(p.y * 3.1 - uWorldTime * 0.24)), 12.0);
-      diffuseColor.rgb += vec3(0.12, 0.22, 0.24) * caustic * uRichness;`);
+      // Wet, sunken bed: darker and greener than the dry bank palette.
+      diffuseColor.rgb *= vec3(0.80, 0.92, 0.84);
+      // Algae favors up-facing surfaces and crevices; bare silt settles in the flats.
+      float algae = smoothstep(0.55, 0.95, vRiverNormal.y) * smoothstep(0.35, 0.8, riverFbm(p * 0.7 + 5.3));
+      float siltPatch = smoothstep(0.55, 0.9, riverFbm(p * 0.35 + 9.1)) * (1.0 - algae);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.30, 0.16), algae * 0.55);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.38, 0.34, 0.22), siltPatch * 0.35);
+      // domain-warped dual-octave bands read as focused sunlight on the bed.
+      vec2 cw = p * 2.6 + vec2(uWorldTime * 0.18, -uWorldTime * 0.13);
+      cw += 0.6 * vec2(riverFbm(cw * 0.9), riverFbm(cw * 0.9 + 17.3));
+      float causticA = pow(max(0.0, sin(cw.x * 3.1 + sin(cw.y * 2.4)) * sin(cw.y * 3.4 - uWorldTime * 0.22)), 9.0);
+      float causticB = pow(max(0.0, sin(cw.y * 4.7 - uWorldTime * 0.31) * sin(cw.x * 3.9 + uWorldTime * 0.17)), 11.0);
+      float caustic = causticA + causticB * 0.6;
+      float camDist = distance(cameraPosition, vRiverPosition);
+      diffuseColor.rgb += vec3(0.10, 0.20, 0.19) * caustic * uRichness * exp(-camDist / 25.0);`);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);`);
     shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
@@ -79,6 +97,7 @@ export function substrateShader(uniforms: WorldUniforms) {
       }
       vec3 riverGradView = (viewMatrix * vec4(riverGrad3D, 0.0)).xyz;
       normal = normalize(normal + riverGradView * -0.28);`);
+    applyUnderwaterFog(shader, water);
   };
 }
 

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SRGBColorSpace, Texture, Vector3 } from "three";
 import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, type WorldUniforms } from "./materials";
+import { createWaterOptics } from "./waterOptics";
 
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
   return {
     vertexShader: "#include <beginnormal_vertex>\n#include <begin_vertex>",
-    fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>\n#include <lights_physical_fragment>\n#include <aomap_fragment>",
+    fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>\n#include <lights_physical_fragment>\n#include <aomap_fragment>\n#include <fog_fragment>",
     uniforms: {},
   };
 }
@@ -17,7 +18,7 @@ function worldUniforms(): WorldUniforms {
 describe("substrateShader", () => {
   it("registers world uniforms and keeps the caustics behavior", () => {
     const shader = fakeShader();
-    substrateShader(worldUniforms())(shader as never);
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
     expect(shader.uniforms.uWorldTime).toBeDefined();
     expect(shader.uniforms.uRichness).toBeDefined();
     expect(shader.fragmentShader).toContain("caustic");
@@ -25,20 +26,49 @@ describe("substrateShader", () => {
   });
   it("modulates diffuse with multi-octave fbm mottling", () => {
     const shader = fakeShader();
-    substrateShader(worldUniforms())(shader as never);
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
     const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
     expect(afterColor).toContain("riverFbm");
   });
+  it("wets the bed and grows algae on up-facing silt, with settling silt patches", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
+    expect(shader.vertexShader).toContain("vRiverNormal");
+    expect(shader.vertexShader).toContain("USE_INSTANCING");
+    expect(shader.fragmentShader).toContain("varying vec3 vRiverNormal");
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("algae");
+    expect(afterColor).toContain("vRiverNormal.y");
+    expect(afterColor).toContain("vec3(0.80, 0.92, 0.84)");
+    expect(afterColor).toContain("siltPatch");
+    expect(afterColor).toContain("vec3(0.38, 0.34, 0.22)");
+  });
+  it("fades dual-octave caustics with camera distance", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("causticA");
+    expect(afterColor).toContain("causticB");
+    expect(afterColor).toContain("domain-warped");
+    expect(afterColor).toContain("exp(-camDist / 25.0)");
+    expect(afterColor).toContain("cameraPosition");
+  });
+  it("applies per-channel water absorption after the fog include", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).toContain("uWaterAbsorb");
+    expect(shader.fragmentShader).toContain("uWaterScatter");
+  });
   it("perturbs the fragment normal after it is computed", () => {
     const shader = fakeShader();
-    substrateShader(worldUniforms())(shader as never);
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
     const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
     expect(afterNormals).toContain("normal = normalize(normal");
     expect(afterNormals).toContain("riverBump");
   });
   it("varies roughness after the roughness map include", () => {
     const shader = fakeShader();
-    substrateShader(worldUniforms())(shader as never);
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
     const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
     expect(afterRoughness).toContain("roughnessFactor =");
   });
