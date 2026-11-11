@@ -48,7 +48,7 @@ test("warms actual map, above-water and underwater light/fog/environment variant
   expect(configurations).toEqual([
     { lights: ["AmbientLight", "DirectionalLight"], fog: null, fishVisible: false, environment: null, cameraY: 0, culled: true },
     { lights: ["AmbientLight", "DirectionalLight", "HemisphereLight"], fog: null, fishVisible: false, environment: null, cameraY: 1.7, culled: true },
-    { lights: ["AmbientLight", "DirectionalLight"], fog: ["59634a", 4, 23], fishVisible: false,
+    { lights: ["AmbientLight", "DirectionalLight"], fog: ["214538", 7, 38], fishVisible: false,
       environment: "underwater", cameraY: -1.1, culled: true },
   ]);
   expect(s.scene.environment).toBe(originalEnvironment);

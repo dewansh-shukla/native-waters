@@ -36,7 +36,7 @@ export function warmScene(gl: Pick<WebGLRenderer, "compile" | "compileAsync" | "
       visible(map, variant === "map"); visible(water, variant !== "map"); visible(world, variant !== "map");
       visible(ambient, variant !== "underwater"); visible(hemisphere, variant !== "underwater");
       visible(underwaterAmbient, variant === "underwater");
-      scene.fog = variant === "underwater" ? new Fog("#59634a", 4, 23) : null;
+      scene.fog = variant === "underwater" ? new Fog("#214538", 7, 38) : null;
       scene.environment = variant === "underwater" ? underwaterEnvironment : null;
       pending.push(typeof gl.compileAsync === "function" ? gl.compileAsync(scene, camera) : Promise.resolve(gl.compile(scene, camera)));
     }
