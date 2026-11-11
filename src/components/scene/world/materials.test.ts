@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { SRGBColorSpace, Texture, Vector3 } from "three";
 import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, type WorldUniforms } from "./materials";
 import { createWaterOptics } from "./waterOptics";
@@ -77,7 +77,7 @@ describe("substrateShader", () => {
 describe("plantShader", () => {
   it("registers flow and time uniforms and the per-vertex blade attributes", () => {
     const shader = fakeShader();
-    plantShader(worldUniforms())(shader as never);
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
     expect(shader.uniforms.uFlow).toBeDefined();
     expect(shader.uniforms.uWorldTime).toBeDefined();
     expect(shader.vertexShader).toContain("uFlow");
@@ -88,7 +88,7 @@ describe("plantShader", () => {
 
   it("bends on a wind weight so roots never move, with clump + blade phase", () => {
     const shader = fakeShader();
-    plantShader(worldUniforms())(shader as never);
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
     expect(shader.vertexShader).toContain("bendWeight = t * t");
     expect(shader.vertexShader).toContain("fastFlutter");
     expect(shader.vertexShader).toContain("instanceMatrix[3]");
@@ -97,7 +97,7 @@ describe("plantShader", () => {
 
   it("layers lean, slow sway, fast flutter and a traveling gust on the flow direction", () => {
     const shader = fakeShader();
-    plantShader(worldUniforms())(shader as never);
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
     const body = shader.vertexShader.slice(shader.vertexShader.indexOf("#include <begin_vertex>"));
     expect(body).toContain("flowLocal.x * 0.11");
     expect(body).toContain("uFlow.x, uFlow.z");
@@ -108,7 +108,7 @@ describe("plantShader", () => {
 
   it("twists blades after displacement so highlights crawl along the leaf", () => {
     const shader = fakeShader();
-    plantShader(worldUniforms())(shader as never);
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
     const body = shader.vertexShader.slice(shader.vertexShader.indexOf("riverTwist"));
     expect(body).toContain("mat2(");
     expect(body.split("mat2(").length).toBe(2);
@@ -120,13 +120,20 @@ describe("plantShader", () => {
 
   it("shades leaves: fbm mottling, root silt, wet tip roughness and rim translucency", () => {
     const shader = fakeShader();
-    plantShader(worldUniforms())(shader as never);
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
     const fragment = shader.fragmentShader;
     expect(fragment).toContain("varying float vLeafWind");
     expect(fragment).toContain("riverFbm");
     expect(fragment).toContain("roughnessFactor = clamp(mix(0.85, 0.5, vLeafWind)");
     expect(fragment).toContain("riverRim");
     expect(fragment).toContain("reflectedLight");
+  });
+
+  it("applies per-channel water absorption to leaf shading", () => {
+    const shader = fakeShader();
+    plantShader(worldUniforms(), createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).toContain("uWaterAbsorb");
+    expect(shader.fragmentShader).toContain("uWaterScatter");
   });
 });
 
@@ -135,7 +142,7 @@ const rockTextures = () => ({ map: new Texture(), normalMap: new Texture(), roug
 describe("rockShader", () => {
   it("registers the scanned map samplers plus scale and dampness uniforms", () => {
     const shader = fakeShader(), textures = rockTextures();
-    rockShader(textures, worldUniforms(), { dampness: .14 })(shader as never);
+    rockShader(textures, worldUniforms(), { dampness: .14 }, createWaterOptics())(shader as never);
     expect(shader.uniforms.uRockColorMap).toBeDefined();
     expect(shader.uniforms.uRockColorMap.value).toBe(textures.map);
     expect(shader.uniforms.uRockNormalMap.value).toBe(textures.normalMap);
@@ -154,7 +161,7 @@ describe("rockShader", () => {
 
   it("samples each scanned map in world-space triplanar projections, weighted by the abs world normal", () => {
     const shader = fakeShader();
-    rockShader(rockTextures(), worldUniforms())(shader as never);
+    rockShader(rockTextures(), worldUniforms(), {}, createWaterOptics())(shader as never);
     const fragment = shader.fragmentShader;
     expect(fragment).toContain("varying vec3 vRockWorld");
     expect(fragment).toContain("varying vec3 vRockNormal");
@@ -170,7 +177,7 @@ describe("rockShader", () => {
 
   it("drives roughness from the scanned map with a restrained silt dampness overlay", () => {
     const shader = fakeShader();
-    rockShader(rockTextures(), worldUniforms(), { dampness: .12 })(shader as never);
+    rockShader(rockTextures(), worldUniforms(), { dampness: .12 }, createWaterOptics())(shader as never);
     const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
     expect(afterRoughness).toContain("rockRough");
     expect(afterRoughness).toContain("uDamp");
@@ -179,7 +186,7 @@ describe("rockShader", () => {
 
   it("perturbs the fragment normal after it is computed with reoriented triplanar samples", () => {
     const shader = fakeShader();
-    rockShader(rockTextures(), worldUniforms())(shader as never);
+    rockShader(rockTextures(), worldUniforms(), {}, createWaterOptics())(shader as never);
     const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
     expect(afterNormals).toContain("rockNormalSample");
     expect(afterNormals).toContain("normal = normalize(normal");
@@ -223,7 +230,7 @@ describe("rockShader", () => {
 
   it("breaks up repeated tiling with a deterministic per-chunk offset and 90-degree rotation", () => {
     const shader = fakeShader();
-    rockShader(rockTextures(), worldUniforms())(shader as never);
+    rockShader(rockTextures(), worldUniforms(), {}, createWaterOptics())(shader as never);
     const fragment = shader.fragmentShader;
     expect(fragment).toContain("riverHash");
     expect(fragment).toMatch(/rockTileOffset|rockTileRotate/);
@@ -231,7 +238,16 @@ describe("rockShader", () => {
 
   it("leaves the substrate shader untouched when only the rock shader is applied", () => {
     const shader = fakeShader();
-    rockShader(rockTextures(), worldUniforms())(shader as never);
+    rockShader(rockTextures(), worldUniforms(), {}, createWaterOptics())(shader as never);
     expect(shader.fragmentShader).not.toContain("caustic");
   });
+
+  it("applies water absorption while preserving the scanned stone albedo", () => {
+    const shader = fakeShader();
+    rockShader(rockTextures(), worldUniforms(), {}, createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).toContain("uWaterAbsorb");
+    expect(shader.fragmentShader).toContain("texture2D(uRockColorMap");
+    expect(shader.fragmentShader).not.toContain("algae");
+  });
 });
+

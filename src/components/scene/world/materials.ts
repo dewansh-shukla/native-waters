@@ -233,7 +233,7 @@ const ROCK_VERTEX_GLSL = `
   varying vec3 vRockNormal;
 `;
 
-export function rockShader(textures: RockTextures, uniforms: WorldUniforms, options: RockShaderOptions = {}) {
+export function rockShader(textures: RockTextures, uniforms: WorldUniforms, options: RockShaderOptions, water: WaterOptics) {
   return (shader: Shader) => {
     shader.uniforms.uWorldTime = uniforms.time;
     shader.uniforms.uRockColorMap = { value: textures.map };
@@ -262,10 +262,11 @@ export function rockShader(textures: RockTextures, uniforms: WorldUniforms, opti
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", ROCK_COLOR_GLSL);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", ROCK_ROUGHNESS_GLSL);
     shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", ROCK_NORMAL_GLSL);
+    applyUnderwaterFog(shader, water);
   };
 }
 
-export function plantShader(uniforms: WorldUniforms) {
+export function plantShader(uniforms: WorldUniforms, water: WaterOptics) {
   return (shader: Shader) => {
     shader.uniforms.uWorldTime = uniforms.time;
     shader.uniforms.uFlow = uniforms.flow;
@@ -345,6 +346,7 @@ export function plantShader(uniforms: WorldUniforms) {
     shader.fragmentShader = shader.fragmentShader.replace("#include <aomap_fragment>", `#include <aomap_fragment>
       float riverRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.0);
       reflectedLight.indirectDiffuse += diffuseColor.rgb * riverRim * (0.11 + 0.07 * sin(vLeafPhase + uWorldTime * 0.4));`);
+    applyUnderwaterFog(shader, water);
   };
 }
 
