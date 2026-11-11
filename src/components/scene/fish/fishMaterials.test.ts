@@ -61,6 +61,28 @@ describe("prepareFishMaterials", () => {
     expect(runInjection(eye.material as MeshStandardMaterial).fragmentShader).toContain("#include <fog_fragment>");
   });
 
+  it("absorbs descriptive study-fish skin and fin materials but keeps eye optics clear", () => {
+    const skin = meshNamed("Icy silver barred skin");
+    const fin = meshNamed("Blue smoke translucent fin membrane");
+    const cornea = meshNamed("Glossy corneal surface");
+    const pupil = meshNamed("Black pupil");
+    const root = new Group();
+    root.add(skin, fin, cornea, pupil);
+
+    prepareFishMaterials(root, createWaterOptics());
+
+    for (const mesh of [skin, fin]) {
+      const material = mesh.material as MeshStandardMaterial;
+      expect(material.customProgramCacheKey()).toBe("fish-underwater-fog");
+      expect(runInjection(material).fragmentShader).toContain("uWaterAbsorb");
+    }
+    for (const mesh of [cornea, pupil]) {
+      const material = mesh.material as MeshStandardMaterial;
+      expect(material.customProgramCacheKey()).not.toBe("fish-underwater-fog");
+      expect(runInjection(material).fragmentShader).toContain("#include <fog_fragment>");
+    }
+  });
+
   it("leaves materials on the default pipeline when no water optics are given", () => {
     const body = meshNamed("FishBody");
     const root = new Group();

@@ -11,9 +11,24 @@ const ENV_INTENSITY: Record<string, number> = {
   FishCornea: 1,
 };
 
-// Eyes and corneas stay on the clear-water pipeline: absorption on glassy
-// materials reads as haze inside the lens instead of distance in the water.
-const ABSORPTION_MATERIALS = new Set(["FishBody", "FishFin"]);
+type FishMaterialKind = "body" | "fin" | "eye" | null;
+
+// Support both the stable names used by most fish assets and descriptive
+// names from the polar-parrot study GLBs. Explicit ocular terms are excluded
+// before the broader skin/fin matching to keep pupils and corneas clear.
+function fishMaterialKind(name: string): FishMaterialKind {
+  if (name in ENV_INTENSITY) {
+    if (name === "FishBody") return "body";
+    if (name === "FishFin") return "fin";
+    return "eye";
+  }
+
+  const lowerName = name.toLowerCase();
+  if (/eye|cornea|pupil|iris/.test(lowerName)) return null;
+  if (/fin|membrane/.test(lowerName)) return "fin";
+  if (/skin/.test(lowerName)) return "body";
+  return null;
+}
 
 /**
  * Tune environment response on a loaded fish scene. GLTF materials arrive
@@ -30,12 +45,13 @@ export function prepareFishMaterials(root: Object3D, water?: WaterOptics): void 
     if (!mesh.isMesh) return;
     const materials: Material[] = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const material of materials) {
-      const intensity = ENV_INTENSITY[material.name];
-      if (intensity === undefined) continue;
+      const kind = fishMaterialKind(material.name);
+      if (!kind) continue;
+      const intensity = kind === "body" ? 0.8 : kind === "fin" ? 0.4 : 1;
       if ("envMapIntensity" in material) {
         (material as { envMapIntensity: number }).envMapIntensity = intensity;
       }
-      if (water && ABSORPTION_MATERIALS.has(material.name)) {
+      if (water && (kind === "body" || kind === "fin")) {
         material.onBeforeCompile = shader => applyUnderwaterFog(shader, water);
         material.customProgramCacheKey = () => "fish-underwater-fog";
         material.needsUpdate = true;
