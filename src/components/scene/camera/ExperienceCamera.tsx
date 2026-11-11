@@ -42,13 +42,14 @@ export function ExperienceCamera(props: ExperienceCameraProps) {
     };
   }, [phase, gl, camera, props.runtime]);
 
-  useFrame(() => {
+  useFrame((_, frameDelta) => {
     const entered = controller.update({
       ...props,
       runtime: props.runtime.current,
       hidden: document.hidden,
       aspect: size.width / Math.max(size.height, 1),
       fov: camera instanceof PerspectiveCamera ? camera.fov : 45,
+      frameDelta,
     });
     applyCameraPose(camera, controller, size.width / Math.max(size.height, 1));
     if (entered) props.onEntered();

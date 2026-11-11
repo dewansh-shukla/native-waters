@@ -121,7 +121,7 @@ function seedDisplace(geo: BufferGeometry, shape: VariantShape) {
   return geo;
 }
 
-export function createRockGeometry(seed: number) {
+export function createRockGeometry(seed = 0) {
   const geo = radiallyDisplaced(new IcosahedronGeometry(1, 3), rockHeight);
   if (seed !== 0) {
     seedDisplace(geo, variantShape(seed, .88, 1.08, .022));
@@ -131,7 +131,7 @@ export function createRockGeometry(seed: number) {
   return geo;
 }
 
-export function createGravelGeometry(seed: number) {
+export function createGravelGeometry(seed = 0) {
   const geo = radiallyDisplaced(new IcosahedronGeometry(1, 1), gravelHeight);
   if (seed !== 0) {
     seedDisplace(geo, variantShape(seed, .93, 1.06, .008));

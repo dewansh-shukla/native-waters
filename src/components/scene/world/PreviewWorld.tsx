@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
+import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
@@ -15,6 +15,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
+  const worldGroup = useRef<Group>(null);
   const rockBatches = useRef<(InstancedMesh | null)[]>([]);
   const gravelBatches = useRef<(InstancedMesh | null)[]>([]);
   const plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
@@ -71,6 +72,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
     fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
   }, [rockPlans, gravelPlans, placements, grassPlacements]);
+  useLayoutEffect(() => {
+    if (worldGroup.current) worldGroup.current.userData.underwaterEnvironment = env;
+  }, [env]);
   useEffect(() => {
     if (!visible) updateAtmosphere(scene, atmosphere, false);
     return () => { updateAtmosphere(scene, atmosphere, false); };
@@ -175,7 +179,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     motion.previousTime = time;
   });
 
-  return <group visible={visible} name="PreviewWorld">
+  return <group ref={worldGroup} visible={visible} name="PreviewWorld">
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
     <directionalLight ref={keyLight} position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />

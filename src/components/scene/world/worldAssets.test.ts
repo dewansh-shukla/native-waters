@@ -164,6 +164,20 @@ describe("stone batch plan", () => {
 });
 
 describe("world rock geometry", () => {
+  it("defaults unseeded rocks and gravel to their stable base variants", () => {
+    for (const [actual, expected] of [
+      [createRockGeometry(), createRockGeometry(0)],
+      [createGravelGeometry(), createGravelGeometry(0)],
+    ]) {
+      const a = actual.getAttribute("position"), b = expected.getAttribute("position");
+      expect(a.count).toBe(b.count);
+      for (let i = 0; i < a.count; i++) {
+        expect(a.getX(i)).toBe(b.getX(i));
+        expect(a.getY(i)).toBe(b.getY(i));
+        expect(a.getZ(i)).toBe(b.getZ(i));
+      }
+    }
+  });
   it("stays an icosahedron at detail 3 but displaces radius into a craggy boulder", () => {
     const geo = createRockGeometry(0);
     expect(geo.getAttribute("position").count).toBe(new IcosahedronGeometry(1, 3).getAttribute("position").count);
