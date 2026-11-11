@@ -6,6 +6,7 @@ import { useGLTF } from "@react-three/drei";
 import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, Quaternion, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { prepareFishMaterials } from "./fishMaterials";
+import { createWaterOptics } from "../world/waterOptics";
 import { driveFins, gillHz, pectoralRowHz } from "./finMotion";
 import { bankAngle, swimTimeScale } from "./motion";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
@@ -189,12 +190,13 @@ export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, 
   // One loader/cache entry; ten SkeletonUtils clones share geometry/materials/textures.
   const { scene, animations } = useGLTF(modelUrl);
   const readyScene = useRef<Object3D | null>(null);
+  const water = useMemo(() => createWaterOptics(), []);
   useEffect(() => {
     if (readyScene.current === scene) return;
-    prepareFishMaterials(scene);
+    prepareFishMaterials(scene, water);
     readyScene.current = scene;
     onReady();
-  }, [scene, onReady]);
+  }, [scene, water, onReady]);
   const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;
   const rest = useMemo(() => captureRest(scene), [scene]);
   return <>{fishToRender.map((fish, index) => <Fish key={fish.id}
