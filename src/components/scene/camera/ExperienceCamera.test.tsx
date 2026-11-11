@@ -16,6 +16,31 @@ function setup() {
   return { props, camera, canvas };
 }
 describe("ExperienceCamera integration", () => {
+  it("drops the first resumed frame delta so hidden-tab time does not skip entry", () => {
+    const { props } = setup();
+    props.phase = "entering";
+    const view = render(<ExperienceCamera {...props} />);
+    const frame = (delta: number) => act(() => (host.frame as unknown as (state: object, delta: number) => void)({}, delta));
+    const setHidden = (hidden: boolean) => {
+      Object.defineProperty(document, "hidden", { configurable: true, value: hidden });
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+    };
+
+    try {
+      frame(.5);
+      expect(props.runtime.current.entryProgress).toBeCloseTo(.1);
+      setHidden(true);
+      setHidden(false);
+      frame(20);
+      expect(props.runtime.current.entryProgress).toBeCloseTo(.1);
+      frame(.5);
+      expect(props.runtime.current.entryProgress).toBeCloseTo(.2);
+    } finally {
+      view.unmount();
+      Reflect.deleteProperty(document, "hidden");
+    }
+  });
+
   it("consumes coordinator time without advancing it and completes once on the same camera", () => {
     const { props, camera } = setup(); const view = render(<ExperienceCamera {...props} />);
     act(() => host.frame()); expect(camera.position.y).toBeGreaterThan(8);

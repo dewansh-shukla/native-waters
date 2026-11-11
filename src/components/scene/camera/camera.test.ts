@@ -82,6 +82,17 @@ describe("camera trajectory", () => {
     expect(o.runtime.entryProgress).toBe(1);
     expect(completions).toBe(1);
   });
+  it("does not carry a resumed-frame discard into an entry that starts later", () => {
+    const c = new CameraController(), o = options();
+    c.update(o);
+    c.skipNextFrameDelta();
+    o.phase = "exploring";
+    c.update(o);
+    o.phase = "entering";
+    Object.assign(o, { frameDelta: .5 });
+    c.update(o);
+    expect(o.runtime.entryProgress).toBeCloseTo(.1);
+  });
   it.each([false, true])("holds entry completion until recovered graphics are ready (reduced=%s)", (reducedMotion) => {
     const c = new CameraController(); const o = options(); o.phase = "entering"; o.ready = false; o.reducedMotion = reducedMotion;
     o.runtime.entryProgress = .4;

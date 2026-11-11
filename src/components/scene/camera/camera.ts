@@ -96,8 +96,13 @@ export class CameraController {
   private phase: Phase | null = null;
   private lastTime: number | null = null;
   private entryElapsed = 0;
+  private discardNextFrameDelta = false;
   private entered = false;
   private overview: Pose | null = null;
+
+  skipNextFrameDelta() {
+    this.discardNextFrameDelta = true;
+  }
 
   update(step: CameraStep): boolean {
     const { runtime, phase, paused, hidden, ready, reducedMotion, aspect, fov, entryAnchor, selectedId } = step;
@@ -105,6 +110,8 @@ export class CameraController {
     const initial = this.phase === null;
     const rawDelta = this.lastTime === null ? 0 : Math.max(0, runtime.time - this.lastTime);
     const delta = paused || hidden || !ready ? 0 : Math.min(rawDelta, 0.05);
+    const discardVisibleFrame = !hidden && this.discardNextFrameDelta;
+    if (!hidden) this.discardNextFrameDelta = false;
     this.lastTime = runtime.time;
     this.phase = phase;
     if (changed && phase === "entering") {
@@ -138,7 +145,8 @@ export class CameraController {
       // stalled frame; tying the five-second dive to that clock makes it take
       // minutes on a slow renderer. Use the actual frame delta when available,
       // while keeping the camera's other smoothing and fish physics bounded.
-      this.entryElapsed = Math.min(5, this.entryElapsed + (step.frameDelta ?? delta));
+      const frameDelta = discardVisibleFrame ? 0 : (step.frameDelta ?? delta);
+      this.entryElapsed = Math.min(5, this.entryElapsed + frameDelta);
       runtime.entryProgress = clamp(this.entryElapsed / 5, 0, 1);
       if (runtime.entryProgress > 1 - 1e-9) runtime.entryProgress = 1;
       const pose = entryPose(runtime.entryProgress, entryAnchor, this.overview ?? overviewPose(aspect, fov), aspect);

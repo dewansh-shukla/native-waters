@@ -18,6 +18,14 @@ export function ExperienceCamera(props: ExperienceCameraProps) {
   ), [gl, controller, phase, paused, reducedMotion]);
 
   useEffect(() => {
+    const onVisibilityChange = () => {
+      if (!document.hidden) controller.skipNextFrameDelta();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [controller]);
+
+  useEffect(() => {
     const runtime = props.runtime.current;
     if (phase !== "following") { runtime.cursorTarget = null; return; }
     const plane = new Plane(new Vector3(0, 1, 0), 1.5); // y = -1.5
