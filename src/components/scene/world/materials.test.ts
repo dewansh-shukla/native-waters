@@ -39,9 +39,9 @@ describe("substrateShader", () => {
     const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
     expect(afterColor).toContain("algae");
     expect(afterColor).toContain("vRiverNormal.y");
-    expect(afterColor).toContain("vec3(0.80, 0.92, 0.84)");
+    expect(afterColor).toContain("vec3(0.66, 0.78, 0.70)");
     expect(afterColor).toContain("siltPatch");
-    expect(afterColor).toContain("vec3(0.38, 0.34, 0.22)");
+    expect(afterColor).toContain("vec3(0.30, 0.27, 0.18)");
   });
   it("fades dual-octave caustics with camera distance", () => {
     const shader = fakeShader();
@@ -50,7 +50,7 @@ describe("substrateShader", () => {
     expect(afterColor).toContain("causticA");
     expect(afterColor).toContain("causticB");
     expect(afterColor).toContain("domain-warped");
-    expect(afterColor).toContain("exp(-camDist / 25.0)");
+    expect(afterColor).toContain("exp(-camDist / 18.0)");
     expect(afterColor).toContain("cameraPosition");
   });
   it("applies per-channel water absorption after the fog include", () => {
@@ -254,10 +254,10 @@ describe("rockShader", () => {
 
 describe("surface shaders", () => {
   it("tints the top and underside to the green river palette", () => {
-    expect(surfaceFragment).toContain("vec3(0.06, 0.20, 0.15)");
-    expect(surfaceFragment).toContain("vec3(0.28, 0.50, 0.42)");
-    expect(surfaceFragment).toContain("vec3(0.10, 0.24, 0.19)");
-    expect(surfaceFragment).toContain("vec3(0.34, 0.55, 0.46)");
+    expect(surfaceFragment).toContain("vec3(0.04, 0.13, 0.10)");
+    expect(surfaceFragment).toContain("vec3(0.18, 0.34, 0.27)");
+    expect(surfaceFragment).toContain("vec3(0.05, 0.14, 0.11)");
+    expect(surfaceFragment).toContain("vec3(0.18, 0.34, 0.28)");
   });
 
   it("animates the underside with a second ripple octave", () => {
@@ -266,3 +266,4 @@ describe("surface shaders", () => {
     expect(surfaceVertex).toContain("uTime");
   });
 });
+

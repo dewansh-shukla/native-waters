@@ -48,20 +48,20 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
       float patchNoise = riverNoise(p * 3.1 + 19.7);
       diffuseColor.rgb *= 0.84 + mottle * 0.16 + patchNoise * 0.10 + grain * 0.06 + silt * 0.08;
       // Wet, sunken bed: darker and greener than the dry bank palette.
-      diffuseColor.rgb *= vec3(0.80, 0.92, 0.84);
+      diffuseColor.rgb *= vec3(0.66, 0.78, 0.70);
       // Algae favors up-facing surfaces and crevices; bare silt settles in the flats.
       float algae = smoothstep(0.55, 0.95, vRiverNormal.y) * smoothstep(0.35, 0.8, riverFbm(p * 0.7 + 5.3));
       float siltPatch = smoothstep(0.55, 0.9, riverFbm(p * 0.35 + 9.1)) * (1.0 - algae);
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.30, 0.16), algae * 0.55);
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.38, 0.34, 0.22), siltPatch * 0.35);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.09, 0.18, 0.09), algae * 0.55);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.30, 0.27, 0.18), siltPatch * 0.35);
       // domain-warped dual-octave bands read as focused sunlight on the bed.
-      vec2 cw = p * 2.6 + vec2(uWorldTime * 0.18, -uWorldTime * 0.13);
+      vec2 cw = p * 3.8 + vec2(uWorldTime * 0.18, -uWorldTime * 0.13);
       cw += 0.6 * vec2(riverFbm(cw * 0.9), riverFbm(cw * 0.9 + 17.3));
       float causticA = pow(max(0.0, sin(cw.x * 3.1 + sin(cw.y * 2.4)) * sin(cw.y * 3.4 - uWorldTime * 0.22)), 9.0);
       float causticB = pow(max(0.0, sin(cw.y * 4.7 - uWorldTime * 0.31) * sin(cw.x * 3.9 + uWorldTime * 0.17)), 11.0);
       float caustic = causticA + causticB * 0.6;
       float camDist = distance(cameraPosition, vRiverPosition);
-      diffuseColor.rgb += vec3(0.10, 0.20, 0.19) * caustic * uRichness * exp(-camDist / 25.0);`);
+      diffuseColor.rgb += vec3(0.05, 0.11, 0.10) * caustic * uRichness * exp(-camDist / 18.0);`);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);`);
     shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
@@ -378,8 +378,8 @@ export const surfaceFragment = `
     float fresnel = pow(1.0 - abs(dot(eye, normal)), 3.0);
     float glint = 0.0;
     if (uRichness > 0.5) glint = pow(max(0.0, dot(reflect(-normalize(vec3(-0.4, 1.0, 0.25)), normal), eye)), 55.0);
-    vec3 color = mix(vec3(0.06, 0.20, 0.15), vec3(0.28, 0.50, 0.42), fresnel);
-    if (!gl_FrontFacing) color = mix(vec3(0.10, 0.24, 0.19), vec3(0.34, 0.55, 0.46), fresnel);
+    vec3 color = mix(vec3(0.04, 0.13, 0.10), vec3(0.18, 0.34, 0.27), fresnel);
+    if (!gl_FrontFacing) color = mix(vec3(0.05, 0.14, 0.11), vec3(0.18, 0.34, 0.28), fresnel);
     color += glint * vec3(0.9, 0.95, 0.85);
     gl_FragColor = vec4(color, 0.56 + fresnel * 0.35);
     #include <tonemapping_fragment>

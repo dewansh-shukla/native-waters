@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -38,7 +38,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms, water), [uniforms, water]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#214538", 7, 38), background: new Color("#0c1814"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog("#214538", 7, 38), background: new Color("#214538"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
@@ -99,8 +99,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
 
   // Shared 1K scanned stone maps (CC0, see public/textures/world/rocks)
-  // loaded once for all seven batches. Until they arrive — or forever, if the
-  // request fails — the batches keep the procedural substrate shader as a
+  // loaded once for all seven batches. Until they arrive â€” or forever, if the
+  // request fails â€” the batches keep the procedural substrate shader as a
   // graceful fallback instead of breaking the scene.
   const [rockTextures, setRockTextures] = useState<RockTextures | null>(null);
   useEffect(() => {
@@ -260,3 +260,4 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     {quality === "HIGH" && <mesh frustumCulled={false} renderOrder={999} geometry={godRayGeometry} material={godRays} />}
   </group>;
 }
+
