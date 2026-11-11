@@ -1,4 +1,5 @@
 import { Fog, type Camera, type Object3D, type Scene, type WebGLRenderer } from "three";
+import { WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "@/components/scene/world/waterOptics";
 
 export function warmScene(gl: Pick<WebGLRenderer, "compile" | "compileAsync" | "info" | "getContext">, scene: Scene, camera: Camera, group: Object3D): Promise<void> {
   const visibility: [Object3D, boolean][] = [];
@@ -36,7 +37,7 @@ export function warmScene(gl: Pick<WebGLRenderer, "compile" | "compileAsync" | "
       visible(map, variant === "map"); visible(water, variant !== "map"); visible(world, variant !== "map");
       visible(ambient, variant !== "underwater"); visible(hemisphere, variant !== "underwater");
       visible(underwaterAmbient, variant === "underwater");
-      scene.fog = variant === "underwater" ? new Fog("#214538", 7, 38) : null;
+      scene.fog = variant === "underwater" ? new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR) : null;
       scene.environment = variant === "underwater" ? underwaterEnvironment : null;
       pending.push(typeof gl.compileAsync === "function" ? gl.compileAsync(scene, camera) : Promise.resolve(gl.compile(scene, camera)));
     }

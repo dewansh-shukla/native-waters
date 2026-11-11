@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -9,8 +9,8 @@ import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
 import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
-import { applyUnderwaterFog, createWaterOptics } from "./waterOptics";
-import { createGodRayMaterial, sunScreenPosition } from "./godRays";
+import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
+import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
@@ -38,7 +38,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const substrate = useMemo(() => substrateShader(uniforms, water), [uniforms, water]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
-  const atmosphere = useMemo(() => ({ fog: new Fog("#214538", 7, 38), background: new Color("#214538"), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array(240 * 3);
@@ -99,8 +99,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
 
   // Shared 1K scanned stone maps (CC0, see public/textures/world/rocks)
-  // loaded once for all seven batches. Until they arrive â€” or forever, if the
-  // request fails â€” the batches keep the procedural substrate shader as a
+  // loaded once for all seven batches. Until they arrive — or forever, if the
+  // request fails — the batches keep the procedural substrate shader as a
   // graceful fallback instead of breaking the scene.
   const [rockTextures, setRockTextures] = useState<RockTextures | null>(null);
   useEffect(() => {
@@ -193,7 +193,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     uniforms.richness.value = quality === "HIGH" ? 1 : .25;
     if (quality === "HIGH") {
       const sun = sunScreenPosition(camera, time, godRays.uniforms.uSunScreen.value);
-      sun.z *= underwater ? .35 : 0;
+      sun.z *= godRayStrength(quality, underwater);
     }
     currentAt(motion.center, time, uniforms.flow.value);
     if (visible && time !== motion.previousTime) {

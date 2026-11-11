@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Color } from "three";
-import { WATER_SCATTER_CSS, applyUnderwaterFog, createWaterOptics } from "./waterOptics";
+import { Vector3 } from "three";
+import { WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS, applyUnderwaterFog, createWaterOptics } from "./waterOptics";
 
 function fogShader() {
   return {
@@ -11,11 +11,14 @@ function fogShader() {
 }
 
 describe("createWaterOptics", () => {
-  it("returns the green coastal scatter and per-channel absorption", () => {
+  it("returns the green coastal scatter in display space and per-channel absorption", () => {
     const water = createWaterOptics();
-    expect(water.scatter.value).toBeInstanceOf(Color);
-    expect(water.scatter.value.getHexString()).toBe("214538");
+    expect(water.scatter.value).toBeInstanceOf(Vector3);
+    // The fog chunk runs after <colorspace_fragment>, so the uniform must hold
+    // display-space components; three converts its own fogColor the same way.
+    expect(water.scatter.value.toArray()).toEqual([0x21 / 255, 0x45 / 255, 0x38 / 255]);
     expect(WATER_SCATTER_CSS).toBe("#214538");
+    expect([WATER_FOG_NEAR, WATER_FOG_FAR]).toEqual([7, 38]);
     expect(water.absorption.value.toArray()).toEqual([0.085, 0.03, 0.06]);
   });
 

@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { SRGBColorSpace, Texture, Vector3 } from "three";
 import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, surfaceFragment, surfaceVertex, type WorldUniforms } from "./materials";
 import { createWaterOptics } from "./waterOptics";

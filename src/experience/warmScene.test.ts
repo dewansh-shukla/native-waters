@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { AmbientLight, DirectionalLight, Fog, Group, HemisphereLight, Light, PerspectiveCamera, Scene, Texture, type WebGLRenderer } from "three";
 import { warmScene } from "./warmScene";
+import { WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "@/components/scene/world/waterOptics";
 
 function setup() {
   const scene = new Scene(), group = new Group(), map = new Group(), water = new Group();
@@ -48,7 +49,7 @@ test("warms actual map, above-water and underwater light/fog/environment variant
   expect(configurations).toEqual([
     { lights: ["AmbientLight", "DirectionalLight"], fog: null, fishVisible: false, environment: null, cameraY: 0, culled: true },
     { lights: ["AmbientLight", "DirectionalLight", "HemisphereLight"], fog: null, fishVisible: false, environment: null, cameraY: 1.7, culled: true },
-    { lights: ["AmbientLight", "DirectionalLight"], fog: ["214538", 7, 38], fishVisible: false,
+    { lights: ["AmbientLight", "DirectionalLight"], fog: [WATER_SCATTER_CSS.slice(1), WATER_FOG_NEAR, WATER_FOG_FAR], fishVisible: false,
       environment: "underwater", cameraY: -1.1, culled: true },
   ]);
   expect(s.scene.environment).toBe(originalEnvironment);

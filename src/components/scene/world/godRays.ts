@@ -40,7 +40,7 @@ export const godRayFragment = `
     float streaks = 0.55 + 0.3 * streakA + 0.15 * streakB;
     float falloff = smoothstep(1.6, 0.05, distanceToSun);
     float alpha = clamp(streaks * falloff * 0.5 * uSunScreen.z * uRichness, 0.0, 0.6);
-    gl_FragColor = vec4(vec3(0.85, 0.95, 0.80) * alpha, alpha);
+    gl_FragColor = vec4(vec3(0.85, 0.95, 0.80), alpha);
   }
 `;
 
@@ -59,6 +59,12 @@ export function createGodRayMaterial(uniforms: GodRayUniforms) {
 const aim = new Vector3();
 const view = new Vector3();
 const cameraDirection = new Vector3();
+
+// Shafts are a HIGH-tier reward: LOW falls back to plain water so the
+// six-fish budget never pays for an additive full-screen pass.
+export function godRayStrength(quality: string, underwater: boolean): number {
+  return quality === "HIGH" && underwater ? 0.35 : 0;
+}
 
 // Projects the fixed sun into NDC. out.z carries visibility (0 = hidden,
 // 1 = drawable), so the caller can gate by tier and by being underwater.

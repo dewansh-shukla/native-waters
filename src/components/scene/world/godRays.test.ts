@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AdditiveBlending, PerspectiveCamera, ShaderMaterial, Vector3 } from "three";
-import { createGodRayMaterial, godRayFragment, godRayVertex, sunScreenPosition, SUN_DIRECTION } from "./godRays";
+import { createGodRayMaterial, godRayFragment, godRayVertex, godRayStrength, sunScreenPosition, SUN_DIRECTION } from "./godRays";
 
 function cameraAimed(along: Vector3) {
   const camera = new PerspectiveCamera(60, 1, .1, 100);
@@ -24,6 +24,11 @@ describe("god ray shader", () => {
     expect(godRayFragment).toContain("discard");
   });
 
+  it("does not premultiply alpha, which additive blending would square", () => {
+    expect(godRayFragment).toContain("vec4(vec3(0.85, 0.95, 0.80), alpha)");
+    expect(godRayFragment).not.toContain("* alpha, alpha");
+  });
+
   it("builds an additive, depth-free material around the shared uniforms", () => {
     const uniforms = { uSunScreen: { value: new Vector3() }, uWorldTime: { value: 0 }, uRichness: { value: 1 } };
     const material = createGodRayMaterial(uniforms);
@@ -34,6 +39,15 @@ describe("god ray shader", () => {
     expect(material.transparent).toBe(true);
     expect(material.uniforms.uSunScreen).toBe(uniforms.uSunScreen);
     material.dispose();
+  });
+});
+
+describe("godRayStrength", () => {
+  it("gates shafts to the HIGH tier while underwater", () => {
+    expect(godRayStrength("HIGH", true)).toBe(0.35);
+    expect(godRayStrength("HIGH", false)).toBe(0);
+    expect(godRayStrength("LOW", true)).toBe(0);
+    expect(godRayStrength("LOW", false)).toBe(0);
   });
 });
 
