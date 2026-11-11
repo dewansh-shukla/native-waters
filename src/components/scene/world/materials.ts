@@ -370,13 +370,16 @@ export const surfaceFragment = `
     vec2 p = vWorld.xz;
     vec3 normal = normalize(vec3(0.045 * cos(p.x * 1.3 + uTime * 0.55), 1.0, 0.04 * sin(p.y * 1.7 - uTime * 0.4)));
     if (uRichness > 0.5) normal.xz += 0.035 * vec2(sin(p.y * 9.0 + uTime), cos(p.x * 8.0 - uTime * 0.7));
+    // The underside ripples on a second, faster octave so the ceiling moves
+    // even when the surface above only drifts slowly.
+    if (!gl_FrontFacing) normal.xz += 0.03 * vec2(sin(p.x * 6.0 + uTime * 0.8), cos(p.y * 6.0 + uTime * 0.8));
     normal = normalize(normal);
     vec3 eye = normalize(cameraPosition - vWorld);
     float fresnel = pow(1.0 - abs(dot(eye, normal)), 3.0);
     float glint = 0.0;
     if (uRichness > 0.5) glint = pow(max(0.0, dot(reflect(-normalize(vec3(-0.4, 1.0, 0.25)), normal), eye)), 55.0);
-    vec3 color = mix(vec3(0.06, 0.20, 0.24), vec3(0.30, 0.52, 0.48), fresnel);
-    if (!gl_FrontFacing) color = mix(vec3(0.12, 0.30, 0.32), vec3(0.40, 0.62, 0.58), fresnel);
+    vec3 color = mix(vec3(0.06, 0.20, 0.15), vec3(0.28, 0.50, 0.42), fresnel);
+    if (!gl_FrontFacing) color = mix(vec3(0.10, 0.24, 0.19), vec3(0.34, 0.55, 0.46), fresnel);
     color += glint * vec3(0.9, 0.95, 0.85);
     gl_FragColor = vec4(color, 0.56 + fresnel * 0.35);
     #include <tonemapping_fragment>

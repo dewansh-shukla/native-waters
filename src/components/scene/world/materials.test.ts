@@ -1,6 +1,6 @@
 ﻿import { describe, expect, it } from "vitest";
 import { SRGBColorSpace, Texture, Vector3 } from "three";
-import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, type WorldUniforms } from "./materials";
+import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, surfaceFragment, surfaceVertex, type WorldUniforms } from "./materials";
 import { createWaterOptics } from "./waterOptics";
 
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
@@ -251,3 +251,18 @@ describe("rockShader", () => {
   });
 });
 
+
+describe("surface shaders", () => {
+  it("tints the top and underside to the green river palette", () => {
+    expect(surfaceFragment).toContain("vec3(0.06, 0.20, 0.15)");
+    expect(surfaceFragment).toContain("vec3(0.28, 0.50, 0.42)");
+    expect(surfaceFragment).toContain("vec3(0.10, 0.24, 0.19)");
+    expect(surfaceFragment).toContain("vec3(0.34, 0.55, 0.46)");
+  });
+
+  it("animates the underside with a second ripple octave", () => {
+    expect(surfaceFragment).toContain("p.y * 6.0 + uTime * 0.8");
+    expect(surfaceFragment).toContain("normal.xz +=");
+    expect(surfaceVertex).toContain("uTime");
+  });
+});
