@@ -15,7 +15,6 @@ import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, crea
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
-  const camera = useThree(state => state.camera);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
   const worldGroup = useRef<Group>(null);
@@ -257,11 +256,6 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [logTextures, water]);
   useEffect(() => () => logMaterial.dispose(), [logMaterial]);
 
-  // Temporary diagnostics hook for the driftwood verification pass.
-  useEffect(() => {
-    (window as unknown as { __nativeWatersScene?: unknown }).__nativeWatersScene = { scene, camera };
-  }, [scene, camera]);
-
   // Marine snow joins the water column: absorption fades each mote with the
   // same optics as the rest of the world.
   const particleMaterial = useMemo(() => {
@@ -348,7 +342,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
-    <group name="DriftwoodLog" position={[-2.2, -2.45, 1.5]} rotation={[0, .35, Math.PI / 2 - .07]}>
+    <group name="DriftwoodLog" position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
       <mesh name="DriftwoodTrunk" geometry={logGeometry} material={logMaterial} />
       <mesh name="DriftwoodBranch" geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
