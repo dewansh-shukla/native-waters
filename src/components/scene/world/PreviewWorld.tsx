@@ -7,7 +7,7 @@ import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
+import { SILT_COUNT, advanceParticle, bedHeight, createPlacements, createSiltParticles, siltParticleAt, updateAtmosphere } from "./worldMotion";
 import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
@@ -15,6 +15,7 @@ import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, crea
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
+  const camera = useThree(state => state.camera);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
   const worldGroup = useRef<Group>(null);
@@ -40,13 +41,17 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
-    const positions = new Float32Array(240 * 3);
+    const positions = new Float32Array((240 + SILT_COUNT.HIGH) * 3);
     const particles: Vector3[] = [];
     for (let i = 0; i < 240; i++) {
       const p = new Vector3(((i * 7.13) % 24) - 12, -2.8 + ((i * .173) % 2.65), ((i * 3.71) % 18) - 9);
       p.toArray(positions, i * 3); particles.push(p);
     }
-    return { positions, particles, scratch: new Vector3(), center: new Vector3(0, -1.5, -2), previousTime: NaN };
+    // Silt puffs share the same position buffer at the tail indices; the
+    // LOW tier simply draws fewer of them via drawRange.
+    const silt = createSiltParticles(SILT_COUNT.HIGH, 611);
+    silt.forEach((s, i) => siltParticleAt(s, 0, new Vector3()).toArray(positions, (240 + i) * 3));
+    return { positions, particles, silt, scratch: new Vector3(), center: new Vector3(0, -1.5, -2), previousTime: NaN };
   }, []);
   const mutable = useRef({ uniforms, motion });
   const particleAttribute = useRef<BufferAttribute>(null);
@@ -252,6 +257,11 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [logTextures, water]);
   useEffect(() => () => logMaterial.dispose(), [logMaterial]);
 
+  // Temporary diagnostics hook for the driftwood verification pass.
+  useEffect(() => {
+    (window as unknown as { __nativeWatersScene?: unknown }).__nativeWatersScene = { scene, camera };
+  }, [scene, camera]);
+
   // Marine snow joins the water column: absorption fades each mote with the
   // same optics as the rest of the world.
   const particleMaterial = useMemo(() => {
@@ -300,6 +310,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
         advanceParticle(motion.particles[i], time, motion.previousTime, motion.scratch);
         motion.particles[i].toArray(motion.positions, i * 3);
       }
+      for (let i = 0; i < motion.silt.length; i++) {
+        siltParticleAt(motion.silt[i], time, motion.scratch).toArray(motion.positions, (motion.particles.length + i) * 3);
+      }
       if (particleAttribute.current) particleAttribute.current.needsUpdate = true;
     }
     motion.previousTime = time;
@@ -335,9 +348,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
-    <group position={[-2.2, -2.45, 1.5]} rotation={[0, .35, Math.PI / 2 - .07]}>
-      <mesh geometry={logGeometry} material={logMaterial} />
-      <mesh geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
+    <group name="DriftwoodLog" position={[-2.2, -2.45, 1.5]} rotation={[0, .35, Math.PI / 2 - .07]}>
+      <mesh name="DriftwoodTrunk" geometry={logGeometry} material={logMaterial} />
+      <mesh name="DriftwoodBranch" geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
       <planeGeometry args={[24, 18, 32, 24]} />
@@ -345,7 +358,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <shaderMaterial uniforms={surfaceUniforms} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} side={DoubleSide} transparent depthWrite={false} />
     </mesh>
     <points frustumCulled={false}>
-      <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 : 80 }}>
+      <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 + SILT_COUNT.HIGH : 80 + SILT_COUNT.LOW }}>
         <bufferAttribute ref={particleAttribute} attach="attributes-position" args={[motion.positions, 3]} />
       </bufferGeometry>
       <primitive object={particleMaterial} attach="material" />
