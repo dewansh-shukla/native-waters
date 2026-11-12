@@ -7,11 +7,11 @@ import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
-import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
+import { SILT_COUNT, advanceParticle, bedHeight, createPlacements, createSiltParticles, siltParticleAt, updateAtmosphere } from "./worldMotion";
+import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
-import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
+import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
@@ -36,18 +36,25 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const water = useMemo(() => createWaterOptics(), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
-  const substrate = useMemo(() => substrateShader(uniforms, water), [uniforms, water]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
   const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
-    const positions = new Float32Array(240 * 3);
+    const positions = new Float32Array((240 + SILT_COUNT.HIGH) * 3);
     const particles: Vector3[] = [];
     for (let i = 0; i < 240; i++) {
       const p = new Vector3(((i * 7.13) % 24) - 12, -2.8 + ((i * .173) % 2.65), ((i * 3.71) % 18) - 9);
       p.toArray(positions, i * 3); particles.push(p);
     }
-    return { positions, particles, scratch: new Vector3(), center: new Vector3(0, -1.5, -2), previousTime: NaN };
+    // Silt puffs share the same position buffer at the tail indices; the
+    // LOW tier simply draws fewer of them via drawRange.
+    const silt = createSiltParticles(SILT_COUNT.HIGH, 611);
+    silt.forEach((s, i) => {
+      const pos = siltParticleAt(s, 0, new Vector3());
+      pos.toArray(positions, (240 + i) * 3);   // high tier tail
+      pos.toArray(positions, (80 + i) * 3);    // low tier tail (contiguous after its 80 marine-snow motes)
+    });
+    return { positions, particles, silt, scratch: new Vector3(), center: new Vector3(0, -1.5, -2), previousTime: NaN };
   }, []);
   const mutable = useRef({ uniforms, motion });
   const particleAttribute = useRef<BufferAttribute>(null);
@@ -134,6 +141,47 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     }
   }, [rockTextures]);
 
+  // Shared scanned riverbed gravel (CC0, see public/textures/world/bed)
+  // blended under the substrate's procedural silt/algae layers. Until it
+  // arrives — or forever, if the request fails — the bed keeps today's
+  // purely procedural look; the ground blend uniform just stays at 0.
+  const [bedTextures, setBedTextures] = useState<RockTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new TextureLoader();
+    const load = (url: string) => new Promise<Texture>((resolve, reject) => loader.load(url, resolve, undefined, reject));
+    const anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy());
+    Promise.all([
+      load("/textures/world/bed/ground-color.jpg"),
+      load("/textures/world/bed/ground-normal.jpg"),
+      load("/textures/world/bed/ground-roughness.jpg"),
+    ]).then(([map, normalMap, roughnessMap]) => {
+      if (cancelled) {
+        map.dispose(); normalMap.dispose(); roughnessMap.dispose();
+        return;
+      }
+      for (const texture of [map, normalMap, roughnessMap]) {
+        // groundTileOffset jitters/rotates sample UVs; wrap keeps those reads valid.
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.anisotropy = anisotropy;
+      }
+      declareRockTextureColorSpaces({ map, normalMap, roughnessMap });
+      setBedTextures({ map, normalMap, roughnessMap });
+    }).catch(() => { /* procedural bed stays */ });
+    return () => { cancelled = true; };
+  }, [gl]);
+
+  useEffect(() => () => {
+    if (bedTextures) {
+      bedTextures.map.dispose(); bedTextures.normalMap.dispose(); bedTextures.roughnessMap.dispose();
+    }
+  }, [bedTextures]);
+
+  const substrate = useMemo(
+    () => substrateShader(uniforms, water, bedTextures ?? undefined, { blend: (quality === "HIGH" ? 1 : .5) * .55 }),
+    [uniforms, water, bedTextures, quality],
+  );
+
   // Scanned-triplanar materials: one program per stone kind; instance colors
   // from fillBatch still tint the scanned albedo. Metalness stays 0 (stone).
   const boulderMaterial = useMemo(() => {
@@ -152,6 +200,68 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   }, [rockTextures, uniforms, water]);
   useEffect(() => () => boulderMaterial?.dispose(), [boulderMaterial]);
   useEffect(() => () => pebbleMaterial?.dispose(), [pebbleMaterial]);
+
+  // Driftwood trunk + branch. The scanned CC0 bark set (public/textures/world/wood)
+  // is loaded once; until it arrives — or forever, if the request fails — the
+  // log keeps a procedural bark shader so the prop never turns flat or white.
+  const [logTextures, setLogTextures] = useState<LogTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new TextureLoader();
+    const load = (url: string) => new Promise<Texture>((resolve, reject) => loader.load(url, resolve, undefined, reject));
+    const anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+    Promise.all([
+      load("/textures/world/wood/bark-color.jpg"),
+      load("/textures/world/wood/bark-normal.jpg"),
+      load("/textures/world/wood/bark-roughness.jpg"),
+    ]).then(([map, normalMap, roughnessMap]) => {
+      if (cancelled) {
+        map.dispose(); normalMap.dispose(); roughnessMap.dispose();
+        return;
+      }
+      for (const texture of [map, normalMap, roughnessMap]) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.anisotropy = anisotropy;
+        // Circumference ~1.2 m, length 3.8 m; this keeps bark features at a
+        // believable physical size without obvious tiling.
+        // Circumference repeat must be an integer so the cylinder's UV wrap is
+        // phase-continuous (no vertical seam stripe at the join). 2 keeps the
+        // bark feature density close to the original 1.4.
+        texture.repeat.set(2, 2.6);
+      }
+      declareLogTextureColorSpaces({ map, normalMap, roughnessMap });
+      setLogTextures({ map, normalMap, roughnessMap });
+    }).catch(() => { /* procedural fallback stays */ });
+    return () => { cancelled = true; };
+  }, [gl]);
+
+  useEffect(() => () => {
+    if (logTextures) {
+      logTextures.map.dispose(); logTextures.normalMap.dispose(); logTextures.roughnessMap.dispose();
+    }
+  }, [logTextures]);
+
+  const logGeometry = useMemo(() => createLogGeometry(), []);
+  const branchGeometry = useMemo(() => createLogGeometry({
+    length: 1.25, radiusBottom: .075, radiusTop: .035,
+    radialSegments: 14, heightSegments: 10, bend: .012, seed: 2,
+  }), []);
+  useEffect(() => () => logGeometry.dispose(), [logGeometry]);
+  useEffect(() => () => branchGeometry.dispose(), [branchGeometry]);
+
+  const logMaterial = useMemo(() => {
+    const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
+    if (logTextures) {
+      material.map = logTextures.map;
+      material.normalMap = logTextures.normalMap;
+      material.roughnessMap = logTextures.roughnessMap;
+      material.normalScale.set(1, 1);
+    }
+    material.onBeforeCompile = logShader(logTextures !== null, water, { dampness: .34 });
+    material.customProgramCacheKey = () => logTextures ? "river-log-bark" : "river-log-procedural";
+    return material;
+  }, [logTextures, water]);
+  useEffect(() => () => logMaterial.dispose(), [logMaterial]);
 
   // Marine snow joins the water column: absorption fades each mote with the
   // same optics as the rest of the world.
@@ -197,9 +307,15 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     }
     currentAt(motion.center, time, uniforms.flow.value);
     if (visible && time !== motion.previousTime) {
-      for (let i = 0; i < motion.particles.length; i++) {
+      const snowCount = quality === "HIGH" ? 240 : 80;
+      for (let i = 0; i < snowCount; i++) {
         advanceParticle(motion.particles[i], time, motion.previousTime, motion.scratch);
         motion.particles[i].toArray(motion.positions, i * 3);
+      }
+      for (let i = 0; i < motion.silt.length; i++) {
+        const pos = siltParticleAt(motion.silt[i], time, motion.scratch);
+        pos.toArray(motion.positions, (240 + i) * 3);  // high tier
+        pos.toArray(motion.positions, (80 + i) * 3);   // low tier
       }
       if (particleAttribute.current) particleAttribute.current.needsUpdate = true;
     }
@@ -214,20 +330,20 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <directionalLight ref={backlight} position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
     <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.4} visible={false} />
     <mesh geometry={terrain}>
-      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
+      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? `river-substrate-ground-${quality}` : `river-substrate-${quality}`} />
     </mesh>
     {rockPlans.map((plan, k) => (
       <instancedMesh key={k} ref={mesh => { rockBatches.current[k] = mesh; }} args={[rockGeometries[k], undefined, plan.placements.length]}>
         {boulderMaterial
           ? <primitive object={boulderMaterial} attach="material" />
-          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />}
       </instancedMesh>
     ))}
     {gravelPlans.map((plan, k) => (
       <instancedMesh key={k} ref={mesh => { gravelBatches.current[k] = mesh; }} args={[gravelGeometries[k], undefined, plan.placements.length]}>
         {pebbleMaterial
           ? <primitive object={pebbleMaterial} attach="material" />
-          : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+          : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />}
       </instancedMesh>
     ))}
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
@@ -236,15 +352,9 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
-    <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
-      <mesh>
-        <cylinderGeometry args={[.14, .23, 3.8, 9]} />
-        <meshStandardMaterial color="#4a3828" roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
-      </mesh>
-      <mesh position={[.16, .7, 0]} rotation={[0, 0, -.7]}>
-        <cylinderGeometry args={[.035, .075, 1.25, 7]} />
-        <meshStandardMaterial color="#5a4838" roughness={1} />
-      </mesh>
+    <group name="DriftwoodLog" position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
+      <mesh name="DriftwoodTrunk" geometry={logGeometry} material={logMaterial} />
+      <mesh name="DriftwoodBranch" geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
       <planeGeometry args={[24, 18, 32, 24]} />
@@ -252,7 +362,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <shaderMaterial uniforms={surfaceUniforms} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} side={DoubleSide} transparent depthWrite={false} />
     </mesh>
     <points frustumCulled={false}>
-      <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 : 80 }}>
+      <bufferGeometry drawRange={{ start: 0, count: quality === "HIGH" ? 240 + SILT_COUNT.HIGH : 80 + SILT_COUNT.LOW }}>
         <bufferAttribute ref={particleAttribute} attach="attributes-position" args={[motion.positions, 3]} />
       </bufferGeometry>
       <primitive object={particleMaterial} attach="material" />

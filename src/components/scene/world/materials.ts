@@ -24,23 +24,47 @@ const NOISE_GLSL = `
   }
 `;
 
-export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
-  return (shader: Shader) => {
-    shader.uniforms.uWorldTime = uniforms.time;
-    shader.uniforms.uRichness = uniforms.richness;
-    shader.vertexShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal;\n" + shader.vertexShader;
-    shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
-      vec4 riverPosition = vec4(position, 1.0);
-      #ifdef USE_INSTANCING
-        riverPosition = instanceMatrix * riverPosition;
-        vec3 riverNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
-      #else
-        vec3 riverNormal = normalize(mat3(modelMatrix) * objectNormal);
-      #endif
-      vRiverPosition = (modelMatrix * riverPosition).xyz;
-      vRiverNormal = riverNormal;`);
-    shader.fragmentShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal; uniform float uWorldTime; uniform float uRichness;\n" + NOISE_GLSL + "\n" + shader.fragmentShader;
-    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
+export type GroundShaderOptions = { blend?: number };
+
+// Scanned riverbed gravel, claimed by the exposed zones only. The same
+// per-tile anti-tiling trick as the stone shader keeps the 24 x 18 m bed
+// from reading as one repeating photograph, and the mask formula mirrors
+// the algae/siltPatch mixes below so gravel loses exactly where the fine
+// sediment wins (riffle/pool zoning).
+const GROUND_SAMPLER_GLSL = `
+  uniform sampler2D uGroundMap;
+  uniform sampler2D uGroundNormalMap;
+  uniform sampler2D uGroundRoughnessMap;
+  uniform float uGroundBlend;
+  float groundTileAngle(vec2 uv) {
+    return floor(riverHash(floor(uv)) * 4.0) * 1.5707963;
+  }
+  vec2 groundTileRotate(vec2 local, float angle) {
+    float c = cos(angle), s = sin(angle);
+    return vec2(c * local.x - s * local.y, s * local.x + c * local.y);
+  }
+  vec2 groundTileUnrotateNormal(vec2 tangent, vec2 uv) {
+    float angle = groundTileAngle(uv);
+    float c = cos(angle), s = sin(angle);
+    return vec2(c * tangent.x + s * tangent.y, -s * tangent.x + c * tangent.y);
+  }
+  vec2 groundTileOffset(vec2 uv) {
+    vec2 cell = floor(uv), local = fract(uv);
+    float h = riverHash(cell);
+    return cell + groundTileRotate(local - .5, groundTileAngle(uv)) + (vec2(h, riverHash(cell + 31.7)) - .5) * .12 + .5;
+  }
+  float riverGroundMask() {
+    vec2 mp = vRiverPosition.xz;
+    float maskAlgae = smoothstep(0.55, 0.95, vRiverNormal.y) * smoothstep(0.35, 0.8, riverFbm(mp * 0.7 + 5.3));
+    float maskSilt = smoothstep(0.55, 0.9, riverFbm(mp * 0.35 + 9.1)) * (1.0 - maskAlgae);
+    return uGroundBlend * smoothstep(0.45, 0.75, riverFbm(mp * 0.5 + 3.7)) * (1.0 - maskSilt) * (1.0 - maskAlgae);
+  }
+`;
+
+// The color patch is composed so the scanned gravel lands between the
+// substrate base (mottling + wet tint) and the sheltered silt/algae mixes:
+// gravel claims the exposed zones, the procedural layers keep the pockets.
+const SUBSTRATE_COLOR_HEAD_GLSL = `#include <color_fragment>
       vec2 p = vRiverPosition.xz;
       float grain = riverHash(floor(p * 85.0));
       float silt = sin(p.x * 1.8 + sin(p.y * 2.1)) * sin(p.y * 1.3);
@@ -51,7 +75,23 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
       diffuseColor.rgb *= vec3(0.66, 0.78, 0.70);
       // Algae favors up-facing surfaces and crevices; bare silt settles in the flats.
       float algae = smoothstep(0.55, 0.95, vRiverNormal.y) * smoothstep(0.35, 0.8, riverFbm(p * 0.7 + 5.3));
-      float siltPatch = smoothstep(0.55, 0.9, riverFbm(p * 0.35 + 9.1)) * (1.0 - algae);
+      float siltPatch = smoothstep(0.55, 0.9, riverFbm(p * 0.35 + 9.1)) * (1.0 - algae);`;
+
+const SUBSTRATE_GROUND_COLOR_GLSL = `
+      {
+        vec3 groundBlend = abs(vRiverNormal);
+        groundBlend /= max(groundBlend.x + groundBlend.y + groundBlend.z, 1e-5);
+        vec2 groundUvX = groundTileOffset(vRiverPosition.yz * vec2(1.0, sign(vRiverNormal.x)) * 0.55);
+        vec2 groundUvY = groundTileOffset(vRiverPosition.zx * vec2(sign(vRiverNormal.y), 1.0) * 0.55);
+        vec2 groundUvZ = groundTileOffset(vRiverPosition.xy * vec2(1.0, sign(vRiverNormal.z)) * 0.55);
+        vec3 groundColor = texture2D(uGroundMap, groundUvX).rgb * groundBlend.x +
+                           texture2D(uGroundMap, groundUvY).rgb * groundBlend.y +
+                           texture2D(uGroundMap, groundUvZ).rgb * groundBlend.z;
+        float groundMask = uGroundBlend * smoothstep(0.45, 0.75, riverFbm(p * 0.5 + 3.7)) * (1.0 - siltPatch) * (1.0 - algae);
+        diffuseColor.rgb = mix(diffuseColor.rgb, groundColor * vec3(0.66, 0.78, 0.70), groundMask);
+      }`;
+
+const SUBSTRATE_COLOR_TAIL_GLSL = `
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.09, 0.18, 0.09), algae * 0.55);
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.30, 0.27, 0.18), siltPatch * 0.35);
       // domain-warped dual-octave bands read as focused sunlight on the bed.
@@ -61,10 +101,29 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
       float causticB = pow(max(0.0, sin(cw.y * 4.7 - uWorldTime * 0.31) * sin(cw.x * 3.9 + uWorldTime * 0.17)), 11.0);
       float caustic = causticA + causticB * 0.6;
       float camDist = distance(cameraPosition, vRiverPosition);
-      diffuseColor.rgb += vec3(0.05, 0.11, 0.10) * caustic * uRichness * exp(-camDist / 18.0);`);
-    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
-      roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);`);
-    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
+      diffuseColor.rgb += vec3(0.05, 0.11, 0.10) * caustic * uRichness * exp(-camDist / 18.0);`;
+
+const SUBSTRATE_ROUGHNESS_GLSL = `#include <roughnessmap_fragment>
+      roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);`;
+
+const SUBSTRATE_GROUND_ROUGHNESS_GLSL = `#include <roughnessmap_fragment>
+      {
+        vec3 groundBlendR = abs(vRiverNormal);
+        groundBlendR /= max(groundBlendR.x + groundBlendR.y + groundBlendR.z, 1e-5);
+        vec2 groundRoughUvX = groundTileOffset(vRiverPosition.yz * vec2(1.0, sign(vRiverNormal.x)) * 0.55);
+        vec2 groundRoughUvY = groundTileOffset(vRiverPosition.zx * vec2(sign(vRiverNormal.y), 1.0) * 0.55);
+        vec2 groundRoughUvZ = groundTileOffset(vRiverPosition.xy * vec2(1.0, sign(vRiverNormal.z)) * 0.55);
+        vec3 groundRoughSample = vec3(
+          texture2D(uGroundRoughnessMap, groundRoughUvX).r,
+          texture2D(uGroundRoughnessMap, groundRoughUvY).r,
+          texture2D(uGroundRoughnessMap, groundRoughUvZ).r
+        );
+        float groundRoughness = dot(groundRoughSample, groundBlendR);
+        roughnessFactor = mix(roughnessFactor, groundRoughness, riverGroundMask() * 0.8);
+        roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);
+      }`;
+
+const SUBSTRATE_NORMAL_CORE_GLSL = `
       vec3 vrp = vRiverPosition;
       float hEps = 0.035;
       // World normal recovered from the view-space normal (rotation-only transpose).
@@ -96,7 +155,57 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics) {
           0.0);
       }
       vec3 riverGradView = (viewMatrix * vec4(riverGrad3D, 0.0)).xyz;
-      normal = normalize(normal + riverGradView * -0.28);`);
+      normal = normalize(normal + riverGradView * -0.28);`;
+
+const SUBSTRATE_GROUND_NORMAL_GLSL = `#include <normal_fragment_maps>` + SUBSTRATE_NORMAL_CORE_GLSL + `
+      {
+        vec3 groundBlendN = abs(vRiverNormal);
+        groundBlendN /= max(groundBlendN.x + groundBlendN.y + groundBlendN.z, 1e-5);
+        vec2 groundNormalUvX = groundTileOffset(vRiverPosition.yz * vec2(1.0, sign(vRiverNormal.x)) * 0.55);
+        vec2 groundNormalUvY = groundTileOffset(vRiverPosition.zx * vec2(sign(vRiverNormal.y), 1.0) * 0.55);
+        vec2 groundNormalUvZ = groundTileOffset(vRiverPosition.xy * vec2(1.0, sign(vRiverNormal.z)) * 0.55);
+        vec3 gX = texture2D(uGroundNormalMap, groundNormalUvX).rgb * 2.0 - 1.0;
+        vec3 gY = texture2D(uGroundNormalMap, groundNormalUvY).rgb * 2.0 - 1.0;
+        vec3 gZ = texture2D(uGroundNormalMap, groundNormalUvZ).rgb * 2.0 - 1.0;
+        gX.xy = groundTileUnrotateNormal(gX.xy, vRiverPosition.yz * vec2(1.0, sign(vRiverNormal.x)) * 0.55);
+        gY.xy = groundTileUnrotateNormal(gY.xy, vRiverPosition.zx * vec2(sign(vRiverNormal.y), 1.0) * 0.55);
+        gZ.xy = groundTileUnrotateNormal(gZ.xy, vRiverPosition.xy * vec2(1.0, sign(vRiverNormal.z)) * 0.55);
+        // Rebuild each projection through its own tangent basis (the same
+        // signed-axis convention the stone shader uses).
+        vec3 gNX = vec3(gX.z * sign(vRiverNormal.x), gX.x, gX.y * sign(vRiverNormal.x));
+        vec3 gNY = vec3(gY.y, gY.z * sign(vRiverNormal.y), gY.x * sign(vRiverNormal.y));
+        vec3 gNZ = vec3(gZ.x, gZ.y * sign(vRiverNormal.z), gZ.z * sign(vRiverNormal.z));
+        vec3 groundNormalSample = normalize(gNX * groundBlendN.x + gNY * groundBlendN.y + gNZ * groundBlendN.z);
+        vec3 groundNormalView = (viewMatrix * vec4(groundNormalSample, 0.0)).xyz;
+        normal = normalize(normal + (groundNormalView - normal) * riverGroundMask() * 0.5);
+      }`;
+
+export function substrateShader(uniforms: WorldUniforms, water: WaterOptics, ground?: RockTextures, options: GroundShaderOptions = {}) {
+  return (shader: Shader) => {
+    shader.uniforms.uWorldTime = uniforms.time;
+    shader.uniforms.uRichness = uniforms.richness;
+    shader.vertexShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal;\n" + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+      vec4 riverPosition = vec4(position, 1.0);
+      #ifdef USE_INSTANCING
+        riverPosition = instanceMatrix * riverPosition;
+        vec3 riverNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+      #else
+        vec3 riverNormal = normalize(mat3(modelMatrix) * objectNormal);
+      #endif
+      vRiverPosition = (modelMatrix * riverPosition).xyz;
+      vRiverNormal = riverNormal;`);
+    if (ground) {
+      shader.uniforms.uGroundMap = { value: ground.map };
+      shader.uniforms.uGroundNormalMap = { value: ground.normalMap };
+      shader.uniforms.uGroundRoughnessMap = { value: ground.roughnessMap };
+      shader.uniforms.uGroundBlend = { value: options.blend ?? 0 };
+    }
+    shader.fragmentShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal; uniform float uWorldTime; uniform float uRichness;\n" + NOISE_GLSL + "\n" + (ground ? GROUND_SAMPLER_GLSL + "\n" : "") + shader.fragmentShader;
+    const colorPatch = SUBSTRATE_COLOR_HEAD_GLSL + (ground ? SUBSTRATE_GROUND_COLOR_GLSL : "") + SUBSTRATE_COLOR_TAIL_GLSL;
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", colorPatch);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", ground ? SUBSTRATE_GROUND_ROUGHNESS_GLSL : SUBSTRATE_ROUGHNESS_GLSL);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", ground ? SUBSTRATE_GROUND_NORMAL_GLSL : "#include <normal_fragment_maps>" + SUBSTRATE_NORMAL_CORE_GLSL);
     applyUnderwaterFog(shader, water);
   };
 }
@@ -262,6 +371,117 @@ export function rockShader(textures: RockTextures, uniforms: WorldUniforms, opti
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", ROCK_COLOR_GLSL);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", ROCK_ROUGHNESS_GLSL);
     shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", ROCK_NORMAL_GLSL);
+    applyUnderwaterFog(shader, water);
+  };
+}
+
+export type LogTextures = { map: Texture; normalMap: Texture; roughnessMap: Texture };
+export type LogShaderOptions = { dampness?: number };
+
+// Same color semantics as the stone set: photographed albedo is sRGB, the
+// normal and roughness maps are raw data sampled by the lighting pipeline.
+export function declareLogTextureColorSpaces(textures: LogTextures) {
+  textures.map.colorSpace = SRGBColorSpace;
+  textures.normalMap.colorSpace = NoColorSpace;
+  textures.roughnessMap.colorSpace = NoColorSpace;
+}
+
+const LOG_VERTEX_GLSL = `
+  varying vec3 vLogLocal;
+  varying vec3 vLogNormal;
+  varying vec3 vLogWorld;
+  varying vec3 vLogWorldNormal;
+`;
+
+// Procedural fallback albedo. Bark is never one flat brown: weathered plates
+// go ash-grey, the ridges stay warm, and the cracks darken. The scanned path
+// instead modulates the photographed albedo with the same field strengths.
+const LOG_PROCEDURAL_ALBEDO_GLSL = `
+  vec3 barkBase = vec3(0.24, 0.17, 0.10);
+  float barkTone = .70 + barkGrain * .52 + ridge * .22;
+  diffuseColor.rgb = barkBase * barkTone;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.33, 0.30, 0.24), smoothstep(.60, .90, ridge) * .25);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.40, 0.29, 0.17), crevice * .35);
+`;
+
+const LOG_SCANNED_ALBEDO_GLSL = `
+  diffuseColor.rgb *= .78 + barkGrain * .22 + ridge * .10;
+  diffuseColor.rgb *= 1.0 - crevice * .26;
+`;
+
+const LOG_COLOR_GLSL = `#include <color_fragment>
+  {
+    // atan(local z, local x) follows the circumference, local y the trunk
+    // length, so the grain always runs along the log rather than across it.
+    float logAngle = atan(vLogLocal.z, vLogLocal.x);
+    vec2 logGrainUv = vec2(logAngle * 1.35, vLogLocal.y * .85);
+    float barkGrain = riverFbm(vec2(logGrainUv.x * 9.0, vLogLocal.y * 1.25));
+    float crevice = smoothstep(.52, .86, riverFbm(vec2(logGrainUv.x * 13.0, vLogLocal.y * 2.4) + 4.7));
+    float ridge = riverFbm(vec2(logGrainUv.x * 5.0, vLogLocal.y * .6 + 9.3));
+
+    LOG_ALBEDO
+
+    // Waterlogged wood loses saturation and brightness; uDamp keeps that
+    // restrained so the scanned bark detail still reads.
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.62, .55, .44), uDamp * .55);
+
+    // Biofilm prefers sheltered up-facing patches, not a uniform green coat.
+    float biofilm = smoothstep(.25, .90, vLogWorldNormal.y) * smoothstep(.55, .85, riverFbm(vLogWorld.xy * 2.3 + 7.1));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.18, .23, .11), biofilm * .22);
+
+    // Silt packs against the underside where it rests in the bed.
+    float silt = smoothstep(.15, .85, -vLogWorldNormal.y) * smoothstep(.45, .80, riverFbm(vLogWorld.xz * 2.9 + 13.7));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.30, .27, .19), silt * .30);
+
+    // Exposed ends show radial growth rings and faint medullary rays. Cap
+    // normals are the only ones that point along the trunk axis.
+    float capMask = smoothstep(.55, .90, abs(vLogNormal.y));
+    float radial = length(vLogLocal.xz);
+    float ring = .5 + .5 * sin(radial * 96.0 + riverFbm(vLogLocal.xz * 7.0) * 5.0);
+    float rays = .5 + .5 * sin(atan(vLogLocal.z, vLogLocal.x) * 37.0 + riverNoise(vLogLocal.xz * 11.0) * 2.0);
+    vec3 endGrain = mix(vec3(.42, .31, .19), vec3(.74, .62, .42), ring * .72 + rays * .16);
+    endGrain *= .84 + .16 * smoothstep(0.0, .05, radial);
+    endGrain *= .92 + .08 * riverNoise(vLogLocal.xz * 38.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, endGrain, capMask);
+  }
+`;
+
+const LOG_ROUGHNESS_GLSL = `#include <roughnessmap_fragment>
+  {
+    float logWet = smoothstep(.20, .90, -vLogWorldNormal.y) * uDamp;
+    float logRoughVar = riverFbm(vLogLocal.xz * 6.0 + vLogLocal.y) - .5;
+    roughnessFactor = clamp(roughnessFactor + logRoughVar * .12 - logWet * .18, 0.6, 1.0);
+  }
+`;
+
+const LOG_NORMAL_GLSL = `#include <normal_fragment_maps>
+  {
+    // The end faces should read as cut wood, not bark: flatten the sampled
+    // normal there and keep the cap's own axis normal.
+    float capMask = smoothstep(.55, .90, abs(vLogNormal.y));
+    vec3 logCapView = normalize((viewMatrix * vec4(normalize(vLogWorldNormal), 0.0)).xyz);
+    normal = normalize(mix(normal, logCapView, capMask * .85));
+  }
+`;
+
+export function logShader(scanned: boolean, water: WaterOptics, options: LogShaderOptions = {}) {
+  return (shader: Shader) => {
+    shader.uniforms.uDamp = { value: options.dampness ?? .32 };
+    shader.vertexShader = LOG_VERTEX_GLSL + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+      vLogLocal = position;
+      vLogNormal = normalize(objectNormal);
+      vec4 logWorld = modelMatrix * vec4(position, 1.0);
+      vLogWorld = logWorld.xyz;
+      vLogWorldNormal = normalize(mat3(modelMatrix) * objectNormal);`);
+    shader.fragmentShader = NOISE_GLSL + "\n" + LOG_VERTEX_GLSL +
+      "uniform float uDamp;\n" + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <color_fragment>",
+      LOG_COLOR_GLSL.replace("LOG_ALBEDO", scanned ? LOG_SCANNED_ALBEDO_GLSL : LOG_PROCEDURAL_ALBEDO_GLSL),
+    );
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", LOG_ROUGHNESS_GLSL);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", LOG_NORMAL_GLSL);
     applyUnderwaterFog(shader, water);
   };
 }

@@ -1,4 +1,4 @@
-import type { Scene, Vector3, Fog, Color } from "three";
+import { Vector3, type Scene, type Fog, type Color } from "three";
 import { HABITAT, OBSTACLES } from "@/experience/habitat";
 import { currentAt } from "@/experience/current";
 
@@ -37,6 +37,52 @@ export function createPlacements(): { rocks: Placement[]; gravel: Placement[]; p
 }
 
 function wrap(value: number, min: number, max: number) { const width = max - min; return min + ((value - min) % width + width) % width; }
+
+// Silt puffs: short bursts of disturbed sediment that lift off the bed near
+// the log and boulders, ride half the current (disturbed sediment lags the
+// flow), then settle back. There is NO accumulated state: a puff's position
+// is a pure function of (anchor, seed, time), so a hidden tab, an HMR stall
+// or a huge frame delta can never teleport one.
+export const SILT_COUNT = { HIGH: 36, LOW: 12 } as const;
+
+export type SiltParticle = { anchor: Vector3; seed: number };
+
+// Anchors cycled across the log and the named boulders: puffs only appear
+// where the current actually disturbs the bed.
+const SILT_ANCHORS: ReadonlyArray<readonly [number, number, number]> = [
+  [-5.4, -2.74, -.8],
+  ...OBSTACLES.map(o => o.center),
+];
+
+const SILT_SCRATCH = new Vector3();
+
+export function createSiltParticles(count: number, seed: number): SiltParticle[] {
+  const particles: SiltParticle[] = [];
+  for (let i = 0; i < count; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const [x, y, z] = SILT_ANCHORS[i % SILT_ANCHORS.length];
+    particles.push({ anchor: new Vector3(x, y, z), seed });
+  }
+  return particles;
+}
+
+export function siltParticleAt(particle: SiltParticle, time: number, out: Vector3): Vector3 {
+  const cycle = 4 + (particle.seed / 4294967296) * 4;
+  const phase = ((time % cycle) + cycle) % cycle;
+  const dormant = cycle * .35;
+  out.copy(particle.anchor);
+  if (phase < dormant) return out;
+  const age = phase - dormant;
+  currentAt(particle.anchor, time, SILT_SCRATCH);
+  // Disturbed sediment moves at roughly half the flow speed.
+  out.addScaledVector(SILT_SCRATCH, age * .5);
+  const lift = Math.min(.12 * age - .05 * age * age, .25);
+  out.y += lift;
+  out.x += .03 * Math.sin(particle.seed * 61.7e-9 + age * 5);
+  out.z += .03 * Math.cos(particle.seed * 47.3e-9 + age * 4.3);
+  out.y = Math.min(Math.max(out.y, -3.05), -2.25);
+  return out;
+}
 
 export function advanceParticle(position: Vector3, time: number, previousTime: number, scratch: Vector3) {
   const elapsed = time - previousTime;

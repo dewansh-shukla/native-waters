@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SRGBColorSpace, Texture, Vector3 } from "three";
-import { declareRockTextureColorSpaces, plantShader, reorientRockNormal, rockShader, substrateShader, surfaceFragment, surfaceVertex, type WorldUniforms } from "./materials";
+import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, reorientRockNormal, rockShader, substrateShader, surfaceFragment, surfaceVertex, type WorldUniforms } from "./materials";
 import { createWaterOptics } from "./waterOptics";
 
 function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
@@ -66,6 +66,43 @@ describe("substrateShader", () => {
     expect(afterNormals).toContain("normal = normalize(normal");
     expect(afterNormals).toContain("riverBump");
   });
+  it("emits no ground uniforms or samples when no ground maps are given", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).not.toContain("uGroundMap");
+    expect(shader.fragmentShader).not.toContain("uGroundBlend");
+    expect(shader.vertexShader).not.toContain("uGroundMap");
+  });
+
+  it("blends coarse scanned gravel in the exposed zones when ground maps are given", () => {
+    const ground = { map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() };
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), ground)(shader as never);
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundMap");
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundNormalMap");
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundRoughnessMap");
+    expect(shader.fragmentShader).toContain("uniform float uGroundBlend");
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    // Riffle/pool zoning: the mask fades in exposed zones only, before the
+    // sheltered silt and algae mixes claim their patches.
+    expect(afterColor).toContain("(1.0 - siltPatch) * (1.0 - algae)");
+    expect(afterColor).toContain("diffuseColor.rgb = mix(diffuseColor.rgb, groundColor");
+    const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
+    expect(afterRoughness).toContain("roughnessFactor = mix(roughnessFactor, groundRoughness");
+  });
+
+  it("samples the ground maps world-space triplanar with per-tile anti-tiling", () => {
+    const ground = { map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() };
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), ground)(shader as never);
+    expect(shader.fragmentShader).not.toContain("vUv");
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("groundBlend.x");
+    expect(afterColor).toContain("groundTileOffset");
+    const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
+    expect(afterNormals).toContain("uGroundNormalMap");
+  });
+
   it("varies roughness after the roughness map include", () => {
     const shader = fakeShader();
     substrateShader(worldUniforms(), createWaterOptics())(shader as never);
@@ -251,6 +288,81 @@ describe("rockShader", () => {
   });
 });
 
+
+const logTextures = () => ({ map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() });
+
+describe("logShader", () => {
+  it("declares scanned bark color space: albedo sRGB, normal and roughness as data", () => {
+    const textures = logTextures();
+    declareLogTextureColorSpaces(textures);
+    expect(textures.map.colorSpace).toBe(SRGBColorSpace);
+    expect(textures.normalMap.colorSpace).toBe("");
+    expect(textures.roughnessMap.colorSpace).toBe("");
+  });
+
+  it("passes object, world and normal space through to the fragment stage", () => {
+    const shader = fakeShader();
+    logShader(true, createWaterOptics())(shader as never);
+    for (const varying of ["vLogLocal", "vLogNormal", "vLogWorld", "vLogWorldNormal"]) {
+      expect(shader.vertexShader).toContain(varying);
+      expect(shader.fragmentShader).toContain(`varying vec3 ${varying}`);
+    }
+    expect(shader.vertexShader).toContain("modelMatrix");
+    expect(shader.fragmentShader).toContain("uniform float uDamp");
+  });
+
+  it("draws growth rings and medullary rays on exposed end grain", () => {
+    const shader = fakeShader();
+    logShader(true, createWaterOptics())(shader as never);
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("capMask");
+    expect(afterColor).toContain("vLogNormal");
+    expect(afterColor).toContain("endGrain");
+    expect(afterColor).toContain("sin(radial");
+    expect(afterColor).toContain("atan(vLogLocal.z, vLogLocal.x)");
+  });
+
+  it("builds a full bark albedo procedurally when the scans are unavailable", () => {
+    const procedural = fakeShader();
+    logShader(false, createWaterOptics())(procedural as never);
+    const afterColor = procedural.fragmentShader.slice(procedural.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("barkBase");
+    expect(afterColor).toContain("vec3(0.24, 0.17, 0.10)");
+    const scanned = fakeShader();
+    logShader(true, createWaterOptics())(scanned as never);
+    const scannedAfterColor = scanned.fragmentShader.slice(scanned.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(scannedAfterColor).not.toContain("barkBase");
+  });
+
+  it("darkens waterlogged wood and settles restrained biofilm and silt by world facing", () => {
+    const shader = fakeShader();
+    logShader(true, createWaterOptics(), { dampness: .4 })(shader as never);
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("uDamp");
+    expect(afterColor).toContain("biofilm");
+    expect(afterColor).toContain("vLogWorldNormal.y");
+    expect(afterColor).toContain("silt");
+    expect(afterColor).toContain("crevice");
+  });
+
+  it("raises roughness into the damp-matte range, flattening the scanned normal on end grain", () => {
+    const shader = fakeShader();
+    logShader(true, createWaterOptics())(shader as never);
+    const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
+    expect(afterRoughness).toContain("roughnessFactor = clamp(");
+    expect(afterRoughness).toContain("0.6");
+    const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
+    expect(afterNormals).toContain("capMask");
+    expect(afterNormals).toContain("vLogWorldNormal");
+  });
+
+  it("applies per-channel water absorption to the log", () => {
+    const shader = fakeShader();
+    logShader(true, createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).toContain("uWaterAbsorb");
+    expect(shader.fragmentShader).toContain("uWaterScatter");
+  });
+});
 
 describe("surface shaders", () => {
   it("tints the top and underside to the green river palette", () => {
