@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Object3D } from "three";
+import { BufferAttribute, BufferGeometry, Color, CylinderGeometry, IcosahedronGeometry, InstancedMesh, Object3D } from "three";
 import type { Placement } from "./worldMotion";
 
 // Radial displacement shared by every stone geometry: rewrites the radius of
@@ -136,6 +136,59 @@ export function createGravelGeometry(seed = 0) {
   if (seed !== 0) {
     seedDisplace(geo, variantShape(seed, .93, 1.06, .008));
     refitRadii(geo.getAttribute("position"), legacyEnvelope("gravel"));
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+export type LogGeometryOptions = {
+  length?: number;
+  radiusBottom?: number;
+  radiusTop?: number;
+  radialSegments?: number;
+  heightSegments?: number;
+  bend?: number;
+  seed?: number;
+};
+
+// Fallen-trunk surface: a cylinder is only the topology. Each vertex is pushed
+// out by a deterministic radius field (taper x ovality x longitudinal swell x
+// bark ridges) and the whole centreline drifts on a shallow arc. Caps stay
+// planar so the shader can paint end grain across them, and side/cap vertices
+// remain split by CylinderGeometry, which keeps the ends' normals pointing
+// along the trunk axis.
+export function createLogGeometry(options: LogGeometryOptions = {}) {
+  const {
+    length = 3.8,
+    radiusBottom = .23,
+    radiusTop = .14,
+    radialSegments = 20,
+    heightSegments = 26,
+    bend = .05,
+    seed = 0,
+  } = options;
+  const geo = new CylinderGeometry(1, 1, length, radialSegments, heightSegments, false);
+  const pos = geo.getAttribute("position");
+  const phase = (seed >>> 0) * 1.61803398875;
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const t = y / length + .5;
+    const smoothT = t * t * (3 - 2 * t);
+    const angle = Math.atan2(z, x);
+    // The centreline sags in the middle, so the silhouette is not a ruler.
+    const bendX = bend * Math.sin(t * Math.PI) * Math.cos(phase);
+    const bendZ = bend * Math.sin(t * Math.PI) * Math.sin(phase * 1.7);
+    const taper = radiusBottom + (radiusTop - radiusBottom) * smoothT;
+    // Low-frequency swelling and an oval cross-section read as grown wood;
+    // the two high-frequency octaves are the longitudinal bark ridges.
+    const oval = 1 + .06 * Math.cos(angle * 2 + .6 + phase);
+    const swell = 1 + .05 * Math.sin(t * 4.1 + phase) + .03 * Math.cos(t * 9.3 - phase);
+    const ridge = .045 * Math.sin(angle * 7 + t * 6.2 + phase)
+      + .025 * Math.sin(angle * 13 - t * 9.5 + phase * 2.3)
+      + .014 * Math.sin(angle * 23 + t * 17 + phase * .7);
+    const radial = taper * oval * swell * (1 + ridge);
+    pos.setXYZ(i, x * radial + bendX, y, z * radial + bendZ);
   }
   geo.computeVertexNormals();
   return geo;

@@ -3,7 +3,7 @@ import { BufferGeometry, Color, IcosahedronGeometry, InstancedMesh, Matrix4, Mes
 import { OBSTACLES } from "@/experience/habitat";
 import type { Placement } from "./worldMotion";
 import { createPlacements } from "./worldMotion";
-import { bucketPlacementsByVariant, createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation, planStoneBatches } from "./worldAssets";
+import { bucketPlacementsByVariant, createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, instanceVariation, planStoneBatches } from "./worldAssets";
 
 const ROCK_SEEDS = [0, 1, 2, 3] as const;
 const GRAVEL_SEEDS = [0, 1, 2] as const;
@@ -489,6 +489,92 @@ describe("instanceVariation", () => {
       const values = Array.from({ length: 16 }, (_, i) => instanceVariation(i, salt));
       expect(new Set(values).size).toBeGreaterThan(12);
     }
+  });
+});
+
+describe("driftwood log geometry", () => {
+  it("builds a deterministic length-aligned trunk inside the original footprint", () => {
+    const first = createLogGeometry(), second = createLogGeometry();
+    const a = first.getAttribute("position"), b = second.getAttribute("position");
+    expect(a.count).toBe(b.count);
+    expect(a.count).toBeGreaterThan(9 * 4 * 2);
+    for (let i = 0; i < a.count; i++) {
+      expect(a.getX(i)).toBe(b.getX(i));
+      expect(a.getY(i)).toBe(b.getY(i));
+      expect(a.getZ(i)).toBe(b.getZ(i));
+      expect(Number.isFinite(a.getX(i)) && Number.isFinite(a.getY(i)) && Number.isFinite(a.getZ(i))).toBe(true);
+    }
+    const normal = first.getAttribute("normal"), uv = first.getAttribute("uv");
+    expect(uv.count).toBe(a.count);
+    for (let i = 0; i < a.count; i++) {
+      expect(Number.isFinite(normal.getX(i)) && Number.isFinite(normal.getY(i)) && Number.isFinite(normal.getZ(i))).toBe(true);
+      expect(Number.isFinite(uv.getX(i)) && Number.isFinite(uv.getY(i))).toBe(true);
+    }
+    first.computeBoundingBox();
+    const box = first.boundingBox!;
+    expect(box.max.y - box.min.y).toBeCloseTo(3.8, 5);
+    expect(box.max.y).toBeCloseTo(1.9, 5);
+    expect(box.min.y).toBeCloseTo(-1.9, 5);
+    let maxRadial = 0;
+    for (let i = 0; i < a.count; i++) maxRadial = Math.max(maxRadial, Math.hypot(a.getX(i), a.getZ(i)));
+    expect(maxRadial).toBeGreaterThan(.2);
+    expect(maxRadial).toBeLessThan(.31);
+  });
+
+  it("tapers from a wider butt to a narrower top like a fallen trunk", () => {
+    const geo = createLogGeometry();
+    const pos = geo.getAttribute("position");
+    // Side rings live at the y of the cylinder height segments. Compare the
+    // widest radius near each end; the base must clearly outgrow the top.
+    let butt = 0, top = 0;
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i), r = Math.hypot(pos.getX(i), pos.getZ(i));
+      if (Math.abs(y + 1.9) < .02) butt = Math.max(butt, r);
+      if (Math.abs(y - 1.9) < .02) top = Math.max(top, r);
+    }
+    expect(butt).toBeGreaterThan(.2);
+    expect(top).toBeLessThan(butt * .85);
+  });
+
+  it("adds longitudinal bark ridges and a bent axis instead of a smooth cylinder", () => {
+    const geo = createLogGeometry();
+    const pos = geo.getAttribute("position");
+    // Compare quadrature radii inside one side ring: a cylinder would have
+    // identical radii, bark ridges must spread them.
+    const rings = new Map<string, number[]>();
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i), r = Math.hypot(pos.getX(i), pos.getZ(i));
+      if (r < .02) continue;
+      const key = y.toFixed(3);
+      rings.set(key, [...(rings.get(key) ?? []), r]);
+    }
+    let widestSpread = 0;
+    for (const radii of rings.values()) {
+      if (radii.length < 6) continue;
+      widestSpread = Math.max(widestSpread, Math.max(...radii) - Math.min(...radii));
+    }
+    expect(widestSpread).toBeGreaterThan(.008);
+    // The centreline drifts along the length so the silhouette is not straight.
+    const centre = (y: number) => {
+      let sx = 0, count = 0;
+      for (let i = 0; i < pos.count; i++) if (Math.abs(pos.getY(i) - y) < .04) { sx += pos.getX(i); count++; }
+      return count ? sx / count : 0;
+    };
+    expect(Math.abs(centre(0) - centre(1.9))).toBeGreaterThan(.01);
+  });
+
+  it("supports a smaller branch profile with the same deterministic construction", () => {
+    const branch = createLogGeometry({ length: 1.25, radiusBottom: .075, radiusTop: .035, radialSegments: 14, heightSegments: 10, bend: .01, seed: 2 });
+    branch.computeBoundingBox();
+    const box = branch.boundingBox!;
+    expect(box.max.y - box.min.y).toBeCloseTo(1.25, 5);
+    const pos = branch.getAttribute("position");
+    let maxRadial = 0;
+    for (let i = 0; i < pos.count; i++) maxRadial = Math.max(maxRadial, Math.hypot(pos.getX(i), pos.getZ(i)));
+    expect(maxRadial).toBeLessThan(.1);
+    const again = createLogGeometry({ length: 1.25, radiusBottom: .075, radiusTop: .035, radialSegments: 14, heightSegments: 10, bend: .01, seed: 2 });
+    const b = again.getAttribute("position");
+    for (let i = 0; i < pos.count; i++) expect(b.getX(i)).toBe(pos.getX(i));
   });
 });
 

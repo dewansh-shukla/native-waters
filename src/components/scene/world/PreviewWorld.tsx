@@ -8,10 +8,10 @@ import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { advanceParticle, bedHeight, createPlacements, updateAtmosphere } from "./worldMotion";
-import { declareRockTextureColorSpaces, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type RockTextures } from "./materials";
+import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
-import { createGravelGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
+import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
@@ -153,6 +153,65 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   useEffect(() => () => boulderMaterial?.dispose(), [boulderMaterial]);
   useEffect(() => () => pebbleMaterial?.dispose(), [pebbleMaterial]);
 
+  // Driftwood trunk + branch. The scanned CC0 bark set (public/textures/world/wood)
+  // is loaded once; until it arrives — or forever, if the request fails — the
+  // log keeps a procedural bark shader so the prop never turns flat or white.
+  const [logTextures, setLogTextures] = useState<LogTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new TextureLoader();
+    const load = (url: string) => new Promise<Texture>((resolve, reject) => loader.load(url, resolve, undefined, reject));
+    const anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+    Promise.all([
+      load("/textures/world/wood/bark-color.jpg"),
+      load("/textures/world/wood/bark-normal.jpg"),
+      load("/textures/world/wood/bark-roughness.jpg"),
+    ]).then(([map, normalMap, roughnessMap]) => {
+      if (cancelled) {
+        map.dispose(); normalMap.dispose(); roughnessMap.dispose();
+        return;
+      }
+      for (const texture of [map, normalMap, roughnessMap]) {
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.anisotropy = anisotropy;
+        // Circumference ~1.2 m, length 3.8 m; this keeps bark features at a
+        // believable physical size without obvious tiling.
+        texture.repeat.set(1.4, 2.6);
+      }
+      declareLogTextureColorSpaces({ map, normalMap, roughnessMap });
+      setLogTextures({ map, normalMap, roughnessMap });
+    }).catch(() => { /* procedural fallback stays */ });
+    return () => { cancelled = true; };
+  }, [gl]);
+
+  useEffect(() => () => {
+    if (logTextures) {
+      logTextures.map.dispose(); logTextures.normalMap.dispose(); logTextures.roughnessMap.dispose();
+    }
+  }, [logTextures]);
+
+  const logGeometry = useMemo(() => createLogGeometry(), []);
+  const branchGeometry = useMemo(() => createLogGeometry({
+    length: 1.25, radiusBottom: .075, radiusTop: .035,
+    radialSegments: 14, heightSegments: 10, bend: .012, seed: 2,
+  }), []);
+  useEffect(() => () => logGeometry.dispose(), [logGeometry]);
+  useEffect(() => () => branchGeometry.dispose(), [branchGeometry]);
+
+  const logMaterial = useMemo(() => {
+    const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
+    if (logTextures) {
+      material.map = logTextures.map;
+      material.normalMap = logTextures.normalMap;
+      material.roughnessMap = logTextures.roughnessMap;
+      material.normalScale.set(1, 1);
+    }
+    material.onBeforeCompile = logShader(logTextures !== null, water, { dampness: .34 });
+    material.customProgramCacheKey = () => logTextures ? "river-log-bark" : "river-log-procedural";
+    return material;
+  }, [logTextures, water]);
+  useEffect(() => () => logMaterial.dispose(), [logMaterial]);
+
   // Marine snow joins the water column: absorption fades each mote with the
   // same optics as the rest of the world.
   const particleMaterial = useMemo(() => {
@@ -237,14 +296,8 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
     <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
-      <mesh>
-        <cylinderGeometry args={[.14, .23, 3.8, 9]} />
-        <meshStandardMaterial color="#4a3828" roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
-      </mesh>
-      <mesh position={[.16, .7, 0]} rotation={[0, 0, -.7]}>
-        <cylinderGeometry args={[.035, .075, 1.25, 7]} />
-        <meshStandardMaterial color="#5a4838" roughness={1} />
-      </mesh>
+      <mesh geometry={logGeometry} material={logMaterial} />
+      <mesh geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
       <planeGeometry args={[24, 18, 32, 24]} />
