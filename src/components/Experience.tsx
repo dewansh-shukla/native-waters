@@ -22,6 +22,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
   const species = useMemo(() => resolveSpecies(speciesProp, additionalModelUrls), [speciesProp, additionalModelUrls]);
   const speciesLabels = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.label ?? "Fish"])));
   const speciesStudy = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.study]).filter(([, v]) => v)));
+  const speciesModelUrls = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.modelUrl])));
   const [state, dispatch] = useReducer(journeyReducer, INITIAL_JOURNEY);
   const [initialRuntime] = useState<SceneRuntime>(() => ({ time: 0, entryProgress: 0, fish: createSchool(), cursorTarget: null }));
   const runtime = useRef(initialRuntime);
@@ -72,6 +73,6 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
     <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={setPauseOverride}
       quality={quality} onQualityChange={setQuality} visibleFishIds={visibleIds} hoveredId={hoveredId}
       dispatch={dispatch} audio={audio} onEntryIntent={onEnter} onMapHighlight={setMapHighlighted}
-      secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} speciesStudy={speciesStudy} />
+      secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} speciesStudy={speciesStudy} speciesModelUrls={speciesModelUrls} />
   </section>;
 }

@@ -42,6 +42,7 @@ export type ExperienceUIProps = {
   fixtures?: PipelineFixture[]; selectedFixtureIndex?: number; onSelectFixture?: (index: number) => void;
   secondarySpeciesLabel?: string; speciesLabels?: Record<string, string>;
   speciesStudy?: Record<string, SpeciesStudy>;
+  speciesModelUrls?: Record<string, string>;
 };
 export type ExperienceAudioProps = { phase: Phase; paused: boolean; runtime: RuntimeRef };
 

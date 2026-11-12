@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import type { ExperienceUIProps, QualityPreference } from "@/experience/contracts";
 import type { SpeciesStudy } from "@/experience/species";
+import FishPreview from "./FishPreview";
 import provenance from "../../../content/maps/provenance.json";
 
 const DISCLAIMER = "Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.";
@@ -92,6 +93,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     ? { ...fixture, label: props.speciesLabels[state.selectedId], disclaimer: "Aquarium species study; not a verified wild-habitat reconstruction or production asset." }
     : fixture;
   const selectedStudy = state.selectedId ? props.speciesStudy?.[state.selectedId] : undefined;
+  const selectedModelUrl = state.selectedId ? props.speciesModelUrls?.[state.selectedId] : undefined;
   const selected = visibleFishIds.includes(choice) ? choice : visibleFishIds[0] ?? "";
   const inWater = state.phase === "exploring" || state.phase === "following" || state.phase === "story";
   useEffect(() => {
@@ -133,6 +135,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     </section>}
     {(state.phase === "following" || state.phase === "story") && <aside className="experience-follow-card" aria-label="Selected fish">
       <p className="experience-eyebrow">Reference study</p><h2>{followName}</h2>
+      {selectedModelUrl && <FishPreview modelUrl={selectedModelUrl} />}
       <button ref={exploreButton} onClick={() => { storyFocus.current = exploreButton.current; dispatch({ type: "STORY" }); }}>Explore Species</button>
       {state.phase !== "story" && <button onClick={() => { dispatch({ type: "BACK" }); followButton.current?.focus(); }}>Back to Water</button>}
     </aside>}
@@ -148,6 +151,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     {audio.error && <p className="experience-audio-error" role="status">{audio.error}</p>}
     {preview && state.phase !== "story" && <StudyDialog title="Experience preview" onClose={() => setPreview(false)} returnFocus={previewButton}><Study fixture={fixture} /></StudyDialog>}
     {state.phase === "story" && <StudyDialog title={followName} onClose={() => closeStory(false)} onEscape={() => closeStory(true)} returnFocus={storyFocus}>
+      {selectedModelUrl && <FishPreview modelUrl={selectedModelUrl} />}
       <Study fixture={studyFixture} study={selectedStudy} />
     </StudyDialog>}
   </div>;
