@@ -66,6 +66,43 @@ describe("substrateShader", () => {
     expect(afterNormals).toContain("normal = normalize(normal");
     expect(afterNormals).toContain("riverBump");
   });
+  it("emits no ground uniforms or samples when no ground maps are given", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics())(shader as never);
+    expect(shader.fragmentShader).not.toContain("uGroundMap");
+    expect(shader.fragmentShader).not.toContain("uGroundBlend");
+    expect(shader.vertexShader).not.toContain("uGroundMap");
+  });
+
+  it("blends coarse scanned gravel in the exposed zones when ground maps are given", () => {
+    const ground = { map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() };
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), ground)(shader as never);
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundMap");
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundNormalMap");
+    expect(shader.fragmentShader).toContain("uniform sampler2D uGroundRoughnessMap");
+    expect(shader.fragmentShader).toContain("uniform float uGroundBlend");
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    // Riffle/pool zoning: the mask fades in exposed zones only, before the
+    // sheltered silt and algae mixes claim their patches.
+    expect(afterColor).toContain("(1.0 - siltPatch) * (1.0 - algae)");
+    expect(afterColor).toContain("diffuseColor.rgb = mix(diffuseColor.rgb, groundColor");
+    const afterRoughness = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <roughnessmap_fragment>"));
+    expect(afterRoughness).toContain("roughnessFactor = mix(roughnessFactor, groundRoughness");
+  });
+
+  it("samples the ground maps world-space triplanar with per-tile anti-tiling", () => {
+    const ground = { map: new Texture(), normalMap: new Texture(), roughnessMap: new Texture() };
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), ground)(shader as never);
+    expect(shader.fragmentShader).not.toContain("vUv");
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("groundBlend.x");
+    expect(afterColor).toContain("groundTileOffset");
+    const afterNormals = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <normal_fragment_maps>"));
+    expect(afterNormals).toContain("uGroundNormalMap");
+  });
+
   it("varies roughness after the roughness map include", () => {
     const shader = fakeShader();
     substrateShader(worldUniforms(), createWaterOptics())(shader as never);

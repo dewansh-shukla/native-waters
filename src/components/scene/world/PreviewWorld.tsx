@@ -36,7 +36,6 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const water = useMemo(() => createWaterOptics(), []);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
-  const substrate = useMemo(() => substrateShader(uniforms, water), [uniforms, water]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
   const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
@@ -133,6 +132,47 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
       rockTextures.map.dispose(); rockTextures.normalMap.dispose(); rockTextures.roughnessMap.dispose();
     }
   }, [rockTextures]);
+
+  // Shared scanned riverbed gravel (CC0, see public/textures/world/bed)
+  // blended under the substrate's procedural silt/algae layers. Until it
+  // arrives — or forever, if the request fails — the bed keeps today's
+  // purely procedural look; the ground blend uniform just stays at 0.
+  const [bedTextures, setBedTextures] = useState<RockTextures | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new TextureLoader();
+    const load = (url: string) => new Promise<Texture>((resolve, reject) => loader.load(url, resolve, undefined, reject));
+    const anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy());
+    Promise.all([
+      load("/textures/world/bed/ground-color.jpg"),
+      load("/textures/world/bed/ground-normal.jpg"),
+      load("/textures/world/bed/ground-roughness.jpg"),
+    ]).then(([map, normalMap, roughnessMap]) => {
+      if (cancelled) {
+        map.dispose(); normalMap.dispose(); roughnessMap.dispose();
+        return;
+      }
+      for (const texture of [map, normalMap, roughnessMap]) {
+        // groundTileOffset jitters/rotates sample UVs; wrap keeps those reads valid.
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.anisotropy = anisotropy;
+      }
+      declareRockTextureColorSpaces({ map, normalMap, roughnessMap });
+      setBedTextures({ map, normalMap, roughnessMap });
+    }).catch(() => { /* procedural bed stays */ });
+    return () => { cancelled = true; };
+  }, [gl]);
+
+  useEffect(() => () => {
+    if (bedTextures) {
+      bedTextures.map.dispose(); bedTextures.normalMap.dispose(); bedTextures.roughnessMap.dispose();
+    }
+  }, [bedTextures]);
+
+  const substrate = useMemo(
+    () => substrateShader(uniforms, water, bedTextures ?? undefined, { blend: (quality === "HIGH" ? 1 : .5) * .55 }),
+    [uniforms, water, bedTextures, quality],
+  );
 
   // Scanned-triplanar materials: one program per stone kind; instance colors
   // from fillBatch still tint the scanned albedo. Metalness stays 0 (stone).
@@ -273,20 +313,20 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <directionalLight ref={backlight} position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
     <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.4} visible={false} />
     <mesh geometry={terrain}>
-      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />
+      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />
     </mesh>
     {rockPlans.map((plan, k) => (
       <instancedMesh key={k} ref={mesh => { rockBatches.current[k] = mesh; }} args={[rockGeometries[k], undefined, plan.placements.length]}>
         {boulderMaterial
           ? <primitive object={boulderMaterial} attach="material" />
-          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />}
       </instancedMesh>
     ))}
     {gravelPlans.map((plan, k) => (
       <instancedMesh key={k} ref={mesh => { gravelBatches.current[k] = mesh; }} args={[gravelGeometries[k], undefined, plan.placements.length]}>
         {pebbleMaterial
           ? <primitive object={pebbleMaterial} attach="material" />
-          : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate"} />}
+          : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />}
       </instancedMesh>
     ))}
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
@@ -295,7 +335,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
       <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
-    <group position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
+    <group position={[-2.2, -2.45, 1.5]} rotation={[0, .35, Math.PI / 2 - .07]}>
       <mesh geometry={logGeometry} material={logMaterial} />
       <mesh geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
