@@ -49,7 +49,11 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     // Silt puffs share the same position buffer at the tail indices; the
     // LOW tier simply draws fewer of them via drawRange.
     const silt = createSiltParticles(SILT_COUNT.HIGH, 611);
-    silt.forEach((s, i) => siltParticleAt(s, 0, new Vector3()).toArray(positions, (240 + i) * 3));
+    silt.forEach((s, i) => {
+      const pos = siltParticleAt(s, 0, new Vector3());
+      pos.toArray(positions, (240 + i) * 3);   // high tier tail
+      pos.toArray(positions, (80 + i) * 3);    // low tier tail (contiguous after its 80 marine-snow motes)
+    });
     return { positions, particles, silt, scratch: new Vector3(), center: new Vector3(0, -1.5, -2), previousTime: NaN };
   }, []);
   const mutable = useRef({ uniforms, motion });
@@ -220,7 +224,10 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
         texture.anisotropy = anisotropy;
         // Circumference ~1.2 m, length 3.8 m; this keeps bark features at a
         // believable physical size without obvious tiling.
-        texture.repeat.set(1.4, 2.6);
+        // Circumference repeat must be an integer so the cylinder's UV wrap is
+        // phase-continuous (no vertical seam stripe at the join). 2 keeps the
+        // bark feature density close to the original 1.4.
+        texture.repeat.set(2, 2.6);
       }
       declareLogTextureColorSpaces({ map, normalMap, roughnessMap });
       setLogTextures({ map, normalMap, roughnessMap });
@@ -300,12 +307,15 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     }
     currentAt(motion.center, time, uniforms.flow.value);
     if (visible && time !== motion.previousTime) {
-      for (let i = 0; i < motion.particles.length; i++) {
+      const snowCount = quality === "HIGH" ? 240 : 80;
+      for (let i = 0; i < snowCount; i++) {
         advanceParticle(motion.particles[i], time, motion.previousTime, motion.scratch);
         motion.particles[i].toArray(motion.positions, i * 3);
       }
       for (let i = 0; i < motion.silt.length; i++) {
-        siltParticleAt(motion.silt[i], time, motion.scratch).toArray(motion.positions, (motion.particles.length + i) * 3);
+        const pos = siltParticleAt(motion.silt[i], time, motion.scratch);
+        pos.toArray(motion.positions, (240 + i) * 3);  // high tier
+        pos.toArray(motion.positions, (80 + i) * 3);   // low tier
       }
       if (particleAttribute.current) particleAttribute.current.needsUpdate = true;
     }
@@ -320,7 +330,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     <directionalLight ref={backlight} position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
     <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.4} visible={false} />
     <mesh geometry={terrain}>
-      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />
+      <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? `river-substrate-ground-${quality}` : `river-substrate-${quality}`} />
     </mesh>
     {rockPlans.map((plan, k) => (
       <instancedMesh key={k} ref={mesh => { rockBatches.current[k] = mesh; }} args={[rockGeometries[k], undefined, plan.placements.length]}>
