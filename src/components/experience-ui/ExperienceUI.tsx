@@ -2,17 +2,29 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import type { ExperienceUIProps, QualityPreference } from "@/experience/contracts";
+import type { SpeciesStudy } from "@/experience/species";
+import FishPreview from "./FishPreview";
 import provenance from "../../../content/maps/provenance.json";
 
 const DISCLAIMER = "Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.";
 
-function Study({ fixture }: Pick<ExperienceUIProps, "fixture">) {
+function Study({ fixture, study }: Pick<ExperienceUIProps, "fixture"> & { study?: SpeciesStudy }) {
   const isPrimary = fixture.label.startsWith("Polar parrot");
   return <div className="experience-study">
     <p className="experience-disclaimer">{isPrimary ? DISCLAIMER : "Aquarium species study in an illustrative environment; no occurrence in this Indian location is asserted."}</p>
     <p className="experience-source-label">Source field label: <span>{fixture.label}</span></p>
+    {study && <>
+      <section><h3>Scientific name</h3><p>{study.scientificName}</p></section>
+      <section><h3>Origin</h3><p>{study.origin}</p></section>
+      <section><h3>Maximum size</h3><p>{study.maxSize}</p></section>
+      <section><h3>Habitat</h3><p>{study.habitat}</p></section>
+      <section><h3>Water parameters</h3><p>{study.waterParams}</p></section>
+      <section><h3>Diet</h3><p>{study.diet}</p></section>
+      <section><h3>Behaviour</h3><p>{study.behavior}</p></section>
+      <section><h3>Notes</h3><p>{study.notes}</p></section>
+    </>}
     {isPrimary && <section><h3>Markings &amp; model</h3><p>A rounded silhouette, dark bars and layered fins: an original procedural model interpreting the supplied reference, not a biological identification.</p></section>}
-    {!isPrimary && <section><h3>Species note</h3><p>{fixture.disclaimer}</p></section>}
+    {!isPrimary && !study && <section><h3>Species note</h3><p>{fixture.disclaimer}</p></section>}
     <section><h3>An illustrative environment</h3><p>The Cauvery overview uses generalized geographic data. The underwater light, plants, movement and school are an artistic preview, not a surveyed reach or a record of natural behaviour.</p></section>
     <p>{fixture.disclaimer}</p>
     <p>Synthesized preview ambience: original filtered noise, not a field recording.</p>
@@ -80,6 +92,8 @@ export function ExperienceUI(props: ExperienceUIProps) {
   const studyFixture = state.selectedId && props.speciesLabels?.[state.selectedId] && props.speciesLabels[state.selectedId] !== commonName
     ? { ...fixture, label: props.speciesLabels[state.selectedId], disclaimer: "Aquarium species study; not a verified wild-habitat reconstruction or production asset." }
     : fixture;
+  const selectedStudy = state.selectedId ? props.speciesStudy?.[state.selectedId] : undefined;
+  const selectedModelUrl = state.selectedId ? props.speciesModelUrls?.[state.selectedId] : undefined;
   const selected = visibleFishIds.includes(choice) ? choice : visibleFishIds[0] ?? "";
   const inWater = state.phase === "exploring" || state.phase === "following" || state.phase === "story";
   useEffect(() => {
@@ -121,6 +135,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     </section>}
     {(state.phase === "following" || state.phase === "story") && <aside className="experience-follow-card" aria-label="Selected fish">
       <p className="experience-eyebrow">Reference study</p><h2>{followName}</h2>
+      {selectedModelUrl && <FishPreview modelUrl={selectedModelUrl} />}
       <button ref={exploreButton} onClick={() => { storyFocus.current = exploreButton.current; dispatch({ type: "STORY" }); }}>Explore Species</button>
       {state.phase !== "story" && <button onClick={() => { dispatch({ type: "BACK" }); followButton.current?.focus(); }}>Back to Water</button>}
     </aside>}
@@ -136,7 +151,8 @@ export function ExperienceUI(props: ExperienceUIProps) {
     {audio.error && <p className="experience-audio-error" role="status">{audio.error}</p>}
     {preview && state.phase !== "story" && <StudyDialog title="Experience preview" onClose={() => setPreview(false)} returnFocus={previewButton}><Study fixture={fixture} /></StudyDialog>}
     {state.phase === "story" && <StudyDialog title={followName} onClose={() => closeStory(false)} onEscape={() => closeStory(true)} returnFocus={storyFocus}>
-      <Study fixture={studyFixture} />
+      {selectedModelUrl && <FishPreview modelUrl={selectedModelUrl} />}
+      <Study fixture={studyFixture} study={selectedStudy} />
     </StudyDialog>}
   </div>;
 }

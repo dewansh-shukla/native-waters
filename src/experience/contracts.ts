@@ -1,6 +1,7 @@
 import type { MutableRefObject } from "react";
 import type { Quaternion, Vector3 } from "three";
 import type { PipelineFixture } from "@/types/fixture";
+import type { SpeciesStudy } from "@/experience/species";
 
 export type Phase = "map" | "entering" | "exploring" | "following" | "story";
 export type QualityPreference = "AUTO" | "HIGH" | "LOW";
@@ -40,6 +41,8 @@ export type ExperienceUIProps = {
   onEntryIntent: () => void; onMapHighlight: (highlighted: boolean) => void;
   fixtures?: PipelineFixture[]; selectedFixtureIndex?: number; onSelectFixture?: (index: number) => void;
   secondarySpeciesLabel?: string; speciesLabels?: Record<string, string>;
+  speciesStudy?: Record<string, SpeciesStudy>;
+  speciesModelUrls?: Record<string, string>;
 };
 export type ExperienceAudioProps = { phase: Phase; paused: boolean; runtime: RuntimeRef };
 
