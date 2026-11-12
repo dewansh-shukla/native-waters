@@ -99,6 +99,23 @@ describe("ExperienceUI", () => {
     expect(disable).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Experience preview" })).toBeEnabled();
   });
+  it("shows species-specific reference study content for the selected fish", () => {
+    const study = { "fish-0": { scientificName: "Danio rerio", origin: "India", maxSize: "4-5 cm", habitat: "streams", waterParams: "18-25 C", diet: "omnivore", behavior: "schooling", notes: "model organism" } };
+    function Harness2() {
+      const [state, dispatch] = useReducer(journeyReducer, { phase: "following", ready: true, selectedId: "fish-0" });
+      const [paused, onPausedChange] = useState(false);
+      const [quality, onQualityChange] = useState<QualityPreference>("AUTO");
+      return <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={onPausedChange}
+        quality={quality} onQualityChange={onQualityChange} visibleFishIds={["fish-0"]} hoveredId={null} dispatch={dispatch}
+        audio={{ enabled: false, error: null, enable: vi.fn(), disable: vi.fn() }} onEntryIntent={() => dispatch({ type: "ENTER" })} onMapHighlight={vi.fn()}
+        speciesLabels={{ "fish-0": "Zebra Danio" }} speciesStudy={study} />;
+    }
+    render(<Harness2 />);
+    fireEvent.click(screen.getByRole("button", { name: "Explore Species" }));
+    const dialog = screen.getByRole("dialog", { name: "Zebra Danio" });
+    expect(within(dialog).getByText("Danio rerio")).toBeVisible();
+    expect(within(dialog).getByText("model organism")).toBeVisible();
+  });
   it("Escape releases follow without duplicate camera ownership", () => {
     render(<Harness initial={{ phase: "following", ready: true, selectedId: "fish-0" }} />);
     screen.getByRole("button", { name: "Explore Species" }).focus();
