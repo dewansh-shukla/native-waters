@@ -266,6 +266,117 @@ export function rockShader(textures: RockTextures, uniforms: WorldUniforms, opti
   };
 }
 
+export type LogTextures = { map: Texture; normalMap: Texture; roughnessMap: Texture };
+export type LogShaderOptions = { dampness?: number };
+
+// Same color semantics as the stone set: photographed albedo is sRGB, the
+// normal and roughness maps are raw data sampled by the lighting pipeline.
+export function declareLogTextureColorSpaces(textures: LogTextures) {
+  textures.map.colorSpace = SRGBColorSpace;
+  textures.normalMap.colorSpace = NoColorSpace;
+  textures.roughnessMap.colorSpace = NoColorSpace;
+}
+
+const LOG_VERTEX_GLSL = `
+  varying vec3 vLogLocal;
+  varying vec3 vLogNormal;
+  varying vec3 vLogWorld;
+  varying vec3 vLogWorldNormal;
+`;
+
+// Procedural fallback albedo. Bark is never one flat brown: weathered plates
+// go ash-grey, the ridges stay warm, and the cracks darken. The scanned path
+// instead modulates the photographed albedo with the same field strengths.
+const LOG_PROCEDURAL_ALBEDO_GLSL = `
+  vec3 barkBase = vec3(0.24, 0.17, 0.10);
+  float barkTone = .70 + barkGrain * .52 + ridge * .22;
+  diffuseColor.rgb = barkBase * barkTone;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.33, 0.30, 0.24), smoothstep(.60, .90, ridge) * .25);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.40, 0.29, 0.17), crevice * .35);
+`;
+
+const LOG_SCANNED_ALBEDO_GLSL = `
+  diffuseColor.rgb *= .78 + barkGrain * .22 + ridge * .10;
+  diffuseColor.rgb *= 1.0 - crevice * .26;
+`;
+
+const LOG_COLOR_GLSL = `#include <color_fragment>
+  {
+    // atan(local z, local x) follows the circumference, local y the trunk
+    // length, so the grain always runs along the log rather than across it.
+    float logAngle = atan(vLogLocal.z, vLogLocal.x);
+    vec2 logGrainUv = vec2(logAngle * 1.35, vLogLocal.y * .85);
+    float barkGrain = riverFbm(vec2(logGrainUv.x * 9.0, vLogLocal.y * 1.25));
+    float crevice = smoothstep(.52, .86, riverFbm(vec2(logGrainUv.x * 13.0, vLogLocal.y * 2.4) + 4.7));
+    float ridge = riverFbm(vec2(logGrainUv.x * 5.0, vLogLocal.y * .6 + 9.3));
+
+    LOG_ALBEDO
+
+    // Waterlogged wood loses saturation and brightness; uDamp keeps that
+    // restrained so the scanned bark detail still reads.
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.62, .55, .44), uDamp * .55);
+
+    // Biofilm prefers sheltered up-facing patches, not a uniform green coat.
+    float biofilm = smoothstep(.25, .90, vLogWorldNormal.y) * smoothstep(.55, .85, riverFbm(vLogWorld.xy * 2.3 + 7.1));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.18, .23, .11), biofilm * .22);
+
+    // Silt packs against the underside where it rests in the bed.
+    float silt = smoothstep(.15, .85, -vLogWorldNormal.y) * smoothstep(.45, .80, riverFbm(vLogWorld.xz * 2.9 + 13.7));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.30, .27, .19), silt * .30);
+
+    // Exposed ends show radial growth rings and faint medullary rays. Cap
+    // normals are the only ones that point along the trunk axis.
+    float capMask = smoothstep(.55, .90, abs(vLogNormal.y));
+    float radial = length(vLogLocal.xz);
+    float ring = .5 + .5 * sin(radial * 96.0 + riverFbm(vLogLocal.xz * 7.0) * 5.0);
+    float rays = .5 + .5 * sin(atan(vLogLocal.z, vLogLocal.x) * 37.0 + riverNoise(vLogLocal.xz * 11.0) * 2.0);
+    vec3 endGrain = mix(vec3(.42, .31, .19), vec3(.74, .62, .42), ring * .72 + rays * .16);
+    endGrain *= .84 + .16 * smoothstep(0.0, .05, radial);
+    endGrain *= .92 + .08 * riverNoise(vLogLocal.xz * 38.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, endGrain, capMask);
+  }
+`;
+
+const LOG_ROUGHNESS_GLSL = `#include <roughnessmap_fragment>
+  {
+    float logWet = smoothstep(.20, .90, -vLogWorldNormal.y) * uDamp;
+    float logRoughVar = riverFbm(vLogLocal.xz * 6.0 + vLogLocal.y) - .5;
+    roughnessFactor = clamp(roughnessFactor + logRoughVar * .12 - logWet * .18, 0.6, 1.0);
+  }
+`;
+
+const LOG_NORMAL_GLSL = `#include <normal_fragment_maps>
+  {
+    // The end faces should read as cut wood, not bark: flatten the sampled
+    // normal there and keep the cap's own axis normal.
+    float capMask = smoothstep(.55, .90, abs(vLogNormal.y));
+    vec3 logCapView = normalize((viewMatrix * vec4(normalize(vLogWorldNormal), 0.0)).xyz);
+    normal = normalize(mix(normal, logCapView, capMask * .85));
+  }
+`;
+
+export function logShader(scanned: boolean, water: WaterOptics, options: LogShaderOptions = {}) {
+  return (shader: Shader) => {
+    shader.uniforms.uDamp = { value: options.dampness ?? .32 };
+    shader.vertexShader = LOG_VERTEX_GLSL + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+      vLogLocal = position;
+      vLogNormal = normalize(objectNormal);
+      vec4 logWorld = modelMatrix * vec4(position, 1.0);
+      vLogWorld = logWorld.xyz;
+      vLogWorldNormal = normalize(mat3(modelMatrix) * objectNormal);`);
+    shader.fragmentShader = NOISE_GLSL + "\n" + LOG_VERTEX_GLSL +
+      "uniform float uDamp;\n" + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <color_fragment>",
+      LOG_COLOR_GLSL.replace("LOG_ALBEDO", scanned ? LOG_SCANNED_ALBEDO_GLSL : LOG_PROCEDURAL_ALBEDO_GLSL),
+    );
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", LOG_ROUGHNESS_GLSL);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_maps>", LOG_NORMAL_GLSL);
+    applyUnderwaterFog(shader, water);
+  };
+}
+
 export function plantShader(uniforms: WorldUniforms, water: WaterOptics) {
   return (shader: Shader) => {
     shader.uniforms.uWorldTime = uniforms.time;
