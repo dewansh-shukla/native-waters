@@ -22,7 +22,10 @@ const SceneViewport = dynamic(() => import("@/components/scene/SceneViewport"), 
 
 export default function Experience({ fixture, additionalModelUrls, species: speciesProp, river }: { fixture: PipelineFixture; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[]; label?: string }[]; river?: string }) {
   const [mapRiver, setMapRiver] = useState(river ?? "Cauvery");
-  const resolvedRiver = (mapRiver && RIVER_PROFILES[mapRiver]) ? mapRiver : (river && RIVER_PROFILES[river]) ? river : "cauvery";
+  const [hoveredRiver, setHoveredRiver] = useState<string | null>(null);
+  const resolvedRiver = (RIVER_PROFILES[(river ?? "").toLowerCase()] ? (river ?? "").toLowerCase() : null)
+    ?? (RIVER_PROFILES[(mapRiver ?? "").toLowerCase()] ? (mapRiver ?? "").toLowerCase() : null)
+    ?? "cauvery";
   const profile = useMemo(() => resolveRiverProfile(resolvedRiver), [resolvedRiver]);
   const speciesInput = speciesProp ?? profile.fish;
   const species = useMemo(() => resolveSpecies(speciesInput as any, additionalModelUrls), [speciesInput, additionalModelUrls]);
@@ -69,11 +72,11 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
   const onReady = useCallback((ready: boolean) => dispatch({ type: "READY", ready }), []);
   const onEntered = useCallback(() => dispatch({ type: "ENTERED" }), []);
   const onSelect = useCallback((id: string) => dispatch({ type: "SELECT", id }), []);
-  const onEnter = useCallback(() => dispatch({ type: "ENTER" }), []);
+  const onEnter = useCallback((r?: string) => { if (r) setMapRiver(r); dispatch({ type: "ENTER" }); }, []);
 
   return <section className="experience" aria-label="Native Waters experience" data-phase={state.phase}>
     <SceneBoundary onRetry={() => window.location.reload()} retryLabel="Reload page">
-      <SceneViewport modelUrl={fixture.modelUrl} additionalModelUrls={additionalModelUrls} species={shownSpecies.map(s => ({ modelUrl: s.modelUrl, fishIds: s.fishIds }))} entryAnchor={anchor} state={state} runtime={runtime} paused={paused || hidden}
+      <SceneViewport modelUrl={fixture.modelUrl} additionalModelUrls={additionalModelUrls} species={shownSpecies.map(s => ({ modelUrl: s.modelUrl, fishIds: s.fishIds }))} entryAnchor={anchor} highlightedRiver={hoveredRiver ?? mapRiver} onRiverHover={setHoveredRiver} onRiverChange={setMapRiver} state={state} runtime={runtime} paused={paused || hidden}
         reducedMotion={reducedMotion} quality={effectiveQuality} visibleIds={visibleIds}
         mapHighlighted={mapHighlighted} onMapHighlight={setMapHighlighted} onReady={onReady}
         onEntered={onEntered} onSelect={onSelect} onHover={setHoveredId} onEnter={onEnter}
@@ -83,6 +86,6 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
     <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={setPauseOverride}
       quality={quality} onQualityChange={setQuality} visibleFishIds={visibleIds} hoveredId={hoveredId}
       dispatch={dispatch} audio={audio} onEntryIntent={onEnter} onMapHighlight={setMapHighlighted}
-      secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} speciesStudy={speciesStudy} speciesModelUrls={speciesModelUrls} selectedRiver={mapRiver} onRiverChange={setMapRiver} />
+      secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} speciesStudy={speciesStudy} speciesModelUrls={speciesModelUrls} selectedRiver={mapRiver} onRiverChange={setMapRiver} onRiverHover={setHoveredRiver} />
   </section>;
 }

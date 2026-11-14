@@ -32,7 +32,11 @@ export type ExperienceCameraProps = {
 };
 export type EntryMapProps = {
   visible: boolean; progress: number; highlighted: boolean;
-  onHighlight: (highlighted: boolean) => void; onEnter: () => void;
+  highlightedRiver?: string | null;
+  onHighlight: (highlighted: boolean) => void;
+  onRiverHover?: (river: string | null) => void;
+  onRiverChange?: (river: string) => void;
+  onEnter: (river?: string) => void;
   runtime: RuntimeRef;
 };
 export type ExperienceUIProps = {
@@ -46,16 +50,20 @@ export type ExperienceUIProps = {
   speciesStudy?: Record<string, SpeciesStudy>;
   speciesModelUrls?: Record<string, string>;
   selectedRiver?: string; onRiverChange?: (river: string) => void;
+  onRiverHover?: (river: string | null) => void;
 };
 export type ExperienceAudioProps = { phase: Phase; paused: boolean; runtime: RuntimeRef };
 
 export type ExperienceSceneProps = {
   modelUrl: string; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[] }[];
   entryAnchor?: Vector3;
+  highlightedRiver?: string | null;
+  onRiverHover?: (river: string | null) => void;
+  onRiverChange?: (river: string) => void;
   state: JourneyState; runtime: RuntimeRef; paused: boolean;
   reducedMotion: boolean; quality: EffectiveQuality; visibleIds: string[];
   mapHighlighted: boolean; onMapHighlight: (highlighted: boolean) => void;
   onReady: (ready: boolean) => void; onEntered: () => void;
-  onSelect: (id: string) => void; onHover: (id: string | null) => void; onEnter: () => void;
+  onSelect: (id: string) => void; onHover: (id: string | null) => void; onEnter: (river?: string) => void;
   water?: WaterOptics; habitat?: HabitatConfig; river?: string;
 };
