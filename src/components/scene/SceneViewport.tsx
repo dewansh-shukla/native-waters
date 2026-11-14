@@ -75,15 +75,15 @@ function Scene(props: ExperienceSceneProps) {
   return <group ref={group}>
     <RendererGuard onReady={onReady} />
     <ExperienceCamera runtime={props.runtime} phase={props.state.phase} selectedId={props.state.selectedId}
-      paused={props.paused} ready={props.state.ready} reducedMotion={props.reducedMotion} entryAnchor={CAUVERY_ANCHOR} onEntered={props.onEntered} />
+      paused={props.paused} ready={props.state.ready} reducedMotion={props.reducedMotion} entryAnchor={props.entryAnchor ?? CAUVERY_ANCHOR} onEntered={props.onEntered} />
     <group name="MapView" visible={map}>
     <ambientLight intensity={.65} />
     <directionalLight position={[-6, 20, 5]} intensity={2} color="#d7e6d5" />
     </group>
     <EntryMap visible={map || props.state.phase === "entering"} progress={props.runtime.current.entryProgress}
-      runtime={props.runtime} highlighted={props.mapHighlighted} onHighlight={props.onMapHighlight} onEnter={props.onEnter} />
+      runtime={props.runtime} highlighted={props.mapHighlighted} highlightedRiver={props.highlightedRiver} onHighlight={props.onMapHighlight} onRiverHover={props.onRiverHover} onRiverChange={props.onRiverChange} onEnter={props.onEnter} />
     <group name="WaterView" visible={!map}>
-    <PreviewWorld runtime={props.runtime} quality={props.quality} visible={!map} />
+    <PreviewWorld runtime={props.runtime} quality={props.quality} visible={!map} water={props.water} habitat={props.habitat} river={props.river} />
       <Suspense fallback={null}>
         {speciesWithIds.map((sp, i) => {
           return <FishSchool key={sp.modelUrl + i} modelUrl={sp.modelUrl} runtime={props.runtime} paused={props.paused || map || !props.state.ready}

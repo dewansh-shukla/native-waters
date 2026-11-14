@@ -2,6 +2,8 @@ import type { MutableRefObject } from "react";
 import type { Quaternion, Vector3 } from "three";
 import type { PipelineFixture } from "@/types/fixture";
 import type { SpeciesStudy } from "@/experience/species";
+import type { HabitatConfig } from "@/experience/riverProfiles";
+import type { WaterOptics } from "@/components/scene/world/waterOptics";
 
 export type Phase = "map" | "entering" | "exploring" | "following" | "story";
 export type QualityPreference = "AUTO" | "HIGH" | "LOW";
@@ -17,7 +19,7 @@ export type SceneRuntime = { time: number; entryProgress: number; fish: FishStat
 export type RuntimeRef = MutableRefObject<SceneRuntime>;
 export type AudioControls = { enabled: boolean; error: string | null; enable: () => void; disable: () => void };
 
-export type PreviewWorldProps = { runtime: RuntimeRef; quality: EffectiveQuality; visible: boolean };
+export type PreviewWorldProps = { runtime: RuntimeRef; quality: EffectiveQuality; visible: boolean; water?: WaterOptics; habitat?: HabitatConfig; river?: string };
 export type FishSchoolProps = {
   modelUrl: string; runtime: RuntimeRef; paused: boolean; visibleIds: string[];
   selectedId: string | null; onSelect: (id: string) => void;
@@ -30,7 +32,11 @@ export type ExperienceCameraProps = {
 };
 export type EntryMapProps = {
   visible: boolean; progress: number; highlighted: boolean;
-  onHighlight: (highlighted: boolean) => void; onEnter: () => void;
+  highlightedRiver?: string | null;
+  onHighlight: (highlighted: boolean) => void;
+  onRiverHover?: (river: string | null) => void;
+  onRiverChange?: (river: string) => void;
+  onEnter: (river?: string) => void;
   runtime: RuntimeRef;
 };
 export type ExperienceUIProps = {
@@ -43,14 +49,21 @@ export type ExperienceUIProps = {
   secondarySpeciesLabel?: string; speciesLabels?: Record<string, string>;
   speciesStudy?: Record<string, SpeciesStudy>;
   speciesModelUrls?: Record<string, string>;
+  selectedRiver?: string; onRiverChange?: (river: string) => void;
+  onRiverHover?: (river: string | null) => void;
 };
 export type ExperienceAudioProps = { phase: Phase; paused: boolean; runtime: RuntimeRef };
 
 export type ExperienceSceneProps = {
   modelUrl: string; additionalModelUrls?: string[]; species?: { modelUrl: string; fishIds: string[] }[];
+  entryAnchor?: Vector3;
+  highlightedRiver?: string | null;
+  onRiverHover?: (river: string | null) => void;
+  onRiverChange?: (river: string) => void;
   state: JourneyState; runtime: RuntimeRef; paused: boolean;
   reducedMotion: boolean; quality: EffectiveQuality; visibleIds: string[];
   mapHighlighted: boolean; onMapHighlight: (highlighted: boolean) => void;
   onReady: (ready: boolean) => void; onEntered: () => void;
-  onSelect: (id: string) => void; onHover: (id: string | null) => void; onEnter: () => void;
+  onSelect: (id: string) => void; onHover: (id: string | null) => void; onEnter: (river?: string) => void;
+  water?: WaterOptics; habitat?: HabitatConfig; river?: string;
 };

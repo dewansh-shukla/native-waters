@@ -4,7 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Native Waters — Experience preview",
-  description: "A geographic river overview and an illustrative underwater fish study."
+  description: "A geographic river overview and an illustrative underwater fish study.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
