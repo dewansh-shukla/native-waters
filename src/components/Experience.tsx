@@ -59,7 +59,8 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
     };
   }, []);
   const effectiveQuality = resolveQuality(quality, conservative, conservative);
-  const visibleIds = useMemo(() => visibleFishIds(effectiveQuality, state.selectedId), [effectiveQuality, state.selectedId]);
+  const availableFishIds = useMemo(() => species.flatMap(s => s.fishIds), [species]);
+  const visibleIds = useMemo(() => visibleFishIds(effectiveQuality, state.selectedId, availableFishIds), [effectiveQuality, state.selectedId, availableFishIds]);
   // LOW keeps only the six native fish, so fixtures and unlisted variants must
   // not fetch their assets at all: filter to species that still own a visible fish.
   const shownSpecies = useMemo(() => {

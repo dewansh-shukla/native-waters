@@ -8,7 +8,7 @@ from tools.blender.fish_specs import SPECIES, profile  # noqa: E402
 
 class SpecTests(unittest.TestCase):
     def test_species_and_variants(self):
-        self.assertEqual(set(SPECIES), {"arulius-barb", "zebra-danio"})
+        self.assertEqual(set(SPECIES), {"arulius-barb", "zebra-danio", "zebra-loach"})
         self.assertEqual(len(SPECIES["zebra-danio"].variants), 5)
         self.assertEqual(len(SPECIES["arulius-barb"].variants), 1)
 

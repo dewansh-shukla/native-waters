@@ -6,11 +6,21 @@ export type Placement = { position: [number, number, number]; scale: [number, nu
 export type Atmosphere = { fog: Fog; background: Color; previousFog: Scene["fog"]; previousBackground: Scene["background"]; active: boolean };
 
 export function bedHeight(x: number, z: number, variant?: unknown) {
-  if (variant === "ganga" || variant === "silty" || variant === "sandy" || variant === "sand") return gangaBedHeight(x, z);
-  if (variant && typeof variant === "object") {
-    const v = variant as { river?: unknown; bed?: unknown; bedType?: unknown; type?: unknown; kind?: unknown; style?: unknown; seed?: unknown; obstacles?: unknown };
-    if (v.river === "ganga" || v.bed === "silty" || v.bed === "ganga" || v.bed === "sandy" || v.bedType === "silty" || v.bedType === "ganga" || v.type === "silty" || v.type === "ganga" || v.kind === "silty" || v.kind === "ganga" || v.style === "silty" || v.style === "ganga" || v.seed === 2024) return gangaBedHeight(x, z);
-    if (Array.isArray(v.obstacles) && v.obstacles.length === 1) return gangaBedHeight(x, z);
+  let v: unknown = variant;
+  if (v && typeof v === "object" && "habitat" in (v as object) && typeof (v as { habitat?: unknown }).habitat === "object") {
+    const h = (v as { habitat: unknown }).habitat;
+    v = { ...(h as object), ...(v as object) };
+  }
+  if (v === "ganga" || v === "silty" || v === "sandy" || v === "sand") return gangaBedHeight(x, z);
+  if (v === "godavari" || v === "mixed") return godavariBedHeight(x, z);
+  if (v === "brahmaputra" || v === "rocky" || v === "rocky gravel" || v === "rocky_gravel" || v === "rockygravel") return brahmaputraBedHeight(x, z);
+  if (v && typeof v === "object") {
+    const o = v as { river?: unknown; bed?: unknown; bedType?: unknown; type?: unknown; kind?: unknown; style?: unknown; seed?: unknown; obstacles?: unknown };
+    if (o.river === "ganga" || o.bed === "silty" || o.bed === "ganga" || o.bed === "sandy" || o.bedType === "silty" || o.bedType === "ganga" || o.bedType === "sandy" || o.type === "silty" || o.type === "ganga" || o.kind === "silty" || o.kind === "ganga" || o.style === "silty" || o.style === "ganga" || o.seed === 2024) return gangaBedHeight(x, z);
+    if (Array.isArray(o.obstacles) && o.obstacles.length === 1) return gangaBedHeight(x, z);
+    if (o.river === "godavari" || o.bed === "mixed" || o.bed === "godavari" || o.bedType === "mixed" || o.bedType === "godavari" || o.type === "mixed" || o.type === "godavari" || o.kind === "mixed" || o.kind === "godavari" || o.style === "mixed" || o.style === "godavari" || o.seed === 2718) return godavariBedHeight(x, z);
+    if (o.river === "brahmaputra" || o.bed === "rocky gravel" || o.bed === "rocky_gravel" || o.bed === "brahmaputra" || o.bedType === "rocky gravel" || o.bedType === "rocky_gravel" || o.bedType === "brahmaputra" || o.type === "brahmaputra" || o.kind === "brahmaputra" || o.style === "brahmaputra" || o.seed === 9021) return brahmaputraBedHeight(x, z);
+    if (Array.isArray(o.obstacles) && o.obstacles.length === 4) return brahmaputraBedHeight(x, z);
   }
   return HABITAT.floorY + .055 * Math.sin(x * .8) * Math.cos(z * .7) + .025 * Math.sin(z * 2 + x);
 }
@@ -20,12 +30,40 @@ export function gangaBedHeight(x: number, z: number) {
   return HABITAT.floorY + .018 * Math.sin(x * 1.7) * Math.cos(z * 1.5) + .012 * Math.sin(z * 3.2 + x * .9) + .006 * Math.sin(x * 4.1 + z * 2.7);
 }
 
+// Godavari mixed rocky/sandy bed: rocky bumps over a sandy ripple floor.
+export function godavariBedHeight(x: number, z: number) {
+  return HABITAT.floorY
+    + .032 * Math.sin(x * .9) * Math.cos(z * .8)
+    + .026 * Math.sin(z * 2.1 + x * .5)
+    + .014 * Math.sin(x * 3.3 + z * 2.9)
+    + .009 * Math.cos(z * 4.7 - x * 1.8)
+    + .006 * Math.sin(x * 5.1 + z * 1.3);
+}
+
+// Brahmaputra rocky gravel bed: boulders and sand patches over a gravel floor.
+export function brahmaputraBedHeight(x: number, z: number) {
+  return HABITAT.floorY
+    + .045 * Math.sin(x * .6) * Math.cos(z * .5)
+    + .038 * Math.sin(z * 1.4 + x * .7)
+    + .022 * Math.sin(x * 2.7 + z * 1.9)
+    + .015 * Math.cos(z * 3.9 - x * 1.2)
+    + .010 * Math.sin(x * 5.3 + z * 2.1)
+    + .008 * Math.sin(z * 6.1 + x * 3.4);
+}
+
 // Aliases for callers/tests that use alternate naming.
 export const siltyBedHeight = gangaBedHeight;
 export const sandyBedHeight = gangaBedHeight;
 export const gangaBed = gangaBedHeight;
 export const bedHeightGanga = gangaBedHeight;
 export const gangaSiltyBedHeight = gangaBedHeight;
+export const mixedBedHeight = godavariBedHeight;
+export const godavariBed = godavariBedHeight;
+export const bedHeightGodavari = godavariBedHeight;
+export const godavariMixedBedHeight = godavariBedHeight;
+export const brahmaputraBed = brahmaputraBedHeight;
+export const bedHeightBrahmaputra = brahmaputraBedHeight;
+export const rockyGravelBedHeight = brahmaputraBedHeight;
 
 type PlacementOptions = {
   seed?: number;
@@ -63,7 +101,24 @@ function normalizePlacementOptions(input?: number | PlacementOptions | null): { 
       || raw.style === "silty" || raw.style === "ganga" || raw.style === "sandy"
       || seed === 2024
       || (Array.isArray(raw.obstacles) && raw.obstacles.length === 1);
+    const godavari = raw.river === "godavari"
+      || raw.bed === "mixed" || raw.bed === "godavari"
+      || raw.bedType === "mixed" || raw.bedType === "godavari"
+      || raw.type === "mixed" || raw.type === "godavari"
+      || raw.kind === "mixed" || raw.kind === "godavari"
+      || raw.style === "mixed" || raw.style === "godavari"
+      || seed === 2718;
+    const brahmaputra = raw.river === "brahmaputra"
+      || raw.bed === "rocky" || raw.bed === "rocky gravel" || raw.bed === "rocky_gravel" || raw.bed === "brahmaputra"
+      || raw.bedType === "rocky" || raw.bedType === "rocky gravel" || raw.bedType === "rocky_gravel" || raw.bedType === "brahmaputra"
+      || raw.type === "rocky" || raw.type === "brahmaputra"
+      || raw.kind === "rocky" || raw.kind === "brahmaputra"
+      || raw.style === "rocky" || raw.style === "brahmaputra"
+      || seed === 9021
+      || (Array.isArray(raw.obstacles) && raw.obstacles.length === 4);
     if (ganga) bed = gangaBedHeight;
+    else if (godavari) bed = godavariBedHeight;
+    else if (brahmaputra) bed = brahmaputraBedHeight;
   }
   return { seed, obstacles, bed };
 }

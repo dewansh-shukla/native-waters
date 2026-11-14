@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "D:\AI\native-waters\tools\blender\create_moreh_loach.py", line 70, in <module>
+    import tools.blender.create_fish_species as cfs
+  File "D:\AI\native-waters\tools\blender\create_fish_species.py", line 27, in <module>
+    from tools.blender.fish_textures import (FIN_REGIONS, body_albedo,  # noqa: E402
+    ...<2 lines>...
+                                             srgb_to_linear)
+ImportError: cannot import name 'eye_albedo' from 'tools.blender.fish_textures' (D:\AI\native-waters\tools\blender\fish_textures.py)
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:37:16)
+
+Blender quit

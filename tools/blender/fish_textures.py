@@ -60,17 +60,24 @@ def eye_uv_radii(spec):
     return world / spec.body_length, world / girth
 
 
-def _scale_lattice(size):
+def _scale_lattice(size, cells=None):
     """(column index, row index, across-cell, down-cell) of the scale lattice.
 
     Scales are laid like roof tiles: each row is offset by half a scale, and
     the lattice is warped so the flank does not read as chainmail. Both the
     relief and the arulius sparkle sample this one lattice, so a glint always
     lands on a scale crown rather than in a groove.
+
+    `cells` is the species' (along-body, around-girth) scale count. Chela
+    carries 51-56 lateral-line scales, roughly twice the default lattice, and
+    the count is the difference between a silver fish and a smooth plastic toy.
     """
     u, v = _grid(size)
-    cells_u = 27.0 if size >= 1024 else 18.0
-    cells_v = 35.0 if size >= 1024 else 23.0
+    if cells is None:
+        cells_u, cells_v = (27.0, 35.0) if size >= 1024 else (18.0, 23.0)
+    else:
+        shrink = 1.0 if size >= 1024 else 0.67
+        cells_u, cells_v = cells[0] * shrink, cells[1] * shrink
     warp_u = (0.42 * np.sin(TAU * (v * 2.0 + 0.13))
               + 0.18 * np.sin(TAU * (u * 3.0 - v * 5.0)))
     warp_v = (0.26 * np.sin(TAU * (u * 2.0 + 0.31))
@@ -82,7 +89,7 @@ def _scale_lattice(size):
     return columns, rows, su - columns, sv - rows
 
 
-def _scale_height(size=512, detail=False):
+def _scale_height(size=512, detail=False, cells=None):
     """Height of the scale lattice, 0 in a groove and 1 on a crown.
 
     Scales are laid like roof tiles: each row is offset by half a scale, and
@@ -95,7 +102,7 @@ def _scale_height(size=512, detail=False):
     `detail` gives the arulius per-scale size variation: some scales sit
     flatter and some stand prouder, which is what breaks the tiled look.
     """
-    _, _, cell_u, cell_v = _scale_lattice(size)
+    _, _, cell_u, cell_v = _scale_lattice(size, cells)
     # A cycloid scale: rounded across, with a longer exposed lip at the rear.
     crown = np.sin(np.pi * cell_u) ** 0.65
     exposed = np.clip((cell_v - 0.28) / 0.52, 0.0, 1.0)
@@ -112,9 +119,9 @@ def _scale_height(size=512, detail=False):
     return (height - height.min()) / (height.max() - height.min())
 
 
-def _scale_sparkle(size):
+def _scale_sparkle(size, cells=None):
     """Sparse per-scale glints, 0..1, aligned to the scale crowns."""
-    columns, rows, cell_u, cell_v = _scale_lattice(size)
+    columns, rows, cell_u, cell_v = _scale_lattice(size, cells)
     seed = np.sin(columns * 127.1 + rows * 311.7) * 43758.5453
     seed = seed - np.floor(seed)
     crown = np.sin(np.pi * cell_u) ** 2
@@ -171,22 +178,32 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     # olive and the flank a warm brass, which is what the live fish shows; a
     # neutral silver is what made the old render read as white plastic.
     silver = np.asarray((0.50, 0.52, 0.55), np.float32)
-    if spec.pattern == "stripes":
+    if spec.pattern == "band":
+        # A silver fish: cool mirror flank under an olive back, whitish belly.
+        # The old flat sage body was the single biggest reason the model read
+        # as plastic rather than as a live Chela.
+        back = np.asarray((0.085, 0.110, 0.065), np.float32)
+        silver = np.asarray((0.60, 0.64, 0.66), np.float32)
+        silver_mix = 0.34
+    elif spec.pattern == "stripes":
         back = np.asarray((0.18, 0.22, 0.25), np.float32)
         silver_mix = 0.22
     else:
         back = np.asarray((0.115, 0.125, 0.075), np.float32)
         silver = np.asarray((0.64, 0.62, 0.54), np.float32)
         silver_mix = 0.50
-    dorsal_mix = 0.55 if spec.pattern == "stripes" else 0.82
+    dorsal_mix = {"stripes": 0.55, "band": 0.80}.get(spec.pattern, 0.82)
     rgb = rgb * (1.0 - dorsal_mix * dorsal[..., None]) + back * (dorsal_mix * dorsal[..., None])
     rgb = rgb * (1.0 - silver_mix * flank[..., None]) + silver * (silver_mix * flank[..., None])
-    belly_mix = 0.50 if spec.pattern == "stripes" else 0.64
+    belly_mix = {"stripes": 0.50, "band": 0.74}.get(spec.pattern, 0.64)
     rgb = rgb * (1.0 - belly_mix * belly[..., None]) + pale * (belly_mix * belly[..., None])
     # Iridescence: a narrow gold-green sheen along the upper flank where the
     # light catches the scale edges, and a cool blue one on the danios.
     sheen_band = np.clip(1.0 - np.abs(height - 0.52) / 0.34, 0.0, 1.0) * flank
-    if spec.pattern == "stripes":
+    if spec.pattern == "band":
+        sheen = np.asarray((0.30, 0.42, 0.32), np.float32)
+        sheen_mix = 0.14
+    elif spec.pattern == "stripes":
         sheen = np.asarray((0.24, 0.40, 0.58), np.float32)
         sheen_mix = 0.10
     else:
@@ -195,14 +212,19 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     rgb = (rgb * (1.0 - sheen_mix * sheen_band[..., None])
            + sheen * (sheen_mix * sheen_band[..., None]))
 
-    detailed = spec.pattern == "blotches"
-    scales = _scale_height(size, detail=detailed)
+    detailed = spec.pattern in ("blotches", "spots")
+    scales = _scale_height(size, detail=detailed, cells=spec.scale_cells)
     rgb *= (0.976 + 0.024 * scales)[..., None]
     if detailed:
         # Wet, glancing scales: sparse per-scale highlights over the brass
         # flank. Without these the flank is one flat wash at aquarium distance.
         sparkle = _scale_sparkle(size) * flank
         rgb *= (1.0 + 0.24 * sparkle[..., None])
+    elif spec.pattern == "band":
+        # Silver fish glint on a minority of scale crowns; that sparse specular
+        # is what separates lit metal from a grey gradient.
+        sparkle = _scale_sparkle(size, spec.scale_cells) * flank
+        rgb *= (1.0 + 0.20 * sparkle[..., None])
 
     # Flank markings. The Arulius carries three irregular blotches; the danios
     # carry five horizontal navy stripes around both flanks plus a dark
@@ -232,7 +254,7 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
         preorbital = (np.exp(-((u - bar_u) / 0.013) ** 2)
                       * np.exp(-((height / 0.42) ** 2)))
         rgb = rgb * (1.0 - 0.34 * preorbital[..., None]) + stripe * (0.34 * preorbital[..., None])
-    else:
+    elif spec.pattern == "blotches":
         # The live fish carries two broad, soft-edged vertical bars and a
         # smaller saddle over the caudal peduncle. They are painted patches,
         # not stamped ovals: each edge wanders, the fill is a green-black, and
@@ -277,10 +299,44 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
         brow = (np.exp(-((u - 0.115) / 0.105) ** 2)
                 * _smoothstep((height - 0.18) / 0.42))
         rgb *= (1.0 - 0.24 * brow[..., None])
+    elif spec.pattern == "spots":
+        # Two round black spots on each flank: one before the pectoral fin
+        # (4th lateral-line scale) and one near the caudal peduncle.
+        spot_mask = np.zeros_like(height)
+        for (su, sv) in ((0.18, 0.0), (0.18, 0.5),
+                         (0.78, 0.0), (0.78, 0.5)):
+            du = u - su
+            dv = ((v - sv + 0.5) % 1.0) - 0.5
+            dist = np.sqrt((du / 0.05) ** 2 + (dv / 0.08) ** 2)
+            spot_mask = np.maximum(spot_mask, np.clip(1.0 - dist, 0.0, 1.0))
+        spot_mask = _smoothstep(spot_mask)
+        fill = _rgb("#0a0a0a")
+        rgb = rgb * (1.0 - spot_mask[..., None]) + fill * spot_mask[..., None]
+    elif spec.pattern == "band":
+        # One greenish longitudinal band from the dorsal-fin level to the
+        # caudal base, riding a lateral line that dips over the abdomen and
+        # rises again at the peduncle. Soft-edged and thin: sheen in the skin,
+        # not a painted ribbon.
+        window = _smoothstep((u - 0.26) / 0.10) * _smoothstep((0.94 - u) / 0.06)
+        dip = np.sin(pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
+        centre = 0.06 - 0.20 * dip
+        band = _smoothstep(np.clip((0.20 - np.abs(height - centre)) / 0.16, 0.0, 1.0))
+        band *= window * flank
+        rgb = rgb * (1.0 - 0.30 * band[..., None]) + stripe * (0.30 * band[..., None])
+        # A lit silver edge rides above the pigment band where the flank
+        # catches the sky along the lateral line.
+        rim = np.exp(-((height - centre - 0.20) / 0.05) ** 2) * window * flank
+        rgb *= (1.0 + 0.10 * rim[..., None])
+        # Keeled chest: the ventral midline from the pectoral to the vent is a
+        # sharp ridge, so it holds a bright edge against the shadowed belly.
+        keel = (np.exp(-((v - 0.75) / 0.016) ** 2)
+                * np.clip((u - 0.30) / 0.08, 0.0, 1.0)
+                * np.clip((0.80 - u) / 0.06, 0.0, 1.0))
+        rgb *= (1.0 + 0.09 * keel[..., None])
 
     # Operculum: a curved seam with a pale lip behind it. The edge leans
     # forward toward the dorsal and ventral seams, as on a real gill cover.
-    gill_base = 0.20 if spec.pattern == "stripes" else 0.236
+    gill_base = {"stripes": 0.20, "band": 0.245}.get(spec.pattern, 0.236)
     gill_u = gill_base - 0.020 * np.abs(height) ** 1.2
     side_band = np.clip(1.0 - np.abs(height) ** 3, 0.0, 1.0)
     gill = np.exp(-((u - gill_u) / 0.009) ** 2) * side_band
@@ -298,8 +354,16 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     lip = np.exp(-((u - 0.004) / 0.012) ** 2) * (
         np.exp(-((v - 0.060) / 0.055) ** 2) + np.exp(-((v - 0.440) / 0.055) ** 2))
     rgb *= (1.0 - 0.55 * lip[..., None])
-    # Lateral line: a faint canal groove with a brighter edge above it.
-    lateral = np.exp(-(height / 0.045) ** 2) * np.clip((u - 0.05) / 0.10, 0.0, 1.0)
+    # Lateral line: a faint canal groove with a brighter edge above it. On the
+    # hatchet it follows the same dip as the pigment band instead of a straight
+    # rule across the flank.
+    if spec.pattern == "band":
+        ll_centre = 0.06 - 0.20 * np.sin(pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
+        lateral = (np.exp(-((height - ll_centre) / 0.035) ** 2)
+                   * np.clip((u - 0.10) / 0.10, 0.0, 1.0)
+                   * np.clip((0.96 - u) / 0.05, 0.0, 1.0))
+    else:
+        lateral = np.exp(-(height / 0.045) ** 2) * np.clip((u - 0.05) / 0.10, 0.0, 1.0)
     rgb *= (1.0 - 0.07 * lateral[..., None])
 
     # Cheek shadow under the eye, a jaw crease running back from the mouth
@@ -355,17 +419,24 @@ def body_normal(spec, size, path=None):
     same world-space relief instead of the larger one washing out.
     """
     u, v = _grid(size)
-    height = _scale_height(size, detail=spec.pattern == "blotches")
+    height = _scale_height(size, detail=spec.pattern in ("blotches", "spots"),
+                           cells=spec.scale_cells)
     signed = _body_height(v)
     # Scaleless head: fade the scale relief out ahead of the operculum.
     head = np.clip((u - 0.215) / 0.040, 0.0, 1.0)
     field = 0.5 + (height - 0.5) * 0.58 * head
     # Lateral line: a canal groove with a raised rim, only along the flank.
-    lateral = np.exp(-(signed / 0.035) ** 2)
+    if spec.pattern == "band":
+        line = signed - (0.06 - 0.20 * np.sin(
+            pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0)))
+    else:
+        line = signed
+    lateral = np.exp(-(line / 0.035) ** 2)
     field -= 0.09 * lateral
-    field += 0.04 * np.exp(-((np.abs(signed) - 0.075) / 0.030) ** 2)
+    field += 0.04 * np.exp(-((np.abs(line) - 0.075) / 0.030) ** 2)
     # Operculum seam and mouth crease, matching the sculpted geometry.
-    gill_base = 0.236 if spec.pattern == "blotches" else 0.20
+    gill_base = {"stripes": 0.20, "band": 0.245}.get(
+        spec.pattern, 0.236 if spec.pattern in ("blotches", "spots") else 0.20)
     gill_u = gill_base - 0.020 * np.abs(signed) ** 1.2
     band = np.clip(1.0 - np.abs(signed) ** 3, 0.0, 1.0)
     field -= 0.16 * np.exp(-((u - gill_u) / 0.006) ** 2) * band
@@ -390,14 +461,22 @@ def body_normal(spec, size, path=None):
 def body_orm(spec, size, path=None):
     """(unused, roughness, metallic): a wet flank around 0.25-0.32."""
     u, v = _grid(size)
-    height = _scale_height(size, detail=spec.pattern == "blotches")
+    height = _scale_height(size, detail=spec.pattern == "blotches",
+                           cells=spec.scale_cells)
     cavity = 0.60 + 0.40 * height
     belly = np.clip(-np.sin(TAU * v), 0.0, 1.0)
     # Ridged scale crowns catch the light and the grooves between them hold a
     # little more scatter; the belly is duller than the flank.
     roughness = 0.255 + 0.050 * (1.0 - height) + 0.030 * belly
     roughness = np.clip(roughness, 0.24, 0.34)
-    rgb = np.stack((cavity, roughness, np.zeros_like(height)), axis=2)
+    # A silver fish is a dielectric mirror, not a painted surface. A modest
+    # metallic on the flank keeps the albedo from reading as white plastic
+    # under the water HDRI; the belly stays dielectric.
+    metallic = np.zeros_like(height)
+    if spec.flank_metallic:
+        flank = np.clip(1.0 - np.abs(_body_height(v)) ** 3, 0.0, 1.0)
+        metallic = spec.flank_metallic * flank
+    rgb = np.stack((cavity, roughness, metallic), axis=2)
     return _image("FishBody - ORM", _rgba(rgb), path, "PNG", "Non-Color")
 
 
@@ -434,6 +513,23 @@ FIN_STYLES = {
         "pelvic": {"colour": "#b06a5c", "rays": 9, "alpha": (0.72, 0.28),
                    "lead": 0.08, "margin": "#e6d6c6",
                    "margin_start": 0.78, "margin_mix": 0.30},
+    },
+    "ticto-barb": {
+        "dorsal": {"colour": "#c8c0b0", "rays": 12, "alpha": (0.85, 0.40),
+                    "lead": 0.06, "margin": "#e8e0d0",
+                    "margin_start": 0.62, "margin_mix": 0.22, "spots": True},
+        "caudal": {"colour": "#d8d0c0", "rays": 19, "alpha": (0.90, 0.45),
+                    "lead": 0.06, "margin": "#f0e8d8",
+                    "margin_start": 0.74, "margin_mix": 0.30},
+        "anal": {"colour": "#d8d0c0", "rays": 8, "alpha": (0.90, 0.48),
+                  "lead": 0.06, "margin": "#f0e8d8",
+                  "margin_start": 0.76, "margin_mix": 0.28},
+        "pectoral": {"colour": "#dcd6c8", "rays": 16, "alpha": (0.55, 0.14),
+                      "lead": 0.04, "margin": "#f2ece0",
+                      "margin_start": 0.75, "margin_mix": 0.12},
+        "pelvic": {"colour": "#d8d0c0", "rays": 9, "alpha": (0.70, 0.28),
+                    "lead": 0.05, "margin": "#ece6d8",
+                    "margin_start": 0.78, "margin_mix": 0.24},
     },
 }
 

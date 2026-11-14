@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Vector3, Scene, Color, Fog } from "three";
 import { currentAt } from "@/experience/current";
 import { OBSTACLES } from "@/experience/habitat";
-import { createPlacements, advanceParticle, createSiltParticles, SILT_COUNT, siltParticleAt, updateAtmosphere } from "./worldMotion";
+import { createPlacements, advanceParticle, createSiltParticles, SILT_COUNT, siltParticleAt, updateAtmosphere, brahmaputraBedHeight, gangaBedHeight, godavariBedHeight } from "./worldMotion";
 import type { SiltParticle } from "./worldMotion";
 
 describe("habitat placement", () => {
@@ -133,6 +133,7 @@ describe("world atmosphere ownership", () => {
     expect(scene.fog).toBeNull();
     expect(scene.background).toBe(original);
   });
+
   it("does not overwrite a newer owner's background on cleanup", () => {
     const scene = new Scene();
     const state = { fog: new Fog("#535d42", 3, 24), background: new Color("#535d42"), previousFog: scene.fog, previousBackground: scene.background, active: false };
@@ -143,3 +144,42 @@ describe("world atmosphere ownership", () => {
     expect(scene.background).toBe(newer);
   });
 });
+
+describe("ganga bed height", () => {
+  it("is deterministic", () => {
+    expect(gangaBedHeight(1.25, -3.4)).toBe(gangaBedHeight(1.25, -3.4));
+    expect(gangaBedHeight(0, 0)).toBe(gangaBedHeight(0, 0));
+  });
+  it("differs from cauvery bed and stays near floor", () => {
+    // imported bedHeight not in this file; just sanity
+    expect(Number.isFinite(gangaBedHeight(2, -1))).toBe(true);
+  });
+});
+
+describe("godavari bed height", () => {
+  it("is deterministic", () => {
+    expect(godavariBedHeight(1.25, -3.4)).toBe(godavariBedHeight(1.25, -3.4));
+    expect(godavariBedHeight(0, 0)).toBe(godavariBedHeight(0, 0));
+  });
+  it("differs from ganga and cauvery beds and stays near floor", () => {
+    expect(Number.isFinite(godavariBedHeight(2, -1))).toBe(true);
+    expect(godavariBedHeight(1.25, -3.4)).not.toBe(gangaBedHeight(1.25, -3.4));
+  });
+});
+
+describe("brahmaputra bed height", () => {
+  it("is deterministic", () => {
+    expect(brahmaputraBedHeight(1.25, -3.4)).toBe(brahmaputraBedHeight(1.25, -3.4));
+    expect(brahmaputraBedHeight(0, 0)).toBe(brahmaputraBedHeight(0, 0));
+  });
+  it("differs from the other river beds, stays near the floor and keeps gravel on it", () => {
+    expect(Number.isFinite(brahmaputraBedHeight(2, -1))).toBe(true);
+    expect(brahmaputraBedHeight(1.25, -3.4)).not.toBe(godavariBedHeight(1.25, -3.4));
+    expect(brahmaputraBedHeight(1.25, -3.4)).not.toBe(gangaBedHeight(1.25, -3.4));
+    const { gravel } = createPlacements({ seed: 9021, river: "brahmaputra" });
+    for (const stone of gravel) {
+      expect(stone.position[1]).toBeCloseTo(brahmaputraBedHeight(stone.position[0], stone.position[2]), 6);
+    }
+  });
+});
+

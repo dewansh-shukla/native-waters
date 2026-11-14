@@ -1,0 +1,37 @@
+{
+  "species": "rhino-garra",
+  "lod": "low",
+  "triangles": 1504,
+  "vertices": 853,
+  "materials": [
+    "FishBody",
+    "FishFin"
+  ],
+  "bones": [
+    "Root",
+    "Head",
+    "Spine.01",
+    "Spine.02",
+    "Spine.03",
+    "Tail.01",
+    "TailFin",
+    "TailFin.U",
+    "TailFin.L",
+    "AnalFin",
+    "AnalRay.1",
+    "AnalRay.2",
+    "Dorsal",
+    "Dorsal.Ray.1",
+    "Dorsal.Ray.2",
+    "Dorsal.Ray.3",
+    "Pectoral.L",
+    "Pelvic.L",
+    "Pectoral.R",
+    "Pelvic.R",
+    "Jaw",
+    "Gill.L",
+    "Gill.R"
+  ],
+  "bytes": 196888,
+  "variant": "rhino-garra"
+}

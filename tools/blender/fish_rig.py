@@ -69,6 +69,8 @@ FIN_RAYS = {
 SPECIES_RAYS = {
     "arulius-barb": {"dorsal": 12, "anal": 8, "caudal": 19, "pectoral": 16, "pelvic": 9},
     "zebra-danio": {"dorsal": 9, "anal": 14, "caudal": 19, "pectoral": 13, "pelvic": 8},
+    "badis": {"dorsal": 12, "anal": 8, "caudal": 19, "pectoral": 16, "pelvic": 9},
+    "zebra-loach": {"dorsal": 9, "anal": 7, "caudal": 15, "pectoral": 12, "pelvic": 7},
 }
 
 _HEAD_X = -0.55
@@ -185,6 +187,35 @@ def _anal_origin(spec):
     return bl * MEASUREMENTS.get(spec.slug, {}).get("anal_origin_SL", 0.55) - 1.0
 
 
+# Fin proportions in body units. A species only declares what differs from the
+# barb default; every number here used to be an `if slug == "arulius-barb"`
+# branch inside fin_points, which made a second fin plan impossible.
+_FIN_DEFAULTS = {
+    "dorsal_base": 0.30, "dorsal_height": 0.085,
+    "anal_base": 0.18, "anal_height": 0.060,
+    "pectoral_origin": 0.480, "pectoral_reach": 0.155, "pectoral_lift": 0.075,
+    "pelvic_origin": 0.670, "pelvic_reach": 0.105, "pelvic_lift": 0.030,
+    "pelvic_lead": 0.0,
+}
+
+
+def fin_shape(spec):
+    """Per-species fin proportions in body units.
+
+    Lengths scale with body length; the origins are stored as a fraction of SL
+    so a species with a small head can hang its pectoral fin right behind the
+    operculum instead of at a fixed x.
+    """
+    raw = MEASUREMENTS.get(spec.slug, {})
+    bl = spec.body_length
+    shape = {}
+    for key, default in _FIN_DEFAULTS.items():
+        shape[key] = bl * raw.get(key + "_SL", default / bl)
+    for key in ("pectoral_origin", "pelvic_origin"):
+        shape[key] = -1.0 + bl * raw.get(key + "_SL", _FIN_DEFAULTS[key] / bl)
+    return shape
+
+
 def fin_points(spec, rays):
     """Root/tip polylines for every fin, in body space.
 
@@ -194,14 +225,16 @@ def fin_points(spec, rays):
     deforms.
     """
     bl = spec.body_length
+    shape = fin_shape(spec)
     points = {}
 
-    # Dorsal: long-based, tallest at the leading branched ray, concave trailing
-    # edge. Arulius has 12 rays; the danio's 9 are shorter and rounded.
+    # Dorsal: long-based on the Arulius, short-based on a danionine. The
+    # leading ray is the tallest and the trailing edge dips concave so the fin
+    # reads as a sail, not a triangle.
     count = rays["dorsal"]
     base_x = _dorsal_origin(spec)
-    base_len = 0.40 if spec.slug == "arulius-barb" else 0.30
-    tall = 0.165 if spec.slug == "arulius-barb" else 0.085
+    base_len = shape["dorsal_base"]
+    tall = shape["dorsal_height"]
     roots, tips = [], []
     for index in range(count):
         t = index / (count - 1)
@@ -231,11 +264,13 @@ def fin_points(spec, rays):
                      centre + across * base * 2.35 * edge))
     points["caudal"] = (roots, tips)
 
-    # Anal: shorter than the dorsal but longer-based than the old stub.
+    # Anal: the longest-based median fin. On Chela it carries 19-23 rays and
+    # runs a quarter of the body, so the base is a species value rather than a
+    # fixed stub.
     count = rays["anal"]
     anal_x0 = _anal_origin(spec)
-    base_len = 0.24 if spec.slug == "arulius-barb" else 0.18
-    tall = 0.105 if spec.slug == "arulius-barb" else 0.060
+    base_len = shape["anal_base"]
+    tall = shape["anal_height"]
     roots, tips = [], []
     for index in range(count):
         t = index / (count - 1)
@@ -248,32 +283,42 @@ def fin_points(spec, rays):
     points["anal"] = (roots, tips)
 
     for side, label in ((-1, "L"), (1, "R")):
-        # Pectoral: a fan behind the operculum that reaches the pelvic origin.
+        # Pectoral: a fan behind the operculum that reaches toward the pelvic
+        # origin. The origin is a fraction of SL, so a short head still puts the
+        # fin behind the gill cover rather than at a fixed x on every species.
         count = rays["pectoral"]
         roots, tips = [], []
         for index in range(count):
             t = index / (count - 1)
-            x = -0.520 + 0.055 * t
+            x = shape["pectoral_origin"] + 0.055 * t
             half_height, half_width, centre = profile(spec.slug, (x + 1.0) / bl)
             roots.append((x, side * half_width * 0.80,
                           centre + half_height * (0.10 - 0.36 * t)))
-            reach = 0.155 + 0.075 * sin(pi * t) ** 0.8
+            reach = shape["pectoral_reach"] + shape["pectoral_lift"] * sin(pi * t) ** 0.8
             tips.append((x - 0.030 + reach * 0.92,
                          side * (half_width * 0.80 + 0.030 * sin(pi * t)),
                          centre + half_height * (0.02 - 0.62 * t) - 0.045 * sin(pi * t)))
         points["pectoral." + label] = (roots, tips)
 
-        # Pelvic: a small fan under the belly, angled back and out.
+        # Pelvic: a small fan under the belly, angled back and out. `pelvic_lead`
+        # is the species' elongate first ray - on Chela it runs almost to the
+        # end of the anal fin, which is diagnostic and reads at a glance.
         count = rays["pelvic"]
         roots, tips = [], []
+        lead = shape["pelvic_lead"]
         for index in range(count):
             t = index / (count - 1)
-            x = -0.330 + 0.070 * t
+            x = shape["pelvic_origin"] + 0.070 * t
             half_height, half_width, centre = profile(spec.slug, (x + 1.0) / bl)
             roots.append((x, side * half_width * 0.42,
                           centre - half_height * 0.80))
-            reach = 0.105 + 0.030 * sin(pi * t)
-            tips.append((x + reach * 0.85,
+            if lead > 0.0:
+                reach = lead * (1.0 - 0.72 * t) + 0.020 * sin(pi * t)
+                span = 0.95
+            else:
+                reach = shape["pelvic_reach"] + shape["pelvic_lift"] * sin(pi * t) ** 0.8
+                span = 0.85
+            tips.append((x + reach * span,
                          side * half_width * (0.58 + 0.18 * t),
                          centre - half_height * (1.02 + 0.10 * sin(pi * t))))
         points["pelvic." + label] = (roots, tips)

@@ -7,7 +7,7 @@ import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { SILT_COUNT, advanceParticle, bedHeight, createPlacements, createSiltParticles, gangaBedHeight, siltParticleAt, updateAtmosphere } from "./worldMotion";
+import { SILT_COUNT, advanceParticle, bedHeight, brahmaputraBedHeight, createPlacements, createSiltParticles, gangaBedHeight, godavariBedHeight, siltParticleAt, updateAtmosphere } from "./worldMotion";
 import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
@@ -29,8 +29,27 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     || habitat?.bedType === "silty" || habitat?.bedType === "ganga" || habitat?.bedType === "sandy"
     || (habitat as { type?: string } | undefined)?.type === "silty" || (habitat as { type?: string } | undefined)?.type === "ganga"
     || (habitat as { kind?: string } | undefined)?.kind === "silty" || (habitat as { kind?: string } | undefined)?.kind === "ganga"
+    || (habitat as { style?: string } | undefined)?.style === "silty" || (habitat as { style?: string } | undefined)?.style === "ganga" || (habitat as { style?: string } | undefined)?.style === "sandy"
     || (Array.isArray(habitat?.obstacles) && habitat!.obstacles.length === 1 && habitat!.obstacles[0]?.radius === 0.8);
-  const bedFn = isGanga ? gangaBedHeight : bedHeight;
+  const isGodavari = river === "godavari"
+    || habitat?.seed === 2718
+    || habitat?.bed === "mixed" || habitat?.bed === "godavari"
+    || habitat?.bedType === "mixed" || habitat?.bedType === "godavari"
+    || (habitat as { type?: string } | undefined)?.type === "mixed" || (habitat as { type?: string } | undefined)?.type === "godavari"
+    || (habitat as { kind?: string } | undefined)?.kind === "mixed" || (habitat as { kind?: string } | undefined)?.kind === "godavari"
+    || (habitat as { style?: string } | undefined)?.style === "mixed" || (habitat as { style?: string } | undefined)?.style === "godavari";
+  const isBrahmaputra = river === "brahmaputra"
+    || habitat?.seed === 9021
+    || habitat?.bed === "rocky" || habitat?.bed === "rocky gravel" || habitat?.bed === "rocky_gravel" || habitat?.bed === "brahmaputra"
+    || habitat?.bedType === "rocky" || habitat?.bedType === "rocky gravel" || habitat?.bedType === "rocky_gravel" || habitat?.bedType === "brahmaputra"
+    || (habitat as { type?: string } | undefined)?.type === "rocky" || (habitat as { type?: string } | undefined)?.type === "brahmaputra"
+    || (habitat as { kind?: string } | undefined)?.kind === "rocky" || (habitat as { kind?: string } | undefined)?.kind === "brahmaputra"
+    || (habitat as { style?: string } | undefined)?.style === "rocky" || (habitat as { style?: string } | undefined)?.style === "brahmaputra"
+    || (Array.isArray(habitat?.obstacles) && habitat!.obstacles.length === 4);
+  const bedFn = isBrahmaputra ? brahmaputraBedHeight : isGodavari ? godavariBedHeight : isGanga ? gangaBedHeight : bedHeight;
+  // Brahmaputra gravel is cooler and greyer than the Cauvery's warm stone.
+  const boulderColor = isBrahmaputra ? "#5f6a63" : "#6b6055";
+  const gravelColor = isBrahmaputra ? "#7c847a" : "#8a7a60";
   const placements = useMemo(() => createPlacements({ seed: habitat?.seed, obstacles: habitat?.obstacles, bedHeight: bedFn, river, habitat }), [habitat, bedFn, river]);
   // Rock/pebble variant plan: index-keyed buckets ((i + salt) % variantCount)
   // so every placement renders exactly once across the batches; obstacle
@@ -86,11 +105,11 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
 
   useLayoutEffect(() => {
     // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
-    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, "#6b6055", { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
-    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, "#8a7a60", { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
+    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, boulderColor, { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
+    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, gravelColor, { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
     fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
     fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
-  }, [rockPlans, gravelPlans, placements, grassPlacements]);
+  }, [rockPlans, gravelPlans, placements, grassPlacements, boulderColor, gravelColor]);
   useLayoutEffect(() => {
     if (worldGroup.current) worldGroup.current.userData.underwaterEnvironment = env;
   }, [env]);
