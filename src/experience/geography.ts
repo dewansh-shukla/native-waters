@@ -34,6 +34,7 @@ const partLength = (part: readonly LonLat[]) => part.slice(1).reduce((sum, point
 const longestRiverPart = riverParts.reduce((longest, part) => partLength(part) > partLength(longest) ? part : longest);
 // An existing interior vertex, not an interpolated point or a lake centerline.
 export const CAUVERY_ANCHOR: Vector3 = projectLonLat(longestRiverPart[Math.floor(longestRiverPart.length / 2)]);
+export const cauveryAnchor = CAUVERY_ANCHOR;
 
 export interface RiverCourse { name: string; parts: readonly LineCoordinates[] }
 
@@ -42,6 +43,15 @@ export const TRIBUTARY_RIVERS: readonly RiverCourse[] = (riversGeo as unknown as
   features: { properties: { name: string }; geometry: { coordinates: LineCoordinates[] } }[];
 }).features.map((feature) => ({ name: feature.properties.name, parts: feature.geometry.coordinates }));
 
+const gangaRiverCourse = TRIBUTARY_RIVERS.find((river) => river.name === "Ganga");
+const gangaRiverParts = gangaRiverCourse?.parts ?? [];
+const longestGangaRiverPart: LineCoordinates = (gangaRiverParts.reduce<LineCoordinates | undefined>(
+  (longest, part) => (!longest || partLength(part) > partLength(longest) ? part : longest),
+  undefined,
+) ?? gangaRiverParts[0]) as LineCoordinates;
+export const GANGA_ANCHOR: Vector3 = projectLonLat(longestGangaRiverPart[Math.floor(longestGangaRiverPart.length / 2)]);
+export const gangaAnchor = GANGA_ANCHOR;
+
 /** One label anchor per river: the midpoint of the geometrically longest part (a real vertex). */
 export const RIVER_LABELS: readonly { name: string; point: LonLat }[] = [
   { name: "Cauvery", point: longestRiverPart[Math.floor(longestRiverPart.length / 2)] },
@@ -49,6 +59,24 @@ export const RIVER_LABELS: readonly { name: string; point: LonLat }[] = [
     const longest = [...river.parts].reduce((a, b) => partLength(b) > partLength(a) ? b : a);
     return { name: river.name, point: longest[Math.floor(longest.length / 2)] };
   }),
+];
+
+/** Compute a dive entry anchor (midpoint of the longest part) for any named river. */
+export function riverAnchor(name: string): Vector3 {
+  if (name === "Cauvery") return CAUVERY_ANCHOR;
+  if (name === "Ganga") return GANGA_ANCHOR;
+  const course = TRIBUTARY_RIVERS.find((r) => r.name === name);
+  if (course && course.parts.length) {
+    const longest = [...course.parts].reduce((a, b) => (partLength(b) > partLength(a) ? b : a));
+    return projectLonLat(longest[Math.floor(longest.length / 2)]);
+  }
+  return CAUVERY_ANCHOR;
+}
+
+export const SELECTABLE_RIVERS: readonly string[] = [
+  "Cauvery",
+  "Ganga",
+  ...TRIBUTARY_RIVERS.map((r) => r.name),
 ];
 
 const relief = provenance.relief as { status: string; url?: string; bounds?: number[] };

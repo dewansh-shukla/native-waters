@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type R
 import type { ExperienceUIProps, QualityPreference } from "@/experience/contracts";
 import type { SpeciesStudy } from "@/experience/species";
 import FishPreview from "./FishPreview";
+import { SELECTABLE_RIVERS } from "@/experience/geography";
 import provenance from "../../../content/maps/provenance.json";
 
 const DISCLAIMER = "Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.";
@@ -115,8 +116,11 @@ export function ExperienceUI(props: ExperienceUIProps) {
     <header className="experience-header"><span className="experience-brand">Native Waters</span>
       <button ref={previewButton} className="experience-preview" onClick={() => setPreview(true)}>Experience preview</button>
     </header>
-    {state.phase === "map" && <section className="experience-map-intro" aria-label="Cauvery entry">
-      <p className="experience-eyebrow">An illustrative dive</p><h1>Cauvery</h1>
+    {state.phase === "map" && <section className="experience-map-intro" aria-label="River entry">
+      <p className="experience-eyebrow">An illustrative dive</p><h1>{props.selectedRiver ?? "Cauvery"}</h1>
+      <label>Select river <select value={props.selectedRiver ?? "Cauvery"} onChange={event => props.onRiverChange?.(event.target.value)}>
+        {SELECTABLE_RIVERS.map(name => <option key={name} value={name}>{name}</option>)}
+      </select></label>
       <p>From a river on the map to a quiet study beneath the surface.</p>
       <button ref={enterButton} className="experience-enter" disabled={!state.ready} onClick={props.onEntryIntent}
         onPointerEnter={() => props.onMapHighlight(true)} onPointerLeave={() => props.onMapHighlight(false)}
