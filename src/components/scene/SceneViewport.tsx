@@ -53,9 +53,11 @@ function Scene(props: ExperienceSceneProps) {
   }, [totalSchools]);
   const { onReady } = props;
   useFrame((_, delta) => advanceScene(props.runtime.current, delta, props.state.phase, props.paused || !props.state.ready, document.hidden, props.state.selectedId), -100);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     onReady(false);
     loadedSchoolCount.current = 0;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoaded(false);
     if (!group.current) return;
     let active = true;

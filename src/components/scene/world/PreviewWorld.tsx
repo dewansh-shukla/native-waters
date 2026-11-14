@@ -7,13 +7,13 @@ import { OBSTACLES } from "@/experience/habitat";
 import { createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { SILT_COUNT, advanceParticle, bedHeight, createPlacements, createSiltParticles, siltParticleAt, updateAtmosphere } from "./worldMotion";
+import { SILT_COUNT, advanceParticle, bedHeight, createPlacements, createSiltParticles, gangaBedHeight, siltParticleAt, updateAtmosphere } from "./worldMotion";
 import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
-export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
+export function PreviewWorld({ runtime, quality, visible, water: waterProp, habitat, river }: PreviewWorldProps) {
   const scene = useThree(state => state.scene);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
@@ -23,21 +23,30 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
   const keyLight = useRef<DirectionalLight>(null), fillLight = useRef<DirectionalLight>(null), backlight = useRef<DirectionalLight>(null);
-  const placements = useMemo(() => createPlacements(), []);
+  const isGanga = river === "ganga"
+    || habitat?.seed === 2024
+    || habitat?.bed === "silty" || habitat?.bed === "ganga" || habitat?.bed === "sandy"
+    || habitat?.bedType === "silty" || habitat?.bedType === "ganga" || habitat?.bedType === "sandy"
+    || (habitat as { type?: string } | undefined)?.type === "silty" || (habitat as { type?: string } | undefined)?.type === "ganga"
+    || (habitat as { kind?: string } | undefined)?.kind === "silty" || (habitat as { kind?: string } | undefined)?.kind === "ganga"
+    || (Array.isArray(habitat?.obstacles) && habitat!.obstacles.length === 1 && habitat!.obstacles[0]?.radius === 0.8);
+  const bedFn = isGanga ? gangaBedHeight : bedHeight;
+  const placements = useMemo(() => createPlacements({ seed: habitat?.seed, obstacles: habitat?.obstacles, bedHeight: bedFn, river, habitat }), [habitat, bedFn, river]);
   // Rock/pebble variant plan: index-keyed buckets ((i + salt) % variantCount)
   // so every placement renders exactly once across the batches; obstacle
   // boulders keep verbatim transforms via per-batch skip counts.
-  const rockPlans = useMemo(() => planStoneBatches(placements.rocks, 4, 0, OBSTACLES.length), [placements]);
+  const obstacleCount = habitat?.obstacles?.length ?? OBSTACLES.length;
+  const rockPlans = useMemo(() => planStoneBatches(placements.rocks, 4, 0, obstacleCount), [placements, obstacleCount]);
   const gravelPlans = useMemo(() => planStoneBatches(placements.gravel, 3, 0, 0), [placements]);
   const grassPlacements = useMemo(() => placements.plants.map(item => ({
     ...item,
     scale: [item.scale[0] * .85, item.scale[1] * .6, item.scale[2] * .85] as [number, number, number],
   })), [placements]);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
-  const water = useMemo(() => createWaterOptics(), []);
+  const water = useMemo(() => waterProp ?? createWaterOptics(), [waterProp]);
   const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
-  const atmosphere = useMemo(() => ({ fog: new Fog(WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(WATER_SCATTER_CSS), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene]);
+  const atmosphere = useMemo(() => ({ fog: new Fog(new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene, water]);
   const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
   const motion = useMemo(() => {
     const positions = new Float32Array((240 + SILT_COUNT.HIGH) * 3);
@@ -65,7 +74,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     const colors = new Float32Array(positions.count * 3), color = new Color();
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i), z = positions.getZ(i);
-      positions.setY(i, bedHeight(x, z));
+      positions.setY(i, bedFn(x, z));
       const silt = .5 + .5 * Math.sin(x * .45 + Math.sin(z * .7));
       color.setRGB(.19 + silt * .10, .22 + silt * .08, .13 + silt * .05);
       color.toArray(colors, i * 3);
@@ -73,7 +82,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
     return geometry;
-  }, []);
+  }, [bedFn]);
 
   useLayoutEffect(() => {
     // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
@@ -283,6 +292,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
   const godRayGeometry = useMemo(() => new PlaneGeometry(2, 2), []);
   useEffect(() => () => { godRays.dispose(); godRayGeometry.dispose(); }, [godRays, godRayGeometry]);
 
+  /* eslint-disable react-hooks/immutability */
   useFrame(({ camera }) => {
     // Camera is read only; the camera module remains the sole writer. Above-water map never inherits fog.
     const underwater = visible && camera.position.y < -.08;
@@ -321,6 +331,7 @@ export function PreviewWorld({ runtime, quality, visible }: PreviewWorldProps) {
     }
     motion.previousTime = time;
   });
+  /* eslint-enable react-hooks/immutability */
 
   return <group ref={worldGroup} visible={visible} name="PreviewWorld">
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />

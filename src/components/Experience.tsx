@@ -28,7 +28,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
     ?? "cauvery";
   const profile = useMemo(() => resolveRiverProfile(resolvedRiver), [resolvedRiver]);
   const speciesInput = speciesProp ?? profile.fish;
-  const species = useMemo(() => resolveSpecies(speciesInput as any, additionalModelUrls), [speciesInput, additionalModelUrls]);
+  const species = useMemo(() => resolveSpecies(speciesInput as never, additionalModelUrls), [speciesInput, additionalModelUrls]);
   const water = useMemo(() => createWaterOptics(profile.water), [profile]);
   const habitat = profile.habitat;
   const speciesLabels = Object.fromEntries(species.flatMap(s => s.fishIds.map(id => [id, s.label ?? "Fish"])));
