@@ -73,11 +73,11 @@ export function riverAnchor(name: string): Vector3 {
   return CAUVERY_ANCHOR;
 }
 
-export const SELECTABLE_RIVERS: readonly string[] = [
+export const SELECTABLE_RIVERS: readonly string[] = Array.from(new Set([
   "Cauvery",
   "Ganga",
   ...TRIBUTARY_RIVERS.map((r) => r.name),
-];
+]));
 
 const relief = provenance.relief as { status: string; url?: string; bounds?: number[] };
 export const RELIEF_CONFIG: { url: string; bounds: GeoBounds } | null =
