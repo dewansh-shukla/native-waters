@@ -73,6 +73,10 @@ export function ExperienceUI(props: ExperienceUIProps) {
   const { state, fixture, paused, quality, audio, visibleFishIds, dispatch } = props;
   const [preview, setPreview] = useState(false);
   const [choice, setChoice] = useState(visibleFishIds[0] ?? "");
+  const [everReady, setEverReady] = useState(false);
+  const [pendingEnter, setPendingEnter] = useState(false);
+  useEffect(() => { if (state.ready) setEverReady(true); }, [state.ready]);
+  useEffect(() => { if (pendingEnter && state.ready) { setPendingEnter(false); props.dispatch({ type: "ENTER" }); } }, [pendingEnter, state.ready, props.dispatch]);
   const previewButton = useRef<HTMLButtonElement>(null);
   const enterButton = useRef<HTMLButtonElement>(null);
   const focusAfterPhase = useRef<"map" | "exploring" | null>(null);
@@ -127,7 +131,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
         {SELECTABLE_RIVERS.map(name => <option key={name} value={name}>{name}</option>)}
       </select></label>
       <p>From a river on the map to a quiet study beneath the surface.</p>
-      <button ref={enterButton} className="experience-enter" disabled={!state.ready} onClick={props.onEntryIntent}
+      <button ref={enterButton} className="experience-enter" disabled={!everReady} onClick={() => { if (state.ready) props.onEntryIntent(); else setPendingEnter(true); }}
         onPointerEnter={() => props.onMapHighlight(true)} onPointerLeave={() => props.onMapHighlight(false)}
         onFocus={() => props.onMapHighlight(true)} onBlur={() => props.onMapHighlight(false)}>Enter Water</button>
       {!state.ready && <p className="experience-readiness" role="status">Preparing the water… The study is always available in Experience preview.</p>}

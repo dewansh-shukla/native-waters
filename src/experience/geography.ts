@@ -73,11 +73,10 @@ export function riverAnchor(name: string): Vector3 {
   return CAUVERY_ANCHOR;
 }
 
-export const SELECTABLE_RIVERS: readonly string[] = Array.from(new Set([
-  "Cauvery",
-  "Ganga",
-  ...TRIBUTARY_RIVERS.map((r) => r.name),
-]));
+// Only rivers with a full RiverProfile (water, habitat, fish) can be entered.
+// Tributaries remain hoverable/clickable on the map but are not offered in the
+// dropdown, since entering them would fall back to the Cauvery scene.
+export const SELECTABLE_RIVERS: readonly string[] = ["Cauvery", "Ganga"];
 
 const relief = provenance.relief as { status: string; url?: string; bounds?: number[] };
 export const RELIEF_CONFIG: { url: string; bounds: GeoBounds } | null =
