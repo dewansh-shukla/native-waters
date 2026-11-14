@@ -173,13 +173,14 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
                          specular=0.35, normal_strength=0.82, coat_roughness=0.22)
     # The arulius fin atlas is 2x3 tiles; 256 px total keeps the ray comb
     # crisp at high and mid, and 128 at low keeps the GLB inside 250 kB.
-    if spec.slug == "arulius-barb":
+    if spec.slug in ("arulius-barb", "ticto-barb"):
         fin_size = 128 if lod == "low" else 256
     else:
         fin_size = 128
     fin_image = fin_albedo(spec, variant, fin_size,
                            path=(lod_dir / "fin-albedo.png") if lod_dir else None,
-                           rays={"high": 11, "mid": 7, "low": 5}[lod])
+                           rays=(spec.fin_rays or {}).get(
+                               lod, {"high": 11, "mid": 7, "low": 5}[lod]))
     # The alpha now lives in the map, so the factor stays at 1.0 and the
     # membrane fades from an opaque root to a translucent trailing edge.
     fins = make_material("FishFin", hex_rgb(variant.fin), 0.32, fin_image,
@@ -352,7 +353,7 @@ class Builder:
         spec = self.spec
         eye_x, _, eye_z = spec.eye
         radius = spec.eye_radius
-        base_gill = 0.236 if spec.pattern == "blotches" else 0.20
+        base_gill = {"stripes": 0.20, "band": 0.245}.get(spec.pattern, 0.236)
         for vertex in obj.data.vertices:
             x, y, z = vertex.co
             t = clamp((x + 1.0) / 1.8)
@@ -452,7 +453,7 @@ class Builder:
         # places its ray bones on, so a ray owns its membrane row outright and
         # the ripple is not averaged away between neighbours.
         points = fin_points(self.spec, self.rays)
-        atlas = FIN_REGIONS if self.spec.slug == "arulius-barb" else None
+        atlas = FIN_REGIONS if self.spec.slug in ("arulius-barb", "ticto-barb") else None
 
         def region(key):
             return atlas.get(key) if atlas else None

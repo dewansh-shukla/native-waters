@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function BasinPage({ params }: Props) {
   const river = getRiver((await params).slug);
   const species = catalog.species.filter(s => s.associations.some(a => a.riverId === river.id));
-  return <ReferenceLayout visual={<ScenePreview fixture={loadPipelineFixture()} />}>
+  return <ReferenceLayout visual={<ScenePreview fixture={loadPipelineFixture()} river={river.id} />}>
     <h1>{river.name} river basin</h1>
     {river.aliases.length > 0 && <p>Also known as {river.aliases.join(', ')}.</p>}
     <p>{river.summary}</p><h2>Where the evidence applies</h2><p>{river.scope}</p><Citations ids={river.sourceIds} />

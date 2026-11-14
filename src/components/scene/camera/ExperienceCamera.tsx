@@ -27,6 +27,7 @@ export function ExperienceCamera(props: ExperienceCameraProps) {
 
   useEffect(() => {
     const runtime = props.runtime.current;
+    // eslint-disable-next-line react-hooks/immutability
     if (phase !== "following") { runtime.cursorTarget = null; return; }
     const plane = new Plane(new Vector3(0, 1, 0), 1.5); // y = -1.5
     const raycaster = new Raycaster();

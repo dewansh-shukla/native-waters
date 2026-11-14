@@ -80,5 +80,13 @@ export function buildMapGeometry() {
   const hit = riverTubes(riverParts, 0.17);
   const tributaryParts = TRIBUTARY_RIVERS.flatMap((river) => river.parts.map((part) => part.map(projectLonLat)));
   const tributary = tributaryParts.length > 0 ? riverTubes(tributaryParts, 0.02) : new BufferGeometry();
-  return { land, coast, riverParts, river, glow, hit, tributary, dispose() { [land, coast, river, glow, hit, tributary].forEach((geometry) => geometry.dispose()); } };
+  // Per-river hit tubes so hover/click can identify which river was targeted.
+  const riverHits: { name: string; geometry: BufferGeometry }[] = [
+    { name: "Cauvery", geometry: riverTubes(riverParts, 0.17) },
+    ...TRIBUTARY_RIVERS.map((r) => ({
+      name: r.name,
+      geometry: riverTubes(r.parts.map((part) => part.map(projectLonLat)), 0.15),
+    })),
+  ];
+  return { land, coast, riverParts, river, glow, hit, tributary, riverHits, dispose() { [land, coast, river, glow, hit, tributary, ...riverHits.map((h) => h.geometry)].forEach((geometry) => geometry.dispose()); } };
 }

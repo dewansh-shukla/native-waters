@@ -1,0 +1,136 @@
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+INFO Draco is available, use library at C:\Program Files\Blender Foundation\Blender 5.2\5.2\scripts\addons_core\io_scene_gltf2\bf_intern_draco_bridge.dll
+INFO MeshOptimizer is available, use library at C:\Program Files\Blender Foundation\Blender 5.2\5.2\scripts\addons_core\io_scene_gltf2\bf_intern_meshopt_bridge.dll
+20:40:47 | INFO: Starting glTF 2.0 export
+20:40:47 | INFO: Extracting primitive: DorsalFin
+20:40:47 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+20:40:47 | INFO: Primitives created: 1
+20:40:47 | INFO: Extracting primitive: FishBody
+20:40:47 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+20:40:47 | INFO: Primitives created: 1
+20:40:47 | INFO: Extracting primitive: FishCornea
+20:40:47 | INFO: Primitives created: 1
+20:40:47 | INFO: Extracting primitive: FishEye
+20:40:47 | INFO: Primitives created: 1
+20:40:47 | INFO: Extracting primitive: FishFin
+20:40:47 | INFO: Primitives created: 1
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.1
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.2
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.3
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.4
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.5
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.6
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.7
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.8
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.9
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.10
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.11
+20:40:47 | WARNING: Multiple rotation mode detected for Dorsal.Ray.12
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.1
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.2
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.3
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.4
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.5
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.6
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.7
+20:40:47 | WARNING: Multiple rotation mode detected for AnalRay.8
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.L.1
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.L.2
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.L.3
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.L.4
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.L.5
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.L.1
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.L.2
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.L.3
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.L.4
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.R.1
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.R.2
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.R.3
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.R.4
+20:40:47 | WARNING: Multiple rotation mode detected for PectoralRay.R.5
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.R.1
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.R.2
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.R.3
+20:40:47 | WARNING: Multiple rotation mode detected for PelvicRay.R.4
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.1
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.2
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.3
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.4
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.5
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.U.Tip
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.1
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.2
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.3
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.4
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.5
+20:40:47 | WARNING: Multiple rotation mode detected for TailFin.L.Tip
+20:40:48 | INFO: Finished glTF 2.0 export in 0.6734287738800049 s
+
+WROTE D:\AI\native-waters\public\models\fish\moreh-loach\moreh-loach-high.glb 7956 triangles 1217788 bytes
+OK moreh-loach high
+20:40:58 | INFO: Starting glTF 2.0 export
+20:40:58 | INFO: Extracting primitive: DorsalFin
+20:40:58 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+20:40:58 | INFO: Primitives created: 1
+20:40:58 | INFO: Extracting primitive: FishBody
+20:40:58 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+20:40:58 | INFO: Primitives created: 1
+20:40:58 | INFO: Extracting primitive: FishCornea
+20:40:58 | INFO: Primitives created: 1
+20:40:58 | INFO: Extracting primitive: FishEye
+20:40:58 | INFO: Primitives created: 1
+20:40:58 | INFO: Extracting primitive: FishFin
+20:40:58 | INFO: Primitives created: 1
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.1
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.2
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.3
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.4
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.5
+20:40:58 | WARNING: Multiple rotation mode detected for Dorsal.Ray.6
+20:40:58 | WARNING: Multiple rotation mode detected for AnalRay.1
+20:40:58 | WARNING: Multiple rotation mode detected for AnalRay.2
+20:40:58 | WARNING: Multiple rotation mode detected for AnalRay.3
+20:40:58 | WARNING: Multiple rotation mode detected for AnalRay.4
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.L.1
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.L.2
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.L.3
+20:40:58 | WARNING: Multiple rotation mode detected for PelvicRay.L.1
+20:40:58 | WARNING: Multiple rotation mode detected for PelvicRay.L.2
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.R.1
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.R.2
+20:40:58 | WARNING: Multiple rotation mode detected for PectoralRay.R.3
+20:40:58 | WARNING: Multiple rotation mode detected for PelvicRay.R.1
+20:40:58 | WARNING: Multiple rotation mode detected for PelvicRay.R.2
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.U.1
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.U.2
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.U.Tip
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.L.1
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.L.2
+20:40:58 | WARNING: Multiple rotation mode detected for TailFin.L.Tip
+20:40:58 | INFO: Finished glTF 2.0 export in 0.21929311752319336 s
+
+WROTE D:\AI\native-waters\public\models\fish\moreh-loach\moreh-loach-mid.glb 3732 triangles 675508 bytes
+OK moreh-loach mid
+20:41:00 | INFO: Starting glTF 2.0 export
+20:41:00 | INFO: Extracting primitive: DorsalFin
+20:41:00 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+20:41:00 | INFO: Primitives created: 1
+20:41:00 | INFO: Extracting primitive: FishBody
+20:41:00 | INFO: Primitives created: 1
+20:41:00 | INFO: Extracting primitive: FishEye
+20:41:00 | INFO: Primitives created: 1
+20:41:00 | INFO: Extracting primitive: FishFin
+20:41:00 | INFO: Primitives created: 1
+20:41:00 | WARNING: Multiple rotation mode detected for Dorsal.Ray.1
+20:41:00 | WARNING: Multiple rotation mode detected for Dorsal.Ray.2
+20:41:00 | WARNING: Multiple rotation mode detected for Dorsal.Ray.3
+20:41:00 | WARNING: Multiple rotation mode detected for AnalRay.1
+20:41:00 | WARNING: Multiple rotation mode detected for AnalRay.2
+20:41:00 | INFO: Finished glTF 2.0 export in 0.09170866012573242 s
+
+WROTE D:\AI\native-waters\public\models\fish\moreh-loach\moreh-loach-low.glb 1444 triangles 188680 bytes
+OK moreh-loach low
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:37:16)
+
+Blender quit

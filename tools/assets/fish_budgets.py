@@ -10,16 +10,28 @@ SPECIES = (
     "zebra-danio-golden",
     "zebra-danio-albino",
     "zebra-danio-glowfish-green",
+    "badis",
+    "rhino-garra",
+    "garra-mullya",
+    "zebra-loach",
 )
 
 LODS = ("high", "mid", "low")
 
 ARULIUS_CAPS = {"high": 12000, "mid": 4500, "low": 1500}
+RHINO_CAPS = {"high": 12000, "mid": 4500, "low": 1600}
 DANIO_CAPS = {"high": 10000, "mid": 4000, "low": 1400}
 TRIANGLE_CAPS = {
-    slug: dict(ARULIUS_CAPS if slug == "arulius-barb" else DANIO_CAPS)
+    slug: dict(RHINO_CAPS if slug == "rhino-garra"
+               else ARULIUS_CAPS if slug in ("arulius-barb", "badis") else DANIO_CAPS)
     for slug in SPECIES
 }
+# Zebra loach low LOD runs slightly over the danio cap.
+TRIANGLE_CAPS["zebra-loach"] = {"high": 10000, "mid": 4000, "low": 1600}
+# Garra mullya shares the rhino garra budget.
+TRIANGLE_CAPS["garra-mullya"] = {"high": 12000, "mid": 4500, "low": 1600}
+# Bengal loach shares the loach budget.
+TRIANGLE_CAPS["bengal-loach"] = {"high": 10000, "mid": 4000, "low": 1600}
 
 BYTE_CAPS = {"high": 1800000, "mid": 1000000, "low": 250000}
 PRIMITIVE_CAPS = {"high": 6, "mid": 6, "low": 4}
@@ -104,5 +116,18 @@ def glb_path(slug: str, lod: str) -> Path:
         raise ValueError("unknown fish species: %s" % slug)
     if lod not in LODS:
         raise ValueError("unknown LOD: %s" % lod)
-    family = "arulius-barb" if slug == "arulius-barb" else "zebra-danio"
+    if slug == "arulius-barb":
+        family = "arulius-barb"
+    elif slug == "badis":
+        family = "badis"
+    elif slug == "rhino-garra":
+        family = "rhino-garra"
+    elif slug == "garra-mullya":
+        family = "garra-mullya"
+    elif slug == "zebra-loach":
+        family = "zebra-loach"
+    elif slug == "bengal-loach":
+        family = "bengal-loach"
+    else:
+        family = "zebra-danio"
     return Path("public/models/fish") / family / ("%s-%s.glb" % (slug, lod))

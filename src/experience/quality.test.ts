@@ -32,4 +32,26 @@ describe("quality policy", () => {
     expect(visibleFishIds("LOW", "fish-9")).toEqual(["fish-5", "fish-7", "fish-8", "fish-10", "fish-11", "fish-9"]);
     expect(visibleFishIds("LOW", "fish-13")).toEqual(visibleFishIds("LOW", null));
   });
+
+  it("keeps every fish for profiles smaller than the low budget", () => {
+    const ganga = ["fish-0", "fish-1", "fish-2"];
+    expect(visibleFishIds("LOW", null, ganga)).toEqual(ganga);
+    expect(visibleFishIds("HIGH", null, ganga)).toEqual(ganga);
+  });
+
+  it("selects a deterministic low subset for profiles with a larger roster", () => {
+    const godavari = Array.from({ length: 9 }, (_, i) => `fish-${i}`);
+    const low = visibleFishIds("LOW", null, godavari);
+    expect(low).toHaveLength(6);
+    expect(new Set(low).size).toBe(6);
+    expect(low.every((id) => godavari.includes(id))).toBe(true);
+    expect(visibleFishIds("LOW", null, godavari)).toEqual(low);
+    expect(visibleFishIds("LOW", "fish-4", godavari)).toContain("fish-4");
+  });
+
+  it("returns every available fish at HIGH quality and ignores IDs outside the profile", () => {
+    const kashmir = ["fish-0", "fish-1", "fish-2", "fish-3"];
+    expect(visibleFishIds("HIGH", null, kashmir)).toEqual(kashmir);
+    expect(visibleFishIds("LOW", "fish-7", kashmir)).not.toContain("fish-7");
+  });
 });

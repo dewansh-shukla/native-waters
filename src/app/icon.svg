@@ -1,14 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="6" fill="#0b3a3e"/>
-  <!-- water ripple -->
-  <path d="M4 26 Q8 24 12 26 T20 26 T28 26" stroke="#2a7a7e" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- fish body -->
-  <ellipse cx="15" cy="15" rx="9" ry="5.5" fill="#d9a441"/>
-  <!-- tail -->
-  <path d="M23 15 L29 10 L29 20 Z" fill="#d9a441"/>
+  <!-- blue water background -->
+  <rect width="32" height="32" rx="6" fill="#0b4a7a"/>
+  <!-- water splash -->
+  <path d="M2 24 Q5 20 8 22 T14 21 T20 23 T26 22 T30 24" stroke="#5ab0e0" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <path d="M6 26 Q9 23 12 25 T18 24 T24 26 T30 25" stroke="#8fd4f5" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <!-- splash droplets -->
+  <circle cx="5" cy="20" r="0.9" fill="#a8e0ff" opacity="0.8"/>
+  <circle cx="9" cy="18.5" r="0.6" fill="#a8e0ff" opacity="0.7"/>
+  <circle cx="25" cy="19" r="0.7" fill="#a8e0ff" opacity="0.7"/>
+  <circle cx="28" cy="21" r="0.5" fill="#a8e0ff" opacity="0.6"/>
+  <!-- hopping dolphin -->
+  <path d="M8 18 C10 14 13 10 17 9 C20 8 22 10 23 12 C24 13 25 12 26 10 C25 13 24 15 22 16 C20 17 18 17 16 17 C14 17 12 18 10 19 Z" fill="#cfe8ff"/>
   <!-- dorsal fin -->
-  <path d="M13 9.5 L16 6 L19 9.5 Z" fill="#c48a2a"/>
+  <path d="M16 9 L18 5 L20 9 Z" fill="#9ec9e8"/>
+  <!-- tail -->
+  <path d="M9 18 L6 15 L7 19 Z" fill="#9ec9e8"/>
   <!-- eye -->
-  <circle cx="9.5" cy="14" r="1.6" fill="#0b3a3e"/>
-  <circle cx="9.9" cy="13.6" r="0.5" fill="#f5e6c8"/>
+  <circle cx="21" cy="11.5" r="0.9" fill="#0b4a7a"/>
+  <circle cx="21.2" cy="11.2" r="0.3" fill="#ffffff"/>
+  <!-- smile -->
+  <path d="M22.5 13 Q23.5 13.5 24 13" stroke="#0b4a7a" stroke-width="0.4" fill="none" stroke-linecap="round"/>
 </svg>

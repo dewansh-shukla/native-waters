@@ -52,6 +52,33 @@ const longestGangaRiverPart: LineCoordinates = (gangaRiverParts.reduce<LineCoord
 export const GANGA_ANCHOR: Vector3 = projectLonLat(longestGangaRiverPart[Math.floor(longestGangaRiverPart.length / 2)]);
 export const gangaAnchor = GANGA_ANCHOR;
 
+const krishnaRiverCourse = TRIBUTARY_RIVERS.find((river) => river.name === "Krishna");
+const krishnaRiverParts = krishnaRiverCourse?.parts ?? [];
+const longestKrishnaRiverPart: LineCoordinates = (krishnaRiverParts.reduce<LineCoordinates | undefined>(
+  (longest, part) => (!longest || partLength(part) > partLength(longest) ? part : longest),
+  undefined,
+) ?? krishnaRiverParts[0]) as LineCoordinates;
+export const KRISHNA_ANCHOR: Vector3 = projectLonLat(longestKrishnaRiverPart[Math.floor(longestKrishnaRiverPart.length / 2)]);
+export const krishnaAnchor = KRISHNA_ANCHOR;
+
+const godavariRiverCourse = TRIBUTARY_RIVERS.find((river) => river.name === "Godavari");
+const godavariRiverParts = godavariRiverCourse?.parts ?? [];
+const longestGodavariRiverPart: LineCoordinates = (godavariRiverParts.reduce<LineCoordinates | undefined>(
+  (longest, part) => (!longest || partLength(part) > partLength(longest) ? part : longest),
+  undefined,
+) ?? godavariRiverParts[0]) as LineCoordinates;
+export const GODAVARI_ANCHOR: Vector3 = projectLonLat(longestGodavariRiverPart[Math.floor(longestGodavariRiverPart.length / 2)]);
+export const godavariAnchor = GODAVARI_ANCHOR;
+
+const brahmaputraRiverCourse = TRIBUTARY_RIVERS.find((river) => river.name === "Brahmaputra");
+const brahmaputraRiverParts = brahmaputraRiverCourse?.parts ?? [];
+const longestBrahmaputraRiverPart: LineCoordinates = (brahmaputraRiverParts.reduce<LineCoordinates | undefined>(
+  (longest, part) => (!longest || partLength(part) > partLength(longest) ? part : longest),
+  undefined,
+) ?? brahmaputraRiverParts[0]) as LineCoordinates;
+export const BRAHMAPUTRA_ANCHOR: Vector3 = projectLonLat(longestBrahmaputraRiverPart[Math.floor(longestBrahmaputraRiverPart.length / 2)]);
+export const brahmaputraAnchor = BRAHMAPUTRA_ANCHOR;
+
 /** One label anchor per river: the midpoint of the geometrically longest part (a real vertex). */
 export const RIVER_LABELS: readonly { name: string; point: LonLat }[] = [
   { name: "Cauvery", point: longestRiverPart[Math.floor(longestRiverPart.length / 2)] },
@@ -73,11 +100,10 @@ export function riverAnchor(name: string): Vector3 {
   return CAUVERY_ANCHOR;
 }
 
-export const SELECTABLE_RIVERS: readonly string[] = Array.from(new Set([
-  "Cauvery",
-  "Ganga",
-  ...TRIBUTARY_RIVERS.map((r) => r.name),
-]));
+// Only rivers with a full RiverProfile (water, habitat, fish) can be entered.
+// Tributaries remain hoverable/clickable on the map but are not offered in the
+// dropdown, since entering them would fall back to the Cauvery scene.
+export const SELECTABLE_RIVERS: readonly string[] = ["Cauvery", "Ganga", "Krishna", "Godavari", "Brahmaputra"];
 
 const relief = provenance.relief as { status: string; url?: string; bounds?: number[] };
 export const RELIEF_CONFIG: { url: string; bounds: GeoBounds } | null =
