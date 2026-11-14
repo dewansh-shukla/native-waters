@@ -118,7 +118,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     </header>
     {state.phase === "map" && <section className="experience-map-intro" aria-label="River entry">
       <p className="experience-eyebrow">An illustrative dive</p><h1>{props.selectedRiver ?? "Cauvery"}</h1>
-      <label>Select river <select value={props.selectedRiver ?? "Cauvery"} onChange={event => props.onRiverChange?.(event.target.value)}>
+      <label className="experience-river-label">Select river <select className="experience-river-select" value={props.selectedRiver ?? "Cauvery"} onChange={event => props.onRiverChange?.(event.target.value)}>
         {SELECTABLE_RIVERS.map(name => <option key={name} value={name}>{name}</option>)}
       </select></label>
       <p>From a river on the map to a quiet study beneath the surface.</p>

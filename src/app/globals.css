@@ -27,6 +27,8 @@ p { line-height: 1.55; }
 .experience-controls label { display: flex; align-items: center; gap: 6px; }
 .experience-fish-controls { position: absolute; left: 28px; bottom: 108px; display: flex; gap: 8px; align-items: center; background: var(--panel); border-radius: 8px; padding: 10px; font-size: .78rem; }
 .experience-fish-controls label { display: flex; gap: 8px; align-items: center; }
+.experience-river-select { font-size: .78rem; padding: 3px 8px; border-radius: 6px; max-width: 180px; }
+.experience-river-label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; margin: .4rem 0; }
 .experience-follow-card { position: absolute; right: 28px; top: 115px; background: var(--panel); padding: 24px; border-radius: 10px; border: 1px solid #6c8165; width: 340px; }
 .experience-follow-card h2 { margin: .5rem 0 1rem; font-size: 1.9rem; }
 .experience-follow-card button { font-size: .8rem; margin: 4px 4px 0 0; }
