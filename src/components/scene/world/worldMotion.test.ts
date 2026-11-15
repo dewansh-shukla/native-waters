@@ -21,6 +21,18 @@ describe("habitat placement", () => {
     }
     expect(a.plants.some(p => p.position[2] > 2)).toBe(true);
   });
+
+  it("gives the silty Ganga bed meadow tape grass and fewer buried pebbles", () => {
+    const a = createPlacements({ seed: 2024, obstacles: [{ center: [0, -2.5, -3], radius: .8 }], bedHeight: gangaBedHeight, river: "ganga" });
+    // Four meadows of 64 clumps plus strays, not the even 12-patch scatter.
+    expect(a.plants.length).toBe(4 * 64 + 14);
+    expect(a.plants.filter(p => p.scale[1] > 1).length).toBeGreaterThan(80);
+    // Silt buries coarse stone.
+    expect(a.gravel.length).toBeLessThan(1000);
+    for (const plant of a.plants) {
+      expect(plant.position[1]).toBeCloseTo(gangaBedHeight(plant.position[0], plant.position[2]), 5);
+    }
+  });
 });
 
 describe("shared-time particle motion", () => {

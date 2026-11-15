@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Group, Mesh, MeshStandardMaterial, SphereGeometry } from "three";
 import { prepareFishMaterials } from "./fishMaterials";
+import { shimmerClock, updateFishShimmer } from "./bodyShimmer";
 import { createWaterOptics } from "../world/waterOptics";
 
 function meshNamed(name: string) {
@@ -8,10 +9,92 @@ function meshNamed(name: string) {
 }
 
 function runInjection(material: MeshStandardMaterial) {
-  const shader = { vertexShader: "", fragmentShader: "#include <fog_fragment>", uniforms: {} as Record<string, unknown> };
+  const shader = {
+    vertexShader: "#include <common>\n#include <project_vertex>\n",
+    fragmentShader:
+      "#include <common>\n#include <color_fragment>\n#include <fog_fragment>\n",
+    uniforms: {} as Record<string, unknown>,
+  };
   material.onBeforeCompile?.(shader as never, undefined as never);
   return shader;
 }
+
+// The animated silver body: iridescence from the view angle, scale glints and
+// caustic dappling driven by a clock uniform. HIGH detail tier only, and only
+// ever on the body — fins stay clear glass and eyes stay optics.
+describe("body shimmer (high detail)", () => {
+  it("animates the body surface on the high tier and leaves fins and eyes alone", () => {
+    const body = meshNamed("FishBody");
+    const fin = meshNamed("FishFin");
+    const eye = meshNamed("FishEye");
+    const root = new Group();
+    root.add(body, fin, eye);
+
+    prepareFishMaterials(root, createWaterOptics(), { detail: "high" });
+
+    const bodyShader = runInjection(body.material as MeshStandardMaterial);
+    expect(bodyShader.fragmentShader).toContain("uShimmerTime");
+    expect(bodyShader.fragmentShader).toContain("vShimmerWorld");
+    expect(bodyShader.vertexShader).toContain("vShimmerLocal");
+    expect((body.material as MeshStandardMaterial).customProgramCacheKey()).toBe(
+      "fish-body-shimmer-fog",
+    );
+    for (const material of [fin, eye] as const) {
+      const shader = runInjection(material.material as MeshStandardMaterial);
+      expect(shader.fragmentShader).not.toContain("uShimmerTime");
+    }
+    expect((fin.material as MeshStandardMaterial).customProgramCacheKey()).toBe(
+      "fish-underwater-fog",
+    );
+  });
+
+  it("keeps the low tier on the shared fog pipeline", () => {
+    const body = meshNamed("FishBody");
+    const root = new Group();
+    root.add(body);
+
+    prepareFishMaterials(root, createWaterOptics(), { detail: "low" });
+
+    const material = body.material as MeshStandardMaterial;
+    expect(material.customProgramCacheKey()).toBe("fish-underwater-fog");
+    expect(runInjection(material).fragmentShader).not.toContain("uShimmerTime");
+  });
+
+  it("shimmers without water optics and leaves the fog pipeline untouched", () => {
+    const body = meshNamed("FishBody");
+    const root = new Group();
+    root.add(body);
+
+    prepareFishMaterials(root, undefined, { detail: "high" });
+
+    const material = body.material as MeshStandardMaterial;
+    expect(material.customProgramCacheKey()).toBe("fish-body-shimmer");
+    const shader = runInjection(material);
+    expect(shader.fragmentShader).toContain("uShimmerTime");
+    expect(shader.fragmentShader).toContain("#include <fog_fragment>");
+  });
+
+  it("drives the body clock through updateFishShimmer", () => {
+    const body = meshNamed("FishBody");
+    const plain = meshNamed("SomethingElse");
+    const root = new Group();
+    root.add(body, plain);
+
+    prepareFishMaterials(root, undefined, { detail: "high" });
+    updateFishShimmer(root, 3.5);
+
+    expect(shimmerClock(body.material as MeshStandardMaterial)?.value).toBe(3.5);
+    expect(shimmerClock(plain.material as MeshStandardMaterial)).toBeNull();
+  });
+
+  it("ticks shimmer forward without a prepare call on unrelated scenes", () => {
+    const plain = meshNamed("FishBody");
+    const root = new Group();
+    root.add(plain);
+    expect(() => updateFishShimmer(root, 1)).not.toThrow();
+    expect(shimmerClock(plain.material as MeshStandardMaterial)).toBeNull();
+  });
+});
 
 describe("prepareFishMaterials", () => {
   it("gives the wet body a strong environment response and the fins a weak one", () => {

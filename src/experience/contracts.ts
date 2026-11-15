@@ -25,6 +25,8 @@ export type FishSchoolProps = {
   selectedId: string | null; onSelect: (id: string) => void;
   onHover: (id: string | null) => void; onReady: () => void;
   fishIds?: string[];
+  /** HIGH enables the animated silver-body surface; LOW keeps it static. */
+  detail?: "high" | "low";
 };
 export type ExperienceCameraProps = {
   runtime: RuntimeRef; phase: Phase; selectedId: string | null; paused: boolean; ready: boolean;

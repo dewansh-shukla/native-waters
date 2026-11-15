@@ -170,7 +170,8 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
         orm = body_orm(spec, 512, path=(lod_dir / "body-orm.png") if lod_dir else None)
     body = make_material("FishBody", hex_rgb(variant.body), 0.34,
                          image=albedo, normal=normal, orm=orm, coat=0.20,
-                         specular=0.35, normal_strength=0.82, coat_roughness=0.22)
+                         specular=0.35, normal_strength=spec.normal_strength,
+                         coat_roughness=0.22)
     # The arulius fin atlas is 2x3 tiles; 256 px total keeps the ray comb
     # crisp at high and mid, and 128 at low keeps the GLB inside 250 kB.
     if spec.slug in ("arulius-barb", "ticto-barb"):
@@ -182,10 +183,12 @@ def make_materials(spec, variant, lod, flat, texture_dir=None):
                            rays=(spec.fin_rays or {}).get(
                                lod, {"high": 11, "mid": 7, "low": 5}[lod]))
     # The alpha now lives in the map, so the factor stays at 1.0 and the
-    # membrane fades from an opaque root to a translucent trailing edge.
+    # membrane fades from an opaque root to a translucent trailing edge. The
+    # hatchet sets no transmission: two transparencies on one surface darken
+    # the membrane twice over against dark water, and its fins are alpha.
     fins = make_material("FishFin", hex_rgb(variant.fin), 0.32, fin_image,
                          blend="BLENDED", alpha_from_image=True,
-                         transmission=0.0 if lod == "low" else 0.4,
+                         transmission=0.0 if lod == "low" else spec.fin_transmission,
                          specular=0.35, coat=0.12)
     materials = {"body": body, "fin": fins, "eye": None, "cornea": None}
     if lod != "low":
@@ -825,7 +828,8 @@ class Builder:
             for name, head, tail_x, _ in segments:
                 x = 0.5 * (head + tail_x)
                 progress = clamp((x + 0.55) / 1.50)
-                amplitude = 0.010 + 0.105 * progress ** 1.7
+                gait = self.spec.gait
+                amplitude = gait.body_base + gait.body_gain * progress ** gait.body_exp
                 phase = math.tau * (x + 0.80) / wavelength
                 rotations[name] = (0.0, 0.0, amplitude * math.sin(tail - phase))
             rotations["Dorsal"] = (0.0, 0.0, 0.014 * math.sin(tail - dorsal_phase))
@@ -866,20 +870,24 @@ class Builder:
             # it, so a wave travels along the membrane instead of the whole fin
             # pivoting as one plate.
             swings = {}
+            gait = self.spec.gait
             for index in range(plan.dorsal_rays):
                 lag = math.tau * 0.085 * index
-                sway = (0.105 + 0.010 * index) * math.sin(tail - dorsal_phase - lag)
+                sway = (gait.dorsal_base + gait.dorsal_step * index) * math.sin(
+                    tail - dorsal_phase - lag)
                 sway += 0.024 * math.sin(flutter - math.tau * 0.05 * index)
                 swings["Dorsal.Ray.%d" % (index + 1)] = (sway, 0.28 * sway)
             for index in range(plan.anal_rays):
                 lag = math.tau * 0.15 * index
-                sway = (0.098 + 0.022 * index) * math.sin(tail - anal_phase - lag)
-                sway += 0.026 * math.sin(flutter - math.tau * 0.08 * index)
+                sway = (gait.anal_base + gait.anal_step * index) * math.sin(
+                    tail - anal_phase - lag)
+                sway += gait.anal_flutter * math.sin(flutter - math.tau * 0.08 * index)
                 swings["AnalRay.%d" % (index + 1)] = (sway, -0.28 * sway)
             for side, offset in (("L", 0.0), ("R", 0.9)):
                 for index in range(plan.pectoral_rays):
                     lag = math.tau * 0.10 * index
-                    sway = (0.060 + 0.010 * index) * math.sin(scull - lag + offset)
+                    sway = (gait.pectoral_base + 0.010 * index) * math.sin(
+                        scull - lag + offset)
                     swings["PectoralRay.%s.%d" % (side, index + 1)] = (sway, 0.0)
                 for index in range(plan.pelvic_rays):
                     lag = math.tau * 0.12 * index
@@ -889,7 +897,8 @@ class Builder:
             for label, sign, offset in (("U", 1, 0.0), ("L", -1, 0.8)):
                 for index in range(plan.caudal_rays):
                     lag = math.tau * 0.06 * index
-                    sway = (0.070 + 0.012 * index) * math.sin(tail - lag + offset)
+                    sway = (gait.caudal_base + gait.caudal_step * index) * math.sin(
+                        tail - lag + offset)
                     swings["TailFin.%s.%d" % (label, index + 1)] = (sway, sign * 0.20 * sway)
                 if plan.caudal_tips:
                     swings["TailFin.%s.Tip" % label] = (

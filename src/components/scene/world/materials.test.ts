@@ -3,7 +3,7 @@ import { SRGBColorSpace, Texture, Vector3 } from "three";
 import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, reorientRockNormal, rockShader, substrateShader, surfaceFragment, surfaceVertex, type WorldUniforms } from "./materials";
 import { createWaterOptics } from "./waterOptics";
 
-function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: number }> } {
+function fakeShader(): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: unknown }> } {
   return {
     vertexShader: "#include <beginnormal_vertex>\n#include <begin_vertex>",
     fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>\n#include <lights_physical_fragment>\n#include <aomap_fragment>\n#include <fog_fragment>",
@@ -39,9 +39,22 @@ describe("substrateShader", () => {
     const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
     expect(afterColor).toContain("algae");
     expect(afterColor).toContain("vRiverNormal.y");
-    expect(afterColor).toContain("vec3(0.66, 0.78, 0.70)");
+    expect(afterColor).toContain("uWetTint");
+    expect((shader.uniforms.uWetTint.value as Vector3).toArray()).toEqual([0.66, 0.78, 0.70]);
     expect(afterColor).toContain("siltPatch");
     expect(afterColor).toContain("vec3(0.30, 0.27, 0.18)");
+  });
+  it("takes a per-river wet tint so silty beds stop reading as green lawn", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), undefined, { wetTint: [0.95, 0.87, 0.72] })(shader as never);
+    expect((shader.uniforms.uWetTint.value as Vector3).toArray()).toEqual([0.95, 0.87, 0.72]);
+  });
+  it("scales algae cover per river", () => {
+    const shader = fakeShader();
+    substrateShader(worldUniforms(), createWaterOptics(), undefined, { algae: .2 })(shader as never);
+    expect(shader.uniforms.uAlgaeStrength.value).toBe(.2);
+    const afterColor = shader.fragmentShader.slice(shader.fragmentShader.indexOf("#include <color_fragment>"));
+    expect(afterColor).toContain("uAlgaeStrength");
   });
   it("fades dual-octave caustics with camera distance", () => {
     const shader = fakeShader();
@@ -376,6 +389,15 @@ describe("surface shaders", () => {
     expect(surfaceFragment).toContain("p.y * 6.0 + uTime * 0.8");
     expect(surfaceFragment).toContain("normal.xz +=");
     expect(surfaceVertex).toContain("uTime");
+  });
+
+  it("absorbs the surface into the water column with distance", () => {
+    expect(surfaceFragment).toContain("uWaterAbsorb");
+    expect(surfaceFragment).toContain("uWaterScatter");
+    expect(surfaceFragment).toContain("exp(-uWaterAbsorb * camDist)");
+    expect(surfaceFragment).toContain("sunGlow");
+    expect(surfaceFragment).toContain("uSurfaceTint");
+    expect(surfaceFragment).toContain("uSunGlow");
   });
 });
 

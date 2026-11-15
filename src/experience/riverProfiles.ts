@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { HABITAT, OBSTACLES } from "./habitat";
 import { CAUVERY_ANCHOR, GANGA_ANCHOR, KRISHNA_ANCHOR, GODAVARI_ANCHOR, BRAHMAPUTRA_ANCHOR } from "./geography";
 import { DEFAULT_SPECIES } from "./species";
-import { WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR, createWaterOptics } from "../components/scene/world/waterOptics";
+import { WATER_SCATTER_CSS, WATER_FOG_NEAR, WATER_FOG_FAR, GANGA_WATER_SCATTER_CSS, GANGA_WATER_FOG_NEAR, GANGA_WATER_FOG_FAR, GANGA_WATER_ABSORPTION, createWaterOptics } from "../components/scene/world/waterOptics";
 
 export type WaterOpticsConfig = {
   scatter: string;
@@ -61,10 +61,10 @@ export const RIVER_PROFILES: Record<string, RiverProfile> = {
     id: "ganga",
     name: "Ganga",
     water: {
-      scatter: "#3a2f1e",
-      fogNear: 5,
-      fogFar: 20,
-      absorption: [0.12, 0.05, 0.09],
+      scatter: GANGA_WATER_SCATTER_CSS,
+      fogNear: GANGA_WATER_FOG_NEAR,
+      fogFar: GANGA_WATER_FOG_FAR,
+      absorption: GANGA_WATER_ABSORPTION,
     },
     habitat: {
       floorY: HABITAT.floorY,
@@ -80,9 +80,9 @@ export const RIVER_PROFILES: Record<string, RiverProfile> = {
       style: "silty",
     },
     fish: [
-      { modelUrl: "/models/fish/honey-gourami/honey-gourami-high.glb", fishIds: ["fish-0"], label: "Honey Gourami" },
-      { modelUrl: "/models/fish/badis/badis-high.glb", fishIds: ["fish-1"], label: "Badis" },
-      { modelUrl: "/models/fish/indian-glass-fish/indian-glass-fish-high.glb", fishIds: ["fish-2"], label: "Indian Glass Fish" },
+      { modelUrl: "/models/fish/honey-gourami/honey-gourami-high.glb", fishIds: ["fish-0", "fish-11"], label: "Honey Gourami" },
+      { modelUrl: "/models/fish/indian-glass-fish/indian-glass-fish-high.glb", fishIds: ["fish-2", "fish-3", "fish-4", "fish-5", "fish-6", "fish-7", "fish-8", "fish-9", "fish-10"], label: "Indian Glass Fish" },
+      { modelUrl: "/models/fish/badis/badis-high.glb", fishIds: ["fish-12"], label: "Badis" },
     ],
     geoAnchor: GANGA_ANCHOR,
     entryAnchor: GANGA_ANCHOR,

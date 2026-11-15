@@ -259,9 +259,12 @@ def fin_points(spec, rays):
         across = (index / (count - 1)) * 2.0 - 1.0
         roots.append((rear_x - 0.004, 0.0, centre + across * base))
         edge = 1.0 - 0.16 * across * across
-        length = caudal_len * (0.52 + 0.48 * abs(across) ** 0.80) * (1.0 - 0.08 * across ** 6)
+        # Deep fork: the median rays run barely half the lobe length, which is
+        # the silhouette of a cruising danionine. A shallower notch reads as a
+        # paddle once the fin is translucent.
+        length = caudal_len * (0.44 + 0.56 * abs(across) ** 0.80) * (1.0 - 0.08 * across ** 6)
         tips.append((rear_x - 0.004 + length, 0.0,
-                     centre + across * base * 2.35 * edge))
+                     centre + across * base * 2.45 * edge))
     points["caudal"] = (roots, tips)
 
     # Anal: the longest-based median fin. On Chela it carries 19-23 rays and
@@ -277,7 +280,9 @@ def fin_points(spec, rays):
         x = anal_x0 + base_len * t
         half_height, _, centre = profile(spec.slug, (x + 1.0) / bl)
         roots.append((x, 0.0, centre - half_height * 0.98))
-        lift = tall * (0.55 + 0.45 * (1.0 - t) ** 1.3)
+        # The leading rays carry the fin; the posterior rays shorten toward the
+        # peduncle so the trailing edge is a rounded sweep, not a square cut.
+        lift = tall * (0.30 + 0.70 * (1.0 - t) ** 1.5)
         tips.append((x + 0.045 + 0.030 * t, 0.0,
                      centre - half_height * 0.98 - lift))
     points["anal"] = (roots, tips)

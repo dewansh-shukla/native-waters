@@ -300,8 +300,9 @@ export function driveFins(root: Object3D, state: FinState): void {
   }
 
   // 3. Fins: small local deviations layered onto the baked pose. The caudal
-  // lobes only get a cup and the turn flare; their per-beat torsion is baked.
-  const cup = 0.05 * Math.sin(phase + Math.PI);
+  // lobes get a deeper cup (a hatchet tail forks wide and shows its concave
+  // face on the power stroke) and the turn flare; per-beat torsion is baked.
+  const cup = 0.10 * Math.sin(phase + Math.PI);
   for (const [name, side] of [["TailFin.U", 1], ["TailFin.L", -1]] as const) {
     const bone = findBone(root, name);
     if (bone) {
@@ -310,7 +311,7 @@ export function driveFins(root: Object3D, state: FinState): void {
     }
   }
 
-  const rowRoll = 0.1 * Math.sin(scull + Math.PI / 2);
+  const rowRoll = 0.18 * Math.sin(scull + Math.PI / 2);
   for (const [name, side] of [["Pectoral.L.Tip", -1], ["Pectoral.R.Tip", 1]] as const) {
     const bone = findBone(root, name);
     if (bone) {
@@ -326,12 +327,19 @@ export function driveFins(root: Object3D, state: FinState): void {
 
   // 4. Median-fin rays: the clip already ripples them at the swim rate and adds
   // a 2 Hz membrane flutter. This layer scales that motion with speed and lets
-  // a faster ripple travel outward, so the outer rays lead the base. The ray
-  // count comes from the rig, so the same code drives every LOD.
-  for (const [rays, sign] of [[sets.dorsalRays, 1], [sets.analRays, -1]] as const) {
+  // a faster ripple travel outward, so the outer rays lead the base. The anal
+  // fin also carries its own travelling ripple — Chela cruises on anal-fin
+  // undulation — with a steeper lag than the dorsal, so the wave visibly runs
+  // down the quarter-body fin. The ray count comes from the rig, so the same
+  // code drives every LOD.
+  for (const [rays, sign, rayLag, rippleAmp] of [
+    [sets.dorsalRays, 1, 0.7, 0],
+    [sets.analRays, -1, 0.9, 0.04],
+  ] as const) {
     for (const { index, bone } of rays) {
       const step = index - 1;
-      const amplitude = (0.008 + 0.005 * step) * gain;
+      const amplitude = (0.015 + 0.01 * step) * gain;
+      const ripple = rippleAmp * gain * Math.sin(2 * phase - rayLag * step);
       placeBone(
         root,
         bone,
@@ -339,7 +347,7 @@ export function driveFins(root: Object3D, state: FinState): void {
         1,
         0,
         0,
-        sign * amplitude * Math.sin(2 * phase - 0.7 * step),
+        sign * amplitude * Math.sin(2 * phase - 0.7 * step) + ripple,
       );
     }
   }

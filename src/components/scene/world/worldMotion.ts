@@ -78,10 +78,11 @@ type PlacementOptions = {
   habitat?: PlacementOptions | { seed?: number; obstacles?: readonly { center: readonly [number, number, number]; radius: number }[]; floorY?: number; bed?: string; bedType?: string; type?: string; kind?: string; style?: string };
 };
 
-function normalizePlacementOptions(input?: number | PlacementOptions | null): { seed: number; obstacles: readonly { center: readonly [number, number, number]; radius: number }[]; bed: (x: number, z: number) => number } {
+function normalizePlacementOptions(input?: number | PlacementOptions | null): { seed: number; obstacles: readonly { center: readonly [number, number, number]; radius: number }[]; bed: (x: number, z: number) => number; silty: boolean } {
   let seed = 814;
   let obstacles: readonly { center: readonly [number, number, number]; radius: number }[] = OBSTACLES;
   let bed: (x: number, z: number) => number = bedHeight;
+  let silty = false;
   let raw: PlacementOptions | null = null;
   if (typeof input === "number") raw = { seed: input };
   else if (input && typeof input === "object") raw = input as PlacementOptions;
@@ -119,37 +120,56 @@ function normalizePlacementOptions(input?: number | PlacementOptions | null): { 
     if (ganga) bed = gangaBedHeight;
     else if (godavari) bed = godavariBedHeight;
     else if (brahmaputra) bed = brahmaputraBedHeight;
+    silty = ganga;
   }
-  return { seed, obstacles, bed };
+  return { seed, obstacles, bed, silty };
 }
 
 export function createPlacements(...args: unknown[]): { rocks: Placement[]; gravel: Placement[]; plants: Placement[] } {
   let input: number | PlacementOptions | null = null;
   if (args.length === 1) input = args[0] as number | PlacementOptions | null;
   else if (args.length >= 2) input = { seed: args[0] as number, obstacles: args[1] as readonly { center: readonly [number, number, number]; radius: number }[], bedHeight: typeof args[2] === "function" ? (args[2] as (x: number, z: number) => number) : undefined };
-  const { seed: initialSeed, obstacles, bed } = normalizePlacementOptions(input);
+  const { seed: initialSeed, obstacles, bed, silty } = normalizePlacementOptions(input);
   let seed = initialSeed;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const rocks: Placement[] = obstacles.map(({ center, radius }) => ({ position: [...center], scale: [radius, radius, radius], rotation: 0 }));
   // A broken bank silhouette, not a regular perimeter wall; foreground anchors frame the school.
-  for (let i = 0; i < 68; i++) {
+  for (let i = 0; i < 40; i++) {
     const side = i % 4;
-    const x = side < 2 ? (side === 0 ? -11 : 11) + random() * .8 - .4 : random() * 24 - 12;
-    const z = side >= 2 ? (side === 2 ? -8.4 : 8.3) + random() * .8 - .4 : random() * 18 - 9;
-    const size = .45 + random() * 1.15;
-    rocks.push({ position: [x, -3 + size * .35, z], scale: [size * 1.4, size * .85, size], rotation: random() * 6.28 });
+    const x = side < 2 ? (side === 0 ? -13 : 13) + random() * 1.2 - .6 : random() * 26 - 13;
+    const z = side >= 2 ? (side === 2 ? -10 : 10) + random() * 1.2 - .6 : random() * 20 - 10;
+    const size = .35 + random() * .85;
+    rocks.push({ position: [x, -3 + size * .35, z], scale: [size * 1.3, size * .75, size], rotation: random() * 6.28 });
   }
   rocks.push({ position: [-4.8, -2.65, 3.5], scale: [1.5, .7, 1], rotation: .3 }, { position: [4.6, -2.7, 4.7], scale: [1.2, .55, .8], rotation: 1.2 });
   const gravel: Placement[] = [];
-  for (let i = 0; i < 1150; i++) {
-    const x = random() * 24 - 12, z = random() * 18 - 9, size = .035 + random() ** 2 * .17;
+  // Silt buries most coarse stone: a silty bed keeps fewer, smaller pebbles.
+  const gravelCount = silty ? 600 : 1150;
+  for (let i = 0; i < gravelCount; i++) {
+    const x = random() * 24 - 12, z = random() * 18 - 9;
+    const size = silty ? .03 + random() ** 2 * .12 : .035 + random() ** 2 * .17;
     gravel.push({ position: [x, bed(x, z), z], scale: [size * 1.3, size * .55, size], rotation: random() * 6.28 });
   }
   const plants: Placement[] = [];
-  const patches = [[-5, 3], [5, 4], [-6, -5], [6.5, -4], [-8, 0], [8, 1], [1, -7], [-3, 6], [3, -6], [-10, -2], [10, 2], [0, 0]];
-  for (const [px, pz] of patches) for (let i = 0; i < 38; i++) {
-    const x = px + (random() - .5) * 2.5, z = pz + (random() - .5) * 2;
-    plants.push({ position: [x, bed(x, z), z], scale: [.6 + random() * .8, .3 + random() * .95, 1], rotation: random() * 6.28 });
+  if (silty) {
+    // Vallisneria meadows, not a lawn: four dense beds of long arcing tape
+    // grass rooted in the silt, plus a few strays that keep the edges soft.
+    const meadows = [[-5.2, 2.6], [4.8, 2.2], [-3.4, -5.2], [6.2, -4.2]];
+    for (const [px, pz] of meadows) for (let i = 0; i < 64; i++) {
+      const angle = random() * Math.PI * 2, reach = Math.sqrt(random()) * 2.1;
+      const x = px + Math.cos(angle) * reach * 1.25, z = pz + Math.sin(angle) * reach * .8;
+      plants.push({ position: [x, bed(x, z), z], scale: [.55 + random() * .5, .8 + random() * .9, 1], rotation: random() * 6.28 });
+    }
+    for (let i = 0; i < 14; i++) {
+      const x = random() * 22 - 11, z = random() * 16 - 8;
+      plants.push({ position: [x, bed(x, z), z], scale: [.4 + random() * .4, .35 + random() * .5, 1], rotation: random() * 6.28 });
+    }
+  } else {
+    const patches = [[-5, 3], [5, 4], [-6, -5], [6.5, -4], [-8, 0], [8, 1], [1, -7], [-3, 6], [3, -6], [-10, -2], [10, 2], [0, 0]];
+    for (const [px, pz] of patches) for (let i = 0; i < 38; i++) {
+      const x = px + (random() - .5) * 2.5, z = pz + (random() - .5) * 2;
+      plants.push({ position: [x, bed(x, z), z], scale: [.6 + random() * .8, .3 + random() * .95, 1], rotation: random() * 6.28 });
+    }
   }
   return { rocks, gravel, plants };
 }

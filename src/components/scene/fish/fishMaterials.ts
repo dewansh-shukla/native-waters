@@ -1,5 +1,6 @@
 import type { Material, Mesh, Object3D } from "three";
 import { applyUnderwaterFog, type WaterOptics } from "../world/waterOptics";
+import { applyBodyShimmer, registerShimmerClock } from "./bodyShimmer";
 
 // How strongly each fish material answers the underwater environment map.
 // The wet body gets a strong specular response; translucent fins get a weak
@@ -30,6 +31,14 @@ function fishMaterialKind(name: string): FishMaterialKind {
   return null;
 }
 
+export interface FishMaterialDetail {
+  /**
+   * HIGH keeps the baked silver body alive: view-angle iridescence, scale
+   * glints and caustic dappling. LOW stays on the shared static pipeline.
+   */
+  detail?: "high" | "low";
+}
+
 /**
  * Tune environment response on a loaded fish scene. GLTF materials arrive
  * with the default envMapIntensity of 1, which over-brightens translucent
@@ -38,8 +47,16 @@ function fishMaterialKind(name: string): FishMaterialKind {
  * When water optics are provided, body and fin also receive the same
  * per-channel Beer-Lambert absorption as the world, so fish fade into the
  * river at the same rate as their surroundings.
+ *
+ * With `detail: "high"` the body additionally gets the animated surface
+ * layer from bodyShimmer; every other material keeps the static pipeline.
  */
-export function prepareFishMaterials(root: Object3D, water?: WaterOptics): void {
+export function prepareFishMaterials(
+  root: Object3D,
+  water?: WaterOptics,
+  options?: FishMaterialDetail,
+): void {
+  const shimmer = options?.detail === "high";
   root.traverse(object => {
     const mesh = object as Mesh;
     if (!mesh.isMesh) return;
@@ -51,11 +68,19 @@ export function prepareFishMaterials(root: Object3D, water?: WaterOptics): void 
       if ("envMapIntensity" in material) {
         (material as { envMapIntensity: number }).envMapIntensity = intensity;
       }
-      if (water && (kind === "body" || kind === "fin")) {
-        material.onBeforeCompile = shader => applyUnderwaterFog(shader, water);
-        material.customProgramCacheKey = () => "fish-underwater-fog";
-        material.needsUpdate = true;
-      }
+      const fog = Boolean(water) && (kind === "body" || kind === "fin");
+      const bodyShimmer = shimmer && kind === "body";
+      if (!fog && !bodyShimmer) continue;
+      const key = bodyShimmer && fog ? "fish-body-shimmer-fog"
+        : bodyShimmer ? "fish-body-shimmer"
+        : "fish-underwater-fog";
+      const clock = bodyShimmer ? registerShimmerClock(material) : null;
+      material.onBeforeCompile = shader => {
+        if (clock) applyBodyShimmer(material, shader, clock);
+        if (fog) applyUnderwaterFog(shader, water!);
+      };
+      material.customProgramCacheKey = () => key;
+      material.needsUpdate = true;
     }
   });
 }

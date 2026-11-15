@@ -44,7 +44,7 @@ MEASUREMENTS = {
     "neon-hatchet": {
         "depth_SL": 0.30, "head_SL": 0.26, "eye_SL": 0.075, "eye_HL": 0.29,
         "dorsal_origin_SL": 0.58, "anal_origin_SL": 0.55,
-        "peduncle_depth_SL": 0.10, "caudal_length_SL": 0.20,
+        "peduncle_depth_SL": 0.10, "caudal_length_SL": 0.215,
         "dorsal_base_SL": 0.10, "dorsal_height_SL": 0.145,
         "anal_base_SL": 0.228, "anal_height_SL": 0.133,
         "pectoral_origin_SL": 0.267, "pectoral_reach_SL": 0.20,
@@ -53,6 +53,33 @@ MEASUREMENTS = {
         "fin_colour": "pale-yellow", "iris_colour": "silver",
     },
 }
+
+
+@dataclass(frozen=True)
+class Gait:
+    """Amplitudes of the baked Swim oscillators, in radians.
+
+    body_* drives the spine wave (base at the nape, gain toward the tail,
+    exp the amplitude-growth exponent), dorsal/anal/caudal/pectoral the
+    per-ray swing rows, anal_flutter the fast secondary ripple on the anal
+    fin.
+    """
+
+    body_base: float = 0.010
+    body_gain: float = 0.105
+    body_exp: float = 1.7
+    dorsal_base: float = 0.105
+    dorsal_step: float = 0.010
+    anal_base: float = 0.098
+    anal_step: float = 0.022
+    anal_flutter: float = 0.026
+    caudal_base: float = 0.070
+    caudal_step: float = 0.012
+    pectoral_base: float = 0.060
+
+
+# SpeciesSpec is frozen, so the default is a shared immutable instance.
+GAIT_DEFAULT = Gait()
 
 
 @dataclass(frozen=True)
@@ -92,6 +119,23 @@ class SpeciesSpec:
     # Painted fin ray comb, per LOD. None keeps the shared 11/7/5 default; a
     # long-based fin needs its striations to match its geometry rows.
     fin_rays: dict[str, int] | None = None
+    # Scale relief in the normal map. A fish with 50+ fine scales needs far
+    # less per-scale height than a coarse-scaled one, or the flank reads as
+    # quilted leather at review distance.
+    scale_relief: float = 1.0
+    normal_strength: float = 0.82
+    # Glassy fin transmission. Thin danionine fins read better on alpha alone;
+    # a deeper-bodied fish keeps a little transmission for the hero LOD.
+    fin_transmission: float = 0.4
+    # Gait amplitudes (radians) for the baked Swim action. The defaults are the
+    # zebrafish gait every species shared before; a carangiform cruiser with a
+    # long anal fin needs its own numbers, so they are per-species knobs like
+    # scale_relief and fin_transmission.
+    gait: "Gait" = None
+
+    def __post_init__(self):
+        if self.gait is None:
+            object.__setattr__(self, "gait", GAIT_DEFAULT)
 
 
 ARULIUS = SpeciesSpec(
@@ -191,7 +235,7 @@ NEON_HATCHET = SpeciesSpec(
     width=0.10,
     variants=(
         Variant("neon-hatchet", "Neon Hatchet", "#c4ced1", "#7f9a7c",
-                "#e4dfb4", "#d8dcd6"),
+                "#efe8c2", "#a9b3ab"),
     ),
     body_length=1.8,
     arch=0.04,
@@ -203,6 +247,26 @@ NEON_HATCHET = SpeciesSpec(
     scale_cells=(52, 48),
     flank_metallic=0.40,
     fin_rays={"high": 16, "mid": 10, "low": 6},
+    scale_relief=0.42,
+    normal_strength=0.58,
+    fin_transmission=0.0,
+    # Chela cachius cruises with a shallow carangiform beat and prominent
+    # anal-fin undulation, so its baked gait runs hotter than the danionine
+    # default: a livelier body wave, a travelling anal ripple and wider
+    # caudal/pectoral travel.
+    gait=Gait(
+        body_base=0.018,
+        body_gain=0.140,
+        body_exp=1.0,
+        dorsal_base=0.16,
+        dorsal_step=0.035,
+        anal_base=0.16,
+        anal_step=0.035,
+        anal_flutter=0.055,
+        caudal_base=0.12,
+        caudal_step=0.025,
+        pectoral_base=0.10,
+    ),
 )
 
 SPECIES = {
@@ -322,6 +386,10 @@ def profile(slug: str, t: float) -> tuple[float, float, float]:
         # Heads stay rounder than the compressed flank: a width that follows the
         # height too closely pinches the snout into a blade.
         half_width = max(0.008, spec.width * (0.45 + 0.55 * half_height / spec.height))
+        # The snout tip is nearly round; a width that stays at the body's 0.45
+        # floor would make the nose a horizontal ribbon. Cap it at the local
+        # half-height so only the front of the fish is affected.
+        half_width = min(half_width, max(half_height, 0.008))
         return half_height, half_width, centre
     shape = _shape(slug, t)
     half_height = max(0.008, spec.height * shape)

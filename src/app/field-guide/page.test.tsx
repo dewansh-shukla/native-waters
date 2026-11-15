@@ -29,9 +29,10 @@ describe('crawlable freshwater guide', () => {
   it('lists only real routes in discovery metadata', () => {
     expect(metadata.alternates?.canonical).toBe('https://native-waters.vercel.app/field-guide');
     expect(sitemap()).toHaveLength(3 + catalog.rivers.length + catalog.species.length);
-    expect(new Set(sitemap().map(entry => entry.url)).size).toBe(sitemap().length);
-    for (const river of catalog.rivers) expect(sitemap()).toContainEqual({ url: `https://native-waters.vercel.app/basins/${river.id}` });
-    for (const species of catalog.species) expect(sitemap()).toContainEqual({ url: `https://native-waters.vercel.app/species/${species.id}` });
+    const urls = sitemap().map(entry => entry.url);
+    expect(new Set(urls).size).toBe(urls.length);
+    for (const river of catalog.rivers) expect(urls).toContain(`https://native-waters.vercel.app/basins/${river.id}`);
+    for (const species of catalog.species) expect(urls).toContain(`https://native-waters.vercel.app/species/${species.id}`);
     expect(robots().sitemap).toBe('https://native-waters.vercel.app/sitemap.xml');
   });
 });

@@ -45,6 +45,70 @@ describe("turn", () => {
   });
 });
 
+// Procedural amplitudes are asserted at cycle 0.125 (2·phase = π/2, so every
+// unlagged oscillator is at its positive peak) and blps 0.5 (waveGain = 0.75),
+// which makes the expected offsets exact.
+describe("procedural fin travel", () => {
+  const build = () => {
+    const root = new Object3D();
+    for (const name of [
+      "Dorsal.Ray.1",
+      "AnalRay.1",
+      "TailFin.U",
+      "Pectoral.L.Tip",
+    ]) {
+      const bone = new Object3D();
+      bone.name = name;
+      root.add(bone);
+    }
+    return root;
+  };
+  const state = {
+    cycle: 0.125,
+    blps: 0.5,
+    turnRate: 0,
+    gillPhase: 0,
+    pectoralPhase: 0,
+  } as const;
+
+  it("sweeps the median rays wider at the peak", () => {
+    const root = build();
+    driveFins(root, state);
+    const angle = root.getObjectByName("Dorsal.Ray.1")!.quaternion.angleTo(
+      new Quaternion(),
+    );
+    // 0.015 rad base at the wave-gain floor.
+    expect(angle).toBeCloseTo(0.015 * 0.75, 5);
+  });
+
+  it("adds a travelling anal ripple on top of the shared ray term", () => {
+    const root = build();
+    driveFins(root, state);
+    const q = root.getObjectByName("AnalRay.1")!.quaternion;
+    // Shared term −0.01125 (sign −1) plus a 0.03 ripple, both in phase here,
+    // so the ray ends up swung the other way from the dorsal-only formula.
+    expect(q.angleTo(new Quaternion())).toBeCloseTo(0.01875, 5);
+    expect(q.z).toBeGreaterThan(0);
+  });
+
+  it("deepens the caudal cup", () => {
+    const root = build();
+    driveFins(root, state);
+    const q = root.getObjectByName("TailFin.U")!.quaternion;
+    // phase + π here is 5π/4, so the cup sits at 0.10·sin(5π/4) = −0.0707.
+    expect(q.angleTo(new Quaternion())).toBeCloseTo(0.1 * Math.SQRT1_2, 5);
+    expect(q.z).toBeLessThan(0);
+  });
+
+  it("rows the pectoral tips through a wider roll", () => {
+    const root = build();
+    driveFins(root, state);
+    const q = root.getObjectByName("Pectoral.L.Tip")!.quaternion;
+    // With pectoralPhase 0 the roll term sin(scull + π/2) is at its peak: 0.18.
+    expect(q.angleTo(new Quaternion())).toBeCloseTo(0.18, 5);
+  });
+});
+
 describe("driveFins", () => {
   const build = () => {
     const root = new Object3D();
