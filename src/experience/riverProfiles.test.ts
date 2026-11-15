@@ -60,13 +60,13 @@ describe("riverProfiles", () => {
     const ganga = resolveRiverProfile("ganga");
     const cauvery = resolveRiverProfile("cauvery");
     expect(ganga.water.scatter).not.toBe(cauvery.water.scatter);
-    expect(ganga.water.scatter).toBe("#3a2f1e");
-    expect(ganga.water.fogNear).toBe(5);
-    expect(ganga.water.fogFar).toBe(20);
-    expect(ganga.water.absorption).toEqual([0.12, 0.05, 0.09]);
+    expect(ganga.water.scatter).toBe("#2b2417");
+    expect(ganga.water.fogNear).toBe(4);
+    expect(ganga.water.fogFar).toBe(24);
+    expect(ganga.water.absorption).toEqual([0.13, 0.05, 0.095]);
     const water = createWaterOptics(ganga.water);
-    expect(water.scatter.value.toArray()).toEqual([0x3a / 255, 0x2f / 255, 0x1e / 255]);
-    expect(water.absorption.value.toArray()).toEqual([0.12, 0.05, 0.09]);
+    expect(water.scatter.value.toArray()).toEqual([0x2b / 255, 0x24 / 255, 0x17 / 255]);
+    expect(water.absorption.value.toArray()).toEqual([0.13, 0.05, 0.095]);
   });
 
   it("ganga geo anchor within india bounds", () => {

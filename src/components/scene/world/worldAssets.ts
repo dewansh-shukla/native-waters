@@ -227,13 +227,15 @@ export function planStoneBatches(placements: Placement[], variantCount: number, 
   });
 }
 
-export type PlantVariant = "ribbon" | "grass";
+export type PlantVariant = "ribbon" | "grass" | "tape";
 
 // Ribbon: tall Vallisneria-like strap leaves. Grass: shorter fine understory
-// blades. rows = length segments; vertex count is blades*(rows+1)*3.
+// blades. Tape: long, wide, strongly arcing Vallisneria saggitaria leaves in
+// flowing water — the silty-river meadow plant, read as a ribbon lawn otherwise.
 const PLANT_CLUMP_SPECS = {
   ribbon: { blades: 7, rows: 7, width: .075, radius: .15, leanBase: .14, leanRange: .2, widthJitter: .45 },
   grass: { blades: 11, rows: 5, width: .028, radius: .24, leanBase: .08, leanRange: .14, widthJitter: .35 },
+  tape: { blades: 9, rows: 10, width: .13, radius: .21, leanBase: .3, leanRange: .4, widthJitter: .4 },
 } as const;
 
 // Blade-level deterministic hash (instanceVariation keys instances; this keys

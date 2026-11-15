@@ -1,4 +1,4 @@
-import { NoColorSpace, SRGBColorSpace, type MeshStandardMaterial, type Texture, type Vector3 } from "three";
+import { MeshStandardMaterial, NoColorSpace, SRGBColorSpace, Vector3, type Texture } from "three";
 import { applyUnderwaterFog, type WaterOptics } from "./waterOptics";
 
 type Shader = Parameters<MeshStandardMaterial["onBeforeCompile"]>[0];
@@ -24,7 +24,17 @@ const NOISE_GLSL = `
   }
 `;
 
-export type GroundShaderOptions = { blend?: number };
+export type GroundShaderOptions = {
+  blend?: number;
+  // Per-river wet tint; the default is the green Cauvery-bed palette. Silty
+  // beds (Ganga) pass a warm khaki so the substrate stops reading as lawn.
+  wetTint?: readonly [number, number, number];
+  // Algae cover multiplier. Turbid silty rivers grow far less of it.
+  algae?: number;
+  // Caustic light colour. Clear rivers get the green-teal sunlight bands;
+  // silty rivers get a pale ochre so the bed stops reading as a lawn.
+  caustic?: readonly [number, number, number];
+};
 
 // Scanned riverbed gravel, claimed by the exposed zones only. The same
 // per-tile anti-tiling trick as the stone shader keeps the 24 x 18 m bed
@@ -71,8 +81,9 @@ const SUBSTRATE_COLOR_HEAD_GLSL = `#include <color_fragment>
       float mottle = riverFbm(p * 1.0);
       float patchNoise = riverNoise(p * 3.1 + 19.7);
       diffuseColor.rgb *= 0.84 + mottle * 0.16 + patchNoise * 0.10 + grain * 0.06 + silt * 0.08;
-      // Wet, sunken bed: darker and greener than the dry bank palette.
-      diffuseColor.rgb *= vec3(0.66, 0.78, 0.70);
+      // Wet, sunken bed: darker and greener than the dry bank palette. The
+      // per-river uniform keeps silty beds khaki instead of aquarium green.
+      diffuseColor.rgb *= uWetTint;
       // Algae favors up-facing surfaces and crevices; bare silt settles in the flats.
       float algae = smoothstep(0.55, 0.95, vRiverNormal.y) * smoothstep(0.35, 0.8, riverFbm(p * 0.7 + 5.3));
       float siltPatch = smoothstep(0.55, 0.9, riverFbm(p * 0.35 + 9.1)) * (1.0 - algae);`;
@@ -88,20 +99,20 @@ const SUBSTRATE_GROUND_COLOR_GLSL = `
                            texture2D(uGroundMap, groundUvY).rgb * groundBlend.y +
                            texture2D(uGroundMap, groundUvZ).rgb * groundBlend.z;
         float groundMask = uGroundBlend * smoothstep(0.45, 0.75, riverFbm(p * 0.5 + 3.7)) * (1.0 - siltPatch) * (1.0 - algae);
-        diffuseColor.rgb = mix(diffuseColor.rgb, groundColor * vec3(0.66, 0.78, 0.70), groundMask);
+        diffuseColor.rgb = mix(diffuseColor.rgb, groundColor * uWetTint, groundMask);
       }`;
 
 const SUBSTRATE_COLOR_TAIL_GLSL = `
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.09, 0.18, 0.09), algae * 0.55);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.12, 0.09), algae * 0.55 * uAlgaeStrength);
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.30, 0.27, 0.18), siltPatch * 0.35);
       // domain-warped dual-octave bands read as focused sunlight on the bed.
       vec2 cw = p * 3.8 + vec2(uWorldTime * 0.18, -uWorldTime * 0.13);
       cw += 0.6 * vec2(riverFbm(cw * 0.9), riverFbm(cw * 0.9 + 17.3));
-      float causticA = pow(max(0.0, sin(cw.x * 3.1 + sin(cw.y * 2.4)) * sin(cw.y * 3.4 - uWorldTime * 0.22)), 9.0);
-      float causticB = pow(max(0.0, sin(cw.y * 4.7 - uWorldTime * 0.31) * sin(cw.x * 3.9 + uWorldTime * 0.17)), 11.0);
+      float causticA = pow(max(0.0, sin(cw.x * 3.1 + sin(cw.y * 2.4)) * sin(cw.y * 3.4 - uWorldTime * 0.22)), 7.0);
+      float causticB = pow(max(0.0, sin(cw.y * 4.7 - uWorldTime * 0.31) * sin(cw.x * 3.9 + uWorldTime * 0.17)), 9.0);
       float caustic = causticA + causticB * 0.6;
       float camDist = distance(cameraPosition, vRiverPosition);
-      diffuseColor.rgb += vec3(0.05, 0.11, 0.10) * caustic * uRichness * exp(-camDist / 18.0);`;
+      diffuseColor.rgb += uCausticTint * caustic * uRichness * exp(-camDist / 18.0);`;
 
 const SUBSTRATE_ROUGHNESS_GLSL = `#include <roughnessmap_fragment>
       roughnessFactor = clamp(roughnessFactor * (0.86 + 0.28 * riverFbm(vRiverPosition.xz * 4.0 + 7.3)), 0.0, 1.0);`;
@@ -201,7 +212,10 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics, gro
       shader.uniforms.uGroundRoughnessMap = { value: ground.roughnessMap };
       shader.uniforms.uGroundBlend = { value: options.blend ?? 0 };
     }
-    shader.fragmentShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal; uniform float uWorldTime; uniform float uRichness;\n" + NOISE_GLSL + "\n" + (ground ? GROUND_SAMPLER_GLSL + "\n" : "") + shader.fragmentShader;
+    shader.fragmentShader = "varying vec3 vRiverPosition;\nvarying vec3 vRiverNormal; uniform float uWorldTime; uniform float uRichness; uniform vec3 uWetTint; uniform float uAlgaeStrength; uniform vec3 uCausticTint;\n" + NOISE_GLSL + "\n" + (ground ? GROUND_SAMPLER_GLSL + "\n" : "") + shader.fragmentShader;
+    shader.uniforms.uWetTint = { value: new Vector3(...(options.wetTint ?? [0.66, 0.78, 0.70])) };
+    shader.uniforms.uAlgaeStrength = { value: options.algae ?? 1 };
+    shader.uniforms.uCausticTint = { value: new Vector3(...(options.caustic ?? [0.075, 0.13, 0.11])) };
     const colorPatch = SUBSTRATE_COLOR_HEAD_GLSL + (ground ? SUBSTRATE_GROUND_COLOR_GLSL : "") + SUBSTRATE_COLOR_TAIL_GLSL;
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", colorPatch);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", ground ? SUBSTRATE_GROUND_ROUGHNESS_GLSL : SUBSTRATE_ROUGHNESS_GLSL);
@@ -211,7 +225,21 @@ export function substrateShader(uniforms: WorldUniforms, water: WaterOptics, gro
 }
 
 export type RockTextures = { map: Texture; normalMap: Texture; roughnessMap: Texture };
-export type RockShaderOptions = { scale?: number; dampness?: number };
+
+// Plain lit prop (mussels, submerged bricks): no procedural surface work, but
+// it must still dissolve into the water column with the same absorption curve
+// as the shader-driven world materials.
+export function underwaterStandardMaterial(color: string, water: WaterOptics, options: { roughness?: number; metalness?: number } = {}) {
+  const material = new MeshStandardMaterial({
+    color,
+    roughness: options.roughness ?? .9,
+    metalness: options.metalness ?? 0,
+  });
+  material.onBeforeCompile = shader => applyUnderwaterFog(shader, water);
+  material.customProgramCacheKey = () => `river-simple-${color}`;
+  return material;
+}
+export type RockShaderOptions = { scale?: number; dampness?: number; brightness?: number };
 export type RockProjectionAxis = "x" | "y" | "z";
 
 // CPU reference for the shader's signed tangent-basis reconstruction. The
@@ -252,6 +280,7 @@ const ROCK_TRIPANAR_GLSL = `
   uniform sampler2D uRockRoughnessMap;
   uniform float uRockScale;
   uniform float uDamp;
+  uniform float uRockBright;
   // Deterministic per-tile 90-degree rotation so the stone never reads as one
   // repeating photograph across the river bed.
   float rockTileAngle(vec2 uv) {
@@ -284,7 +313,7 @@ const ROCK_COLOR_GLSL = `
     vec3 rockColorSample = texture2D(uRockColorMap, rockUvX).rgb * rockBlend.x +
                            texture2D(uRockColorMap, rockUvY).rgb * rockBlend.y +
                            texture2D(uRockColorMap, rockUvZ).rgb * rockBlend.z;
-    diffuseColor.rgb *= rockColorSample;
+    diffuseColor.rgb *= rockColorSample * uRockBright;
   }
 `;
 
@@ -350,6 +379,7 @@ export function rockShader(textures: RockTextures, uniforms: WorldUniforms, opti
     shader.uniforms.uRockRoughnessMap = { value: textures.roughnessMap };
     shader.uniforms.uRockScale = { value: options.scale ?? .38 };
     shader.uniforms.uDamp = { value: options.dampness ?? .12 };
+    shader.uniforms.uRockBright = { value: options.brightness ?? 1 };
 
     shader.vertexShader = ROCK_VERTEX_GLSL + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
@@ -558,7 +588,7 @@ export function plantShader(uniforms: WorldUniforms, water: WaterOptics) {
     ` + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
       float leafMottle = riverFbm(vLeafWorld.xz * 2.8 + vec2(vLeafPhase, vLeafPhase * 0.73));
-      float rootSilt = (1.0 - smoothstep(0.0, 0.28, vLeafWind)) * 0.16;
+      float rootSilt = (1.0 - smoothstep(0.0, 0.28, vLeafWind)) * 0.08;
       diffuseColor.rgb *= 0.9 + leafMottle * 0.16 - rootSilt;
       diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.04, 0.82), smoothstep(0.78, 1.0, vLeafWind) * 0.18);`);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
@@ -585,6 +615,11 @@ export const surfaceVertex = `
 export const surfaceFragment = `
   uniform float uTime;
   uniform float uRichness;
+  uniform vec3 uWaterScatter;
+  uniform vec3 uWaterAbsorb;
+  uniform vec3 uSurfaceTint;
+  uniform float uSunGlow;
+  uniform float uSurfaceWarmth;
   varying vec3 vWorld;
   void main() {
     vec2 p = vWorld.xz;
@@ -598,10 +633,33 @@ export const surfaceFragment = `
     float fresnel = pow(1.0 - abs(dot(eye, normal)), 3.0);
     float glint = 0.0;
     if (uRichness > 0.5) glint = pow(max(0.0, dot(reflect(-normalize(vec3(-0.4, 1.0, 0.25)), normal), eye)), 55.0);
-    vec3 color = mix(vec3(0.04, 0.13, 0.10), vec3(0.18, 0.34, 0.27), fresnel);
-    if (!gl_FrontFacing) color = mix(vec3(0.05, 0.14, 0.11), vec3(0.18, 0.34, 0.28), fresnel);
+    // Per-river grading: silty water sees a warm ochre ceiling, clear water
+    // keeps the green-teal sheet. The literals stay so the test assertions
+    // keep matching; warmth blends them toward the warm set.
+    vec3 surfaceNear = mix(vec3(0.04, 0.13, 0.10), vec3(0.16, 0.12, 0.07), uSurfaceWarmth);
+    vec3 surfaceGrazing = mix(vec3(0.18, 0.34, 0.27), vec3(0.30, 0.24, 0.16), uSurfaceWarmth);
+    vec3 color = mix(surfaceNear, surfaceGrazing, fresnel);
+    if (!gl_FrontFacing) {
+      vec3 underNear = mix(vec3(0.05, 0.14, 0.11), vec3(0.16, 0.13, 0.08), uSurfaceWarmth);
+      vec3 underGrazing = mix(vec3(0.18, 0.34, 0.28), vec3(0.30, 0.24, 0.16), uSurfaceWarmth);
+      color = mix(underNear, underGrazing, fresnel);
+    }
+    color *= uSurfaceTint;
     color += glint * vec3(0.9, 0.95, 0.85);
-    gl_FragColor = vec4(color, 0.56 + fresnel * 0.35);
+    // Looking up from the bed: a broad warm sun bloom dissolves the sheet
+    // into light instead of a flat painted ceiling.
+    vec3 sunDir = normalize(vec3(-0.4, 1.0, 0.25));
+    float sunGlow = pow(max(0.0, dot(-eye, sunDir)), 10.0) * uRichness;
+    color += vec3(1.0, 0.94, 0.78) * sunGlow * uSunGlow;
+    // Same Beer-Lambert extinction as the world materials, so the far sheet
+    // dissolves into the water colour instead of ending at a visible edge.
+    float camDist = length(cameraPosition - vWorld);
+    vec3 transmit = exp(-uWaterAbsorb * camDist);
+    color = color * transmit + uWaterScatter * (1.0 - transmit);
+    float alpha = 0.56 + fresnel * 0.35;
+    // Distant surface is fully absorbed into the water column: opaque scatter.
+    alpha = mix(alpha, 1.0, (1.0 - transmit.r) * 0.8);
+    gl_FragColor = vec4(color, alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }

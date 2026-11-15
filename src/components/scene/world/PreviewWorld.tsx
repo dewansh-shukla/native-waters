@@ -2,13 +2,13 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AmbientLight, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, InstancedMesh, MeshStandardMaterial, PlaneGeometry, PointsMaterial, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
+import { AmbientLight, BoxGeometry, BufferAttribute, Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, IcosahedronGeometry, InstancedMesh, MeshStandardMaterial, PlaneGeometry, PointsMaterial, RepeatWrapping, Texture, TextureLoader, Vector3 } from "three";
 import { OBSTACLES } from "@/experience/habitat";
-import { createUnderwaterEnvironment } from "./underwaterEnv";
+import { CLEAR_WATER_ENV, SILTY_WATER_ENV, createUnderwaterEnvironment } from "./underwaterEnv";
 import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
-import { SILT_COUNT, advanceParticle, bedHeight, brahmaputraBedHeight, createPlacements, createSiltParticles, gangaBedHeight, godavariBedHeight, siltParticleAt, updateAtmosphere } from "./worldMotion";
-import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, type LogTextures, type RockTextures } from "./materials";
+import { SILT_COUNT, advanceParticle, bedHeight, brahmaputraBedHeight, createPlacements, createSiltParticles, gangaBedHeight, godavariBedHeight, siltParticleAt, updateAtmosphere, type Placement } from "./worldMotion";
+import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, underwaterStandardMaterial, type LogTextures, type RockTextures } from "./materials";
 import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
@@ -21,6 +21,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   const rockBatches = useRef<(InstancedMesh | null)[]>([]);
   const gravelBatches = useRef<(InstancedMesh | null)[]>([]);
   const plants = useRef<InstancedMesh>(null), plants2 = useRef<InstancedMesh>(null);
+  const farRocks = useRef<InstancedMesh>(null), mussels = useRef<InstancedMesh>(null), bricks = useRef<InstancedMesh>(null);
   const underwaterAmbient = useRef<AmbientLight>(null);
   const keyLight = useRef<DirectionalLight>(null), fillLight = useRef<DirectionalLight>(null), backlight = useRef<DirectionalLight>(null);
   const isGanga = river === "ganga"
@@ -48,8 +49,11 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     || (Array.isArray(habitat?.obstacles) && habitat!.obstacles.length === 4);
   const bedFn = isBrahmaputra ? brahmaputraBedHeight : isGodavari ? godavariBedHeight : isGanga ? gangaBedHeight : bedHeight;
   // Brahmaputra gravel is cooler and greyer than the Cauvery's warm stone.
-  const boulderColor = isBrahmaputra ? "#5f6a63" : "#6b6055";
-  const gravelColor = isBrahmaputra ? "#7c847a" : "#8a7a60";
+  // The tint multiplies a scanned sRGB albedo, so silty limestone pushes the
+  // tint near white: multiplying two dark albedos is what made Ganga stone
+  // read as black silhouettes.
+  const boulderColor = isGanga ? "#e8dcc0" : isBrahmaputra ? "#5f6a63" : "#6b6055";
+  const gravelColor = isGanga ? "#f0e6cd" : isBrahmaputra ? "#7c847a" : "#8a7a60";
   const placements = useMemo(() => createPlacements({ seed: habitat?.seed, obstacles: habitat?.obstacles, bedHeight: bedFn, river, habitat }), [habitat, bedFn, river]);
   // Rock/pebble variant plan: index-keyed buckets ((i + salt) % variantCount)
   // so every placement renders exactly once across the batches; obstacle
@@ -63,10 +67,20 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   })), [placements]);
   const uniforms = useMemo(() => ({ time: { value: 0 }, richness: { value: 1 }, flow: { value: new Vector3() } }), []);
   const water = useMemo(() => waterProp ?? createWaterOptics(), [waterProp]);
-  const surfaceUniforms = useMemo(() => ({ uTime: uniforms.time, uRichness: uniforms.richness }), [uniforms]);
+  const surfaceUniforms = useMemo(() => ({
+    uTime: uniforms.time,
+    uRichness: uniforms.richness,
+    uWaterScatter: water.scatter,
+    uWaterAbsorb: water.absorption,
+    // Silty rivers: a warm ochre ceiling lit by a strong sun bloom. Clear
+    // rivers keep the neutral green-teal sheet.
+    uSurfaceTint: { value: new Vector3(...(isGanga ? [1.0, 1.0, 1.0] : [1, 1, 1])) },
+    uSunGlow: { value: isGanga ? 1.1 : .35 },
+    uSurfaceWarmth: { value: isGanga ? 1 : 0 },
+  }), [uniforms, water, isGanga]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
   const atmosphere = useMemo(() => ({ fog: new Fog(new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene, water]);
-  const env = useMemo(() => createUnderwaterEnvironment(gl), [gl]);
+  const env = useMemo(() => createUnderwaterEnvironment(gl, isGanga ? SILTY_WATER_ENV : CLEAR_WATER_ENV), [gl, isGanga]);
   const motion = useMemo(() => {
     const positions = new Float32Array((240 + SILT_COUNT.HIGH) * 3);
     const particles: Vector3[] = [];
@@ -86,30 +100,32 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   }, []);
   const mutable = useRef({ uniforms, motion });
   const particleAttribute = useRef<BufferAttribute>(null);
+  // The bed plane extends far past the fog radius so absorption, not a plane
+  // edge, ends the world: 24 x 18 ended inside visible range and read as a
+  // painted backdrop behind the school.
+  const TERRAIN_W = 96, TERRAIN_D = 72;
   const terrain = useMemo(() => {
-    const geometry = new PlaneGeometry(24, 18, 96, 72);
+    const geometry = new PlaneGeometry(TERRAIN_W, TERRAIN_D, 128, 96);
     geometry.rotateX(-Math.PI / 2);
     const positions = geometry.getAttribute("position");
     const colors = new Float32Array(positions.count * 3), color = new Color();
+    // Ganga silt is khaki/buff; the green palette belongs to the clearer rivers.
+    const base = isGanga ? [.30, .26, .17] : [.19, .22, .13];
+    const spread = [.10, .08, .05];
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i), z = positions.getZ(i);
       positions.setY(i, bedFn(x, z));
       const silt = .5 + .5 * Math.sin(x * .45 + Math.sin(z * .7));
-      color.setRGB(.19 + silt * .10, .22 + silt * .08, .13 + silt * .05);
+      color.setRGB(base[0] + silt * spread[0], base[1] + silt * spread[1], base[2] + silt * spread[2]);
       color.toArray(colors, i * 3);
     }
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
     return geometry;
-  }, [bedFn]);
+  }, [bedFn, isGanga]);
 
-  useLayoutEffect(() => {
-    // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
-    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, boulderColor, { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
-    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, gravelColor, { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
-    fillBatch(plants.current, placements.plants, "#3d8b3a", { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
-    fillBatch(plants2.current, grassPlacements, "#2d6b28", { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
-  }, [rockPlans, gravelPlans, placements, grassPlacements, boulderColor, gravelColor]);
+  const plantTint = isGanga ? "#c8d480" : "#3d8b3a";
+  const understoryTint = isGanga ? "#8fa058" : "#2d6b28";
   useLayoutEffect(() => {
     if (worldGroup.current) worldGroup.current.userData.underwaterEnvironment = env;
   }, [env]);
@@ -128,10 +144,64 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   useEffect(() => () => rockGeometries.forEach(geometry => geometry.dispose()), [rockGeometries]);
   useEffect(() => () => gravelGeometries.forEach(geometry => geometry.dispose()), [gravelGeometries]);
 
-  const plantGeometry = useMemo(() => createPlantClumpGeometry("ribbon"), []);
+  const plantGeometry = useMemo(() => createPlantClumpGeometry(isGanga ? "tape" : "ribbon"), [isGanga]);
   const plantGeometry2 = useMemo(() => createPlantClumpGeometry("grass"), []);
   useEffect(() => () => plantGeometry.dispose(), [plantGeometry]);
   useEffect(() => () => plantGeometry2.dispose(), [plantGeometry2]);
+
+  // Distance layer: broad low boulders at 12-18 m sit inside the absorption
+  // range and read as a bank receding into murk. Without them the fog wall has
+  // no silhouette to break it and the scene reads as a painted backdrop.
+  const farRockPlacements = useMemo<Placement[]>(() => isGanga ? [
+    { position: [-16, -3.4, -16], scale: [4.6, 2.6, 4.0], rotation: .7 },
+    { position: [-6, -3.5, -18], scale: [4.0, 2.2, 3.6], rotation: 2.1 },
+    { position: [3, -3.35, -17], scale: [5.2, 2.8, 4.2], rotation: .3 },
+    { position: [12, -3.45, -15], scale: [4.4, 2.4, 3.8], rotation: 1.4 },
+    { position: [22, -3.4, -10], scale: [4.8, 2.6, 4.0], rotation: .9 },
+    { position: [-24, -3.4, -9], scale: [5.0, 2.6, 4.2], rotation: 1.8 },
+  ] : [], [isGanga]);
+
+  // Bottom life: freshwater mussels half-sunk in the silt, in loose beds where
+  // the current keeps the sediment thin. Static, so they cost one instanced draw.
+  const musselPlacements = useMemo<Placement[]>(() => {
+    if (!isGanga) return [];
+    const spots: [number, number][] = [[-4.6, 1.2], [-4.2, 1.9], [-5.1, .4], [-3.4, -1.6], [-6.2, -2.4], [1.8, -3.4], [2.4, -2.8], [7.1, 1.2], [6.6, 2.0], [-1.2, 4.4], [-8.4, -.6], [3.9, 3.6]];
+    return spots.map(([x, z], i) => ({
+      position: [x, bedFn(x, z) - .012, z],
+      scale: [.15 + (i % 3) * .02, .055, .095],
+      rotation: i * 1.7,
+    }));
+  }, [isGanga, bedFn]);
+
+  // Ghat debris: a few half-buried bricks and tiles near the driftwood. The
+  // human trace a river keeps — subtle, but it places the scene on the Ganga.
+  const brickPlacements = useMemo<Placement[]>(() => {
+    if (!isGanga) return [];
+    const spots: [number, number, number][] = [[-6.1, -1.9, .3], [-5.7, -.9, 1.1], [-6.6, -.2, .7], [-4.9, -2.3, .4], [2.9, -5.2, .9], [3.4, -5.0, .2]];
+    return spots.map(([x, z, rotation]) => ({
+      position: [x, bedFn(x, z) + .012, z],
+      scale: [.24, .045, .115],
+      rotation,
+    }));
+  }, [isGanga, bedFn]);
+
+  const musselGeometry = useMemo(() => new IcosahedronGeometry(1, 1), []);
+  const brickGeometry = useMemo(() => new BoxGeometry(1, 1, 1), []);
+  useEffect(() => () => { musselGeometry.dispose(); brickGeometry.dispose(); }, [musselGeometry, brickGeometry]);
+  const musselMaterial = useMemo(() => underwaterStandardMaterial("#8a8763", water, { roughness: .72 }), [water]);
+  const brickMaterial = useMemo(() => underwaterStandardMaterial("#a97e5e", water, { roughness: .95 }), [water]);
+  useEffect(() => () => { musselMaterial.dispose(); brickMaterial.dispose(); }, [musselMaterial, brickMaterial]);
+
+  useLayoutEffect(() => {
+    // First OBSTACLES.length rocks are the swim-through boulders: exact placement.
+    rockPlans.forEach((plan, k) => fillBatch(rockBatches.current[k], plan.placements, boulderColor, { spin: true, stretch: true, skipFirst: plan.skipFirst, variationIndices: plan.sourceIndices }));
+    gravelPlans.forEach((plan, k) => fillBatch(gravelBatches.current[k], plan.placements, gravelColor, { spin: true, colorSpread: .42, variationIndices: plan.sourceIndices }));
+    fillBatch(plants.current, placements.plants, plantTint, { stretch: true, stretchAmount: .1, colorSpread: .18, colorSalt: 31 });
+    fillBatch(plants2.current, grassPlacements, understoryTint, { stretch: true, stretchAmount: .12, colorSpread: .16, colorSalt: 47 });
+    fillBatch(farRocks.current, farRockPlacements, isGanga ? "#d8ccb2" : boulderColor, { spin: true, stretch: true, colorSpread: .3 });
+    fillBatch(mussels.current, musselPlacements, "#e6e2c8", { colorSpread: .35, colorSalt: 61 });
+    fillBatch(bricks.current, brickPlacements, "#e8d6c4", { colorSpread: .25, colorSalt: 23 });
+  }, [rockPlans, gravelPlans, placements, grassPlacements, boulderColor, gravelColor, plantTint, understoryTint, farRockPlacements, musselPlacements, brickPlacements, isGanga]);
 
   // Shared 1K scanned stone maps (CC0, see public/textures/world/rocks)
   // loaded once for all seven batches. Until they arrive — or forever, if the
@@ -206,8 +276,13 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   }, [bedTextures]);
 
   const substrate = useMemo(
-    () => substrateShader(uniforms, water, bedTextures ?? undefined, { blend: (quality === "HIGH" ? 1 : .5) * .55 }),
-    [uniforms, water, bedTextures, quality],
+    () => substrateShader(uniforms, water, bedTextures ?? undefined, {
+      blend: isGanga ? 0 : (quality === "HIGH" ? 1 : .5) * .55,
+      wetTint: isGanga ? [0.95, 0.87, 0.72] : undefined,
+      algae: isGanga ? .06 : undefined,
+      caustic: isGanga ? [0.11, 0.10, 0.07] : undefined,
+    }),
+    [uniforms, water, bedTextures, quality, isGanga],
   );
 
   // Scanned-triplanar materials: one program per stone kind; instance colors
@@ -215,17 +290,17 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   const boulderMaterial = useMemo(() => {
     if (!rockTextures) return null;
     const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
-    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .38, dampness: .12 }, water);
-    material.customProgramCacheKey = () => "river-rock-boulder";
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .38, dampness: .12, brightness: isGanga ? 1.6 : 1 }, water);
+    material.customProgramCacheKey = () => "river-rock-boulder" + (isGanga ? "-ganga" : "");
     return material;
-  }, [rockTextures, uniforms, water]);
+  }, [rockTextures, uniforms, water, isGanga]);
   const pebbleMaterial = useMemo(() => {
     if (!rockTextures) return null;
     const material = new MeshStandardMaterial({ roughness: 1, metalness: 0 });
-    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .9, dampness: .12 }, water);
-    material.customProgramCacheKey = () => "river-rock-pebble";
+    material.onBeforeCompile = rockShader(rockTextures, uniforms, { scale: .9, dampness: .12, brightness: isGanga ? 1.6 : 1 }, water);
+    material.customProgramCacheKey = () => "river-rock-pebble" + (isGanga ? "-ganga" : "");
     return material;
-  }, [rockTextures, uniforms, water]);
+  }, [rockTextures, uniforms, water, isGanga]);
   useEffect(() => () => boulderMaterial?.dispose(), [boulderMaterial]);
   useEffect(() => () => pebbleMaterial?.dispose(), [pebbleMaterial]);
 
@@ -294,11 +369,11 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   // Marine snow joins the water column: absorption fades each mote with the
   // same optics as the rest of the world.
   const particleMaterial = useMemo(() => {
-    const material = new PointsMaterial({ color: "#cfe0c0", size: .03, transparent: true, opacity: .3, depthWrite: false, sizeAttenuation: true });
+    const material = new PointsMaterial({ color: isGanga ? "#d9ccae" : "#cfe0c0", size: .03, transparent: true, opacity: .3, depthWrite: false, sizeAttenuation: true });
     material.onBeforeCompile = shader => applyUnderwaterFog(shader, water);
     material.customProgramCacheKey = () => "river-marine-snow";
     return material;
-  }, [water]);
+  }, [water, isGanga]);
   useEffect(() => () => particleMaterial.dispose(), [particleMaterial]);
 
   // God rays are a HIGH-tier overlay only: a clip-space quad, so it costs one
@@ -355,10 +430,10 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   return <group ref={worldGroup} visible={visible} name="PreviewWorld">
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
-    <directionalLight ref={keyLight} position={[-6, 9, 3]} color="#ffe9c0" intensity={2.4} />
-    <directionalLight ref={fillLight} position={[4, -3, -2]} color="#9ab8cc" intensity={1.2} />
-    <directionalLight ref={backlight} position={[-3, 1.5, -7]} color="#bfe0e8" intensity={1.1} />
-    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color="#7aa0b0" intensity={0.4} visible={false} />
+    <directionalLight ref={keyLight} position={[-6, 9, 3]} color={isGanga ? "#e8d0a0" : "#ffe9c0"} intensity={2.4} />
+    <directionalLight ref={fillLight} position={[4, -3, -2]} color={isGanga ? "#b5a57a" : "#9ab8cc"} intensity={1.2} />
+    <directionalLight ref={backlight} position={[-3, 1.5, -7]} color={isGanga ? "#c4b48a" : "#bfe0e8"} intensity={1.1} />
+    <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color={isGanga ? "#9a8f6e" : "#7aa0b0"} intensity={isGanga ? 0.55 : 0.4} visible={false} />
     <mesh geometry={terrain}>
       <meshStandardMaterial vertexColors roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? `river-substrate-ground-${quality}` : `river-substrate-${quality}`} />
     </mesh>
@@ -376,18 +451,27 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
           : <meshStandardMaterial roughness={1} onBeforeCompile={substrate} customProgramCacheKey={() => bedTextures ? "river-substrate-ground" : "river-substrate"} />}
       </instancedMesh>
     ))}
+    {farRockPlacements.length > 0 && (
+      <instancedMesh ref={farRocks} args={[rockGeometries[0], undefined, farRockPlacements.length]} frustumCulled={false}>
+        {boulderMaterial
+          ? <primitive object={boulderMaterial} attach="material" />
+          : <meshStandardMaterial roughness={.92} onBeforeCompile={substrate} customProgramCacheKey={() => "river-substrate-far"} />}
+      </instancedMesh>
+    )}
+    {musselPlacements.length > 0 && <instancedMesh ref={mussels} args={[musselGeometry, musselMaterial, musselPlacements.length]} frustumCulled={false} />}
+    {brickPlacements.length > 0 && <instancedMesh ref={bricks} args={[brickGeometry, brickMaterial, brickPlacements.length]} frustumCulled={false} />}
     <instancedMesh ref={plants} args={[plantGeometry, undefined, placements.plants.length]} frustumCulled={false}>
-      <meshStandardMaterial color="#3d8b3a" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
+      <meshStandardMaterial color={plantTint} roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants"} />
     </instancedMesh>
     <instancedMesh ref={plants2} args={[plantGeometry2, undefined, grassPlacements.length]} frustumCulled={false}>
-      <meshStandardMaterial color="#2d6b28" roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
+      <meshStandardMaterial color={understoryTint} roughness={.75} side={DoubleSide} vertexColors onBeforeCompile={plant} customProgramCacheKey={() => "river-plants2"} />
     </instancedMesh>
     <group name="DriftwoodLog" position={[-5.4, -2.74, -.8]} rotation={[0, .65, Math.PI / 2 - .07]}>
       <mesh name="DriftwoodTrunk" geometry={logGeometry} material={logMaterial} />
       <mesh name="DriftwoodBranch" geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-      <planeGeometry args={[24, 18, 32, 24]} />
+      <planeGeometry args={[160, 160, 48, 48]} />
       {/* shortcut: double-sided Fresnel/glints replace reflection/refraction, not physical water optics. */}
       <shaderMaterial uniforms={surfaceUniforms} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} side={DoubleSide} transparent depthWrite={false} />
     </mesh>

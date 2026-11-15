@@ -12,9 +12,9 @@ export const WATER_FOG_NEAR = 7;
 export const WATER_FOG_FAR = 38;
 
 // Ganga: visibly murkier, turbid brown water with shorter clarity.
-export const GANGA_WATER_SCATTER_CSS = "#3a2f1e";
-export const GANGA_WATER_FOG_NEAR = 5;
-export const GANGA_WATER_FOG_FAR = 20;
+export const GANGA_WATER_SCATTER_CSS = "#2b2417";
+export const GANGA_WATER_FOG_NEAR = 4;
+export const GANGA_WATER_FOG_FAR = 24;
 export const GANGA_SCATTER_CSS = GANGA_WATER_SCATTER_CSS;
 export const GANGA_FOG_NEAR = GANGA_WATER_FOG_NEAR;
 export const GANGA_FOG_FAR = GANGA_WATER_FOG_FAR;
@@ -56,8 +56,8 @@ export function createWaterOptics(config?: { scatter?: string; absorption?: read
 }
 
 // Ganga: brownish, turbid scatter with higher suspended sediment.
-const GANGA_SCATTER_DISPLAY = [0x3a / 255, 0x2f / 255, 0x1e / 255] as const;
-const GANGA_ABSORPTION = [0.12, 0.05, 0.09] as const;
+const GANGA_SCATTER_DISPLAY = [0x2b / 255, 0x24 / 255, 0x17 / 255] as const;
+const GANGA_ABSORPTION = [0.13, 0.05, 0.095] as const;
 
 export const GANGA_ABSORPTION_VALUES = [...GANGA_ABSORPTION];
 export const GANGA_WATER_ABSORPTION = [...GANGA_ABSORPTION];

@@ -1,0 +1,37 @@
+{
+  "species": "neon-hatchet",
+  "lod": "low",
+  "triangles": 1416,
+  "vertices": 789,
+  "materials": [
+    "FishBody",
+    "FishFin"
+  ],
+  "bones": [
+    "Root",
+    "Head",
+    "Spine.01",
+    "Spine.02",
+    "Spine.03",
+    "Tail.01",
+    "TailFin",
+    "TailFin.U",
+    "TailFin.L",
+    "Pelvic.L",
+    "Pelvic.R",
+    "Dorsal",
+    "Dorsal.Ray.1",
+    "Dorsal.Ray.2",
+    "Dorsal.Ray.3",
+    "AnalFin",
+    "AnalRay.1",
+    "AnalRay.2",
+    "Pectoral.L",
+    "Pectoral.R",
+    "Jaw",
+    "Gill.L",
+    "Gill.R"
+  ],
+  "bytes": 211532,
+  "variant": "neon-hatchet"
+}

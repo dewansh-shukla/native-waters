@@ -6,6 +6,7 @@ import { useGLTF } from "@react-three/drei";
 import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, Quaternion, SkinnedMesh, SphereGeometry, Vector3, type AnimationAction, type AnimationClip, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { prepareFishMaterials } from "./fishMaterials";
+import { updateFishShimmer } from "./bodyShimmer";
 import { createWaterOptics } from "../world/waterOptics";
 import { driveFins, gillHz, pectoralRowHz } from "./finMotion";
 import { bankAngle, swimTimeScale } from "./motion";
@@ -30,10 +31,11 @@ function captureRest(root: Object3D): Map<string, Quaternion> {
   return rest;
 }
 
-function Fish({ source, animations, rest, fish, runtime, index, paused, visible, onSelect, onHover }: {
+function Fish({ source, animations, rest, fish, runtime, index, paused, visible, detail, onSelect, onHover }: {
   source: Object3D; animations: AnimationClip[]; rest: ReadonlyMap<string, Quaternion>;
   fish: FishState; runtime: FishSchoolProps["runtime"]; index: number;
-  paused: boolean; visible: boolean; onSelect: FishSchoolProps["onSelect"]; onHover: FishSchoolProps["onHover"];
+  paused: boolean; visible: boolean; detail: "high" | "low";
+  onSelect: FishSchoolProps["onSelect"]; onHover: FishSchoolProps["onHover"];
 }) {
   const model = useMemo(() => {
     const rig = clone(source);
@@ -148,6 +150,9 @@ function Fish({ source, animations, rest, fish, runtime, index, paused, visible,
         pectoralPhase: pectoralClock.current,
         rest,
       });
+      // The silver-body surface layer shares the scene clock; every clone
+      // points at the same materials, so the write is idempotent.
+      if (detail === "high") updateFishShimmer(model.rig, time);
     }
   });
 
@@ -186,22 +191,24 @@ function Fish({ source, animations, rest, fish, runtime, index, paused, visible,
   />;
 }
 
-export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds }: FishSchoolProps) {
+export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds, detail = "low" }: FishSchoolProps) {
   // One loader/cache entry; ten SkeletonUtils clones share geometry/materials/textures.
   const { scene, animations } = useGLTF(modelUrl);
   const readyScene = useRef<Object3D | null>(null);
+  const readyDetail = useRef<string | null>(null);
   const water = useMemo(() => createWaterOptics(), []);
   useEffect(() => {
-    if (readyScene.current === scene) return;
-    prepareFishMaterials(scene, water);
+    if (readyScene.current === scene && readyDetail.current === detail) return;
+    prepareFishMaterials(scene, water, { detail });
     readyScene.current = scene;
+    readyDetail.current = detail;
     onReady();
-  }, [scene, water, onReady]);
+  }, [scene, water, onReady, detail]);
   const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;
   const rest = useMemo(() => captureRest(scene), [scene]);
   return <>{fishToRender.map((fish, index) => <Fish key={fish.id}
     source={scene} animations={animations} rest={rest} fish={fish} runtime={runtime} index={index} paused={paused}
-    visible={visibleIds.includes(fish.id) || selectedId === fish.id}
+    visible={visibleIds.includes(fish.id) || selectedId === fish.id} detail={detail}
     onSelect={onSelect} onHover={onHover}
   />)}</>;
 }

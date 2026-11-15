@@ -90,7 +90,8 @@ function Scene(props: ExperienceSceneProps) {
         {speciesWithIds.map((sp, i) => {
           return <FishSchool key={sp.modelUrl + i} modelUrl={sp.modelUrl} runtime={props.runtime} paused={props.paused || map || !props.state.ready}
             visibleIds={props.visibleIds} selectedId={props.state.selectedId} onSelect={props.onSelect}
-            onHover={props.onHover} onReady={loadedSchool} fishIds={sp.fishIds} />;
+            onHover={props.onHover} onReady={loadedSchool} fishIds={sp.fishIds}
+            detail={props.quality === "HIGH" ? "high" : "low"} />;
         })}
       </Suspense>
     </group>

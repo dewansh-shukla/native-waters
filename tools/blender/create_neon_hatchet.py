@@ -19,7 +19,7 @@ from mathutils import Euler
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from tools.blender import fish_budgets  # noqa: E402
+from tools.assets import fish_budgets  # noqa: E402
 from tools.blender.fish_rig import FIN_RAYS, SPECIES_RAYS  # noqa: E402
 from tools.blender.fish_specs import SPECIES  # noqa: E402
 
@@ -62,10 +62,13 @@ class NeonHatchetBuilder(cfs.Builder):
 
     def make_action(self):
         super().make_action()
-        self.action.name = "swim"
+        # The app picks the locomotion clip by name: FishSchool looks up
+        # exactly "Swim" and retimes it by speed. A lowercase name silently
+        # falls back to animations[0], so the casing is part of the contract.
+        self.action.name = "Swim"
         self._emphasise_anal_fin()
-        idle = self._author("idle", self._idle_pose)
-        turn = self._author("turn", self._turn_pose)
+        idle = self._author("Idle", self._idle_pose)
+        turn = self._author("Turn", self._turn_pose)
 
         rig = self.rig
         for bone in rig.pose.bones:
@@ -86,8 +89,13 @@ class NeonHatchetBuilder(cfs.Builder):
             strip.extrapolation = "NOTHING"
             track.mute = True
 
-    def _emphasise_anal_fin(self, gain=1.60):
+    def _emphasise_anal_fin(self, gain=1.30):
         """Chela cruises on anal-fin undulation; give that gait more travel.
+
+        The gait knobs already raised the raw anal sway, so the multiplier
+        stays modest: raw rearmost-ray peak 0.86 rad with gain 1.30 lands at
+        about 62 degrees of effective travel, versus 1.60 on the old 0.538 rad
+        base (about 48 degrees).
 
         The swim action stores the ray bones as unit quaternions. Scaling the
         vector part and renormalising increases the swing angle without

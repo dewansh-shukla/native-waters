@@ -104,9 +104,19 @@ def _scale_height(size=512, detail=False, cells=None):
     """
     _, _, cell_u, cell_v = _scale_lattice(size, cells)
     # A cycloid scale: rounded across, with a longer exposed lip at the rear.
-    crown = np.sin(np.pi * cell_u) ** 0.65
-    exposed = np.clip((cell_v - 0.28) / 0.52, 0.0, 1.0)
-    height = crown * (0.32 + 0.68 * exposed ** 0.9)
+    if cells is not None:
+        # Fine-scaled species (50+ scales along the flank): each scale is a
+        # nearly flat plate bounded by a thin groove, not a pillow. The old
+        # rounded crown at this density read as diamond quilting under the
+        # review camera.
+        groove_u = np.exp(-(np.minimum(cell_u, 1.0 - cell_u) / 0.13) ** 2)
+        groove_v = np.exp(-(np.minimum(cell_v, 1.0 - cell_v) / 0.17) ** 2)
+        height = 1.0 - 0.62 * groove_u - 0.44 * groove_v * (1.0 - 0.5 * groove_u)
+        height = np.clip(height, 0.0, 1.0)
+    else:
+        crown = np.sin(np.pi * cell_u) ** 0.65
+        exposed = np.clip((cell_v - 0.28) / 0.52, 0.0, 1.0)
+        height = crown * (0.32 + 0.68 * exposed ** 0.9)
     u, v = _grid(size)
     signed = _body_height(v)
     height *= np.clip(1.0 - (np.abs(signed) / 1.30) ** 2, 0.12, 1.0)
@@ -181,8 +191,10 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     if spec.pattern == "band":
         # A silver fish: cool mirror flank under an olive back, whitish belly.
         # The old flat sage body was the single biggest reason the model read
-        # as plastic rather than as a live Chela.
-        back = np.asarray((0.085, 0.110, 0.065), np.float32)
+        # as plastic rather than as a live Chela. The back is olive with a
+        # green-grey sheen, not black: at 0.085 sRGB it silhouetted as a hole
+        # in the tank from above.
+        back = np.asarray((0.235, 0.265, 0.165), np.float32)
         silver = np.asarray((0.60, 0.64, 0.66), np.float32)
         silver_mix = 0.34
     elif spec.pattern == "stripes":
@@ -192,7 +204,7 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
         back = np.asarray((0.115, 0.125, 0.075), np.float32)
         silver = np.asarray((0.64, 0.62, 0.54), np.float32)
         silver_mix = 0.50
-    dorsal_mix = {"stripes": 0.55, "band": 0.80}.get(spec.pattern, 0.82)
+    dorsal_mix = {"stripes": 0.55, "band": 0.60}.get(spec.pattern, 0.82)
     rgb = rgb * (1.0 - dorsal_mix * dorsal[..., None]) + back * (dorsal_mix * dorsal[..., None])
     rgb = rgb * (1.0 - silver_mix * flank[..., None]) + silver * (silver_mix * flank[..., None])
     belly_mix = {"stripes": 0.50, "band": 0.74}.get(spec.pattern, 0.64)
@@ -222,9 +234,12 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
         rgb *= (1.0 + 0.24 * sparkle[..., None])
     elif spec.pattern == "band":
         # Silver fish glint on a minority of scale crowns; that sparse specular
-        # is what separates lit metal from a grey gradient.
-        sparkle = _scale_sparkle(size, spec.scale_cells) * flank
-        rgb *= (1.0 + 0.20 * sparkle[..., None])
+        # is what separates lit metal from a grey gradient. The head is
+        # scaleless, so the glints stop at the operculum - without that fade
+        # they read as dust on the cheek.
+        head_fade = np.clip((u - 0.22) / 0.06, 0.0, 1.0)
+        sparkle = _scale_sparkle(size, spec.scale_cells) * flank * head_fade
+        rgb *= (1.0 + 0.10 * sparkle[..., None])
 
     # Flank markings. The Arulius carries three irregular blotches; the danios
     # carry five horizontal navy stripes around both flanks plus a dark
@@ -318,7 +333,7 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
         # rises again at the peduncle. Soft-edged and thin: sheen in the skin,
         # not a painted ribbon.
         window = _smoothstep((u - 0.26) / 0.10) * _smoothstep((0.94 - u) / 0.06)
-        dip = np.sin(pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
+        dip = np.sin(np.pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
         centre = 0.06 - 0.20 * dip
         band = _smoothstep(np.clip((0.20 - np.abs(height - centre)) / 0.16, 0.0, 1.0))
         band *= window * flank
@@ -358,7 +373,7 @@ def body_albedo(spec, variant, size, path=None, eye_spots=True):
     # hatchet it follows the same dip as the pigment band instead of a straight
     # rule across the flank.
     if spec.pattern == "band":
-        ll_centre = 0.06 - 0.20 * np.sin(pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
+        ll_centre = 0.06 - 0.20 * np.sin(np.pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0))
         lateral = (np.exp(-((height - ll_centre) / 0.035) ** 2)
                    * np.clip((u - 0.10) / 0.10, 0.0, 1.0)
                    * np.clip((0.96 - u) / 0.05, 0.0, 1.0))
@@ -424,11 +439,11 @@ def body_normal(spec, size, path=None):
     signed = _body_height(v)
     # Scaleless head: fade the scale relief out ahead of the operculum.
     head = np.clip((u - 0.215) / 0.040, 0.0, 1.0)
-    field = 0.5 + (height - 0.5) * 0.58 * head
+    field = 0.5 + (height - 0.5) * 0.58 * head * spec.scale_relief
     # Lateral line: a canal groove with a raised rim, only along the flank.
     if spec.pattern == "band":
         line = signed - (0.06 - 0.20 * np.sin(
-            pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0)))
+            np.pi * np.clip((u - 0.24) / 0.58, 0.0, 1.0)))
     else:
         line = signed
     lateral = np.exp(-(line / 0.035) ** 2)
@@ -612,11 +627,14 @@ def fin_albedo(spec, variant, size=128, path=None, rays=11):
     # Ray lines: the membrane is denser along each ray and thinner between, and
     # that alternation is most of what makes a fin read as striated rather than
     # as a sheet of coloured paper. A slow wobble in the spacing keeps the comb
-    # from looking printed.
+    # from looking printed. The geometry already carries one row per ray with
+    # its own ridge, so the paint stays a whisper: at 0.30 this read as dark
+    # corduroy on the shared map, where the painted count cannot match every
+    # fin's real ray count.
     phase = u + 0.012 * np.sin(TAU * v * 2.0)
     between = np.abs(np.sin(np.pi * phase * rays))
-    rgb *= (1.0 - 0.30 * between ** 1.2)[..., None]
-    rgb *= (1.0 + 0.10 * (1.0 - between) ** 2)[..., None]
+    rgb *= (1.0 - 0.08 * between ** 1.4)[..., None]
+    rgb *= (1.0 + 0.04 * (1.0 - between) ** 2)[..., None]
     if spec.pattern == "blotches":
         edge = np.clip((v - 0.86) / 0.10, 0.0, 1.0)
         rgb = rgb * (1.0 - 0.65 * edge[..., None]) + dark * (0.65 * edge[..., None])
@@ -629,11 +647,12 @@ def fin_albedo(spec, variant, size=128, path=None, rays=11):
     rgb *= (1.0 + 0.030 * np.sin(TAU * (u * 13.0 + v * 21.0)))[..., None]
     # Translucency: dense at the root, thinning toward the trailing edge, and
     # thinner in the web between rays than along a ray. Without this the fin
-    # reads as an opaque paddle at any viewing distance.
+    # reads as an opaque paddle at any viewing distance. Danionine fins are
+    # hyaline, so even the root keeps some light through it.
     reach = np.clip((v - 0.28) / 0.72, 0.0, 1.0)
-    alpha = 0.96 - 0.56 * reach ** 1.25
-    alpha *= 1.0 - 0.20 * between ** 2.0
-    alpha = np.maximum(alpha, 0.30 + 0.25 * reach)
+    alpha = 0.84 - 0.58 * reach ** 1.25
+    alpha *= 1.0 - 0.12 * between ** 2.0
+    alpha = np.maximum(alpha, 0.22 + 0.20 * reach)
     return _image("FishFin - albedo", _rgba(rgb, alpha), path, "PNG", "sRGB")
 
 
@@ -653,24 +672,26 @@ def eye_albedo(variant, size=256, path=None):
     radius = 2.0 * np.sqrt(du * du + dv * dv)
     angle = np.arctan2(dv, du)
     rgb = np.broadcast_to(sclera, (size, size, 3)).copy()
-    fibre = (0.045 * np.sin(angle * 61.0 + 0.6)
-             + 0.028 * np.sin(angle * 29.0 + 2.1)
-             + 0.014 * np.sin(angle * 127.0))
+    fibre = (0.012 * np.sin(angle * 61.0 + 0.6)
+             + 0.008 * np.sin(angle * 29.0 + 2.1)
+             + 0.004 * np.sin(angle * 127.0))
     # A slightly paler collarette just outside the pupil, as in a live eye,
     # and a darker outer iris so the ring is not one flat band of colour.
-    collarette = 0.18 * np.exp(-((radius - 0.625) / 0.050) ** 2)
-    radial = 0.84 + 0.22 * np.clip((0.86 - radius) / 0.26, 0.0, 1.0)
+    collarette = 0.07 * np.exp(-((radius - 0.700) / 0.045) ** 2)
+    radial = 0.84 + 0.22 * np.clip((0.90 - radius) / 0.24, 0.0, 1.0)
     iris_rgb = np.clip(iris * (radial[..., None] + fibre[..., None]
                                + collarette[..., None]), 0.0, 1.0)
-    ring = (radius >= 0.60) & (radius < 0.86)
+    # A live fish eye is mostly pupil with a narrow iris band; a wide ring is
+    # what makes a shader eye read as a painted button.
+    ring = (radius >= 0.66) & (radius < 0.90)
     rgb[ring] = iris_rgb[ring]
-    limbal = (radius >= 0.86) & (radius < 0.93)
+    limbal = (radius >= 0.90) & (radius < 0.95)
     rgb[limbal] = iris * 0.28
-    pupil = radius < 0.60
+    pupil = radius < 0.66
     rgb[pupil] = (0.002, 0.002, 0.002)
     # A dark margin where the iris meets the pupil keeps the pupil from looking
     # like a disc stuck onto a ring.
-    margin = (radius >= 0.60) & (radius < 0.645)
+    margin = (radius >= 0.66) & (radius < 0.700)
     rgb[margin] = iris * 0.10
     # The eyelid rim is skin, not part of the globe: darken the outer edge so
     # the eye seats into the socket instead of floating on it.
