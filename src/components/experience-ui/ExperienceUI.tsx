@@ -70,7 +70,7 @@ function StudyDialog({ title, onClose, onEscape = onClose, returnFocus, children
 }
 
 export function ExperienceUI(props: ExperienceUIProps) {
-  const { state, fixture, paused, quality, audio, visibleFishIds, dispatch } = props;
+  const { state, fixture, paused, quality, audio, visibleFishIds, dispatch, batterySaver = false, onBatterySaverChange } = props;
   const [preview, setPreview] = useState(false);
   const [choice, setChoice] = useState(visibleFishIds[0] ?? "");
   const [everReady, setEverReady] = useState(false);
@@ -160,6 +160,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
       <label>Quality <select value={quality} onChange={event => props.onQualityChange(event.target.value as QualityPreference)}>
         <option>AUTO</option><option>HIGH</option><option>LOW</option>
       </select></label>
+      <label><input type="checkbox" checked={batterySaver} onChange={e => onBatterySaverChange?.(e.target.checked)} /> Battery saver</label>
       {state.phase !== "map" && <button onClick={() => { focusAfterPhase.current = "map"; dispatch({ type: "MAP" }); }}>Return to Map</button>}
     </nav>
     {audio.error && <p className="experience-audio-error" role="status">{audio.error}</p>}

@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import type { Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#101c1e",
+};
 
 export const metadata: Metadata = {
   title: "Native Waters — Experience preview",

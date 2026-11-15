@@ -103,10 +103,12 @@ export default function SceneViewport(props: ExperienceSceneProps) {
   const retry = () => { props.onReady(false); for (const url of [props.modelUrl, ...(props.additionalModelUrls ?? [])]) useGLTF.clear(url); setAttempt(value => value + 1); };
   const { onReady } = props;
   useEffect(() => () => onReady(false), [onReady]);
+  const coarse = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+  const dpr = props.quality === "HIGH" ? [1, 1.5] as [number, number] : coarse ? ([1, Math.min(1.25, window.devicePixelRatio || 1)] as [number, number]) : 1;
   return <div className="scene-viewport">
     <SceneBoundary key={`${[props.modelUrl, ...(props.additionalModelUrls ?? [])].join("|")}:${attempt}`} onRetry={retry}>
       <Canvas camera={{ position: [0, 30, .01], up: [0, 1, 0], fov: 45, near: .05, far: 120 }}
-        dpr={props.quality === "HIGH" ? [1, 1.5] : 1} fallback={<SceneFailure onRetry={retry} />} aria-label="Native Waters scene">
+        dpr={dpr} gl={{ antialias: !coarse, powerPreference: "high-performance" }} fallback={<SceneFailure onRetry={retry} />} aria-label="Native Waters scene">
         <color attach="background" args={["#101c1e"]} />
         <Scene {...props} />
       </Canvas>

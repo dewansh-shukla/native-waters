@@ -45,6 +45,7 @@ export type ExperienceUIProps = {
   state: JourneyState; fixture: PipelineFixture; paused: boolean;
   onPausedChange: (paused: boolean) => void; quality: QualityPreference;
   onQualityChange: (quality: QualityPreference) => void; visibleFishIds: string[];
+  batterySaver?: boolean; onBatterySaverChange?: (v: boolean) => void;
   hoveredId: string | null; dispatch: (event: JourneyEvent) => void; audio: AudioControls;
   onEntryIntent: () => void; onMapHighlight: (highlighted: boolean) => void;
   fixtures?: PipelineFixture[]; selectedFixtureIndex?: number; onSelectFixture?: (index: number) => void;
