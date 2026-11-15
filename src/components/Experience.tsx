@@ -43,6 +43,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
   const [hidden, setHidden] = useState(false);
   const [quality, setQuality] = useState<QualityPreference>("AUTO");
   const [conservative, setConservative] = useState(true);
+  const [batterySaver, setBatterySaver] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mapHighlighted, setMapHighlighted] = useState(false);
   const anchor = useMemo(() => riverAnchor(mapRiver), [mapRiver]);
@@ -58,7 +59,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
       document.removeEventListener("visibilitychange", visibility);
     };
   }, []);
-  const effectiveQuality = resolveQuality(quality, conservative, conservative);
+  const effectiveQuality = batterySaver ? "LOW" : resolveQuality(quality, conservative, conservative);
   const availableFishIds = useMemo(() => species.flatMap(s => s.fishIds), [species]);
   const visibleIds = useMemo(() => visibleFishIds(effectiveQuality, state.selectedId, availableFishIds), [effectiveQuality, state.selectedId, availableFishIds]);
   // LOW keeps only the six native fish, so fixtures and unlisted variants must
@@ -85,7 +86,7 @@ export default function Experience({ fixture, additionalModelUrls, species: spec
     </SceneBoundary>
     {state.phase === "map" && <p className="experience-map-disclaimer">Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.</p>}
     <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={setPauseOverride}
-      quality={quality} onQualityChange={setQuality} visibleFishIds={visibleIds} hoveredId={hoveredId}
+      quality={quality} onQualityChange={setQuality} batterySaver={batterySaver} onBatterySaverChange={setBatterySaver} visibleFishIds={visibleIds} hoveredId={hoveredId}
       dispatch={dispatch} audio={audio} onEntryIntent={onEnter} onMapHighlight={setMapHighlighted}
       secondarySpeciesLabel="Zebra Danio - Danio rerio" speciesLabels={speciesLabels} speciesStudy={speciesStudy} speciesModelUrls={speciesModelUrls} selectedRiver={mapRiver} onRiverChange={setMapRiver} onRiverHover={setHoveredRiver} />
   </section>;

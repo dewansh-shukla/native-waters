@@ -64,3 +64,18 @@ dialog:not([open]) { display: none; }
  .experience-follow-card h2 { font-size: 1.5rem; }
  .experience-dialog { padding: 20px; }
 }
+
+html, body { overscroll-behavior: none; }
+button, select, a { touch-action: manipulation; }
+.experience-ui { user-select: none; -webkit-user-select: none; }
+@media (pointer: coarse) { button, select { min-height: 44px; min-width: 44px; } }
+@media (max-height: 500px) and (orientation: landscape) { .experience[data-phase=map] .scene-viewport > div:not([role=alert]) { height: calc(100% - 140px) !important; top: 48px; } .experience-map-intro { bottom: 60px; } .experience-controls { bottom: max(8px, env(safe-area-inset-bottom)); } }
+/* P1 mobile UX */
+@media (pointer: coarse) { .experience-controls button, .experience-controls select, .experience-fish-controls button, .experience-fish-controls select, .experience-enter { min-height: 44px; min-width: 44px; padding: .6rem .8rem; } }
+@media (max-width: 480px) { .experience-follow-card { top: auto; bottom: 170px; right: 12px; left: 12px; width: auto; max-width: none; } }
+.experience-controls, .experience-fish-controls { max-width: calc(100vw - 24px); }
+body { overscroll-behavior: none; }
+.experience-ui { -webkit-user-select: none; user-select: none; }
+@media (max-width: 360px) { .experience-dialog { padding: 14px; font-size: .9rem; } .experience-dialog h2 { font-size: 1.4rem; } }
+.experience-map-disclaimer { max-width: calc(100vw - 40px); }
+@media (max-width: 700px) { button, select { min-height: 44px; min-width: 44px; } }

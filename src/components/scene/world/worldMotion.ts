@@ -75,14 +75,16 @@ type PlacementOptions = {
   type?: string;
   kind?: string;
   style?: string;
-  habitat?: PlacementOptions | { seed?: number; obstacles?: readonly { center: readonly [number, number, number]; radius: number }[]; floorY?: number; bed?: string; bedType?: string; type?: string; kind?: string; style?: string };
+  mobile?: boolean;
+  habitat?: PlacementOptions | { seed?: number; obstacles?: readonly { center: readonly [number, number, number]; radius: number }[]; floorY?: number; bed?: string; bedType?: string; type?: string; kind?: string; style?: string; mobile?: boolean };
 };
 
-function normalizePlacementOptions(input?: number | PlacementOptions | null): { seed: number; obstacles: readonly { center: readonly [number, number, number]; radius: number }[]; bed: (x: number, z: number) => number; silty: boolean } {
+function normalizePlacementOptions(input?: number | PlacementOptions | null): { seed: number; obstacles: readonly { center: readonly [number, number, number]; radius: number }[]; bed: (x: number, z: number) => number; silty: boolean; mobile: boolean } {
   let seed = 814;
   let obstacles: readonly { center: readonly [number, number, number]; radius: number }[] = OBSTACLES;
   let bed: (x: number, z: number) => number = bedHeight;
   let silty = false;
+  let mobile = false;
   let raw: PlacementOptions | null = null;
   if (typeof input === "number") raw = { seed: input };
   else if (input && typeof input === "object") raw = input as PlacementOptions;
@@ -121,20 +123,22 @@ function normalizePlacementOptions(input?: number | PlacementOptions | null): { 
     else if (godavari) bed = godavariBedHeight;
     else if (brahmaputra) bed = brahmaputraBedHeight;
     silty = ganga;
+    if (typeof raw.mobile === "boolean") mobile = raw.mobile;
   }
-  return { seed, obstacles, bed, silty };
+  return { seed, obstacles, bed, silty, mobile };
 }
 
 export function createPlacements(...args: unknown[]): { rocks: Placement[]; gravel: Placement[]; plants: Placement[] } {
   let input: number | PlacementOptions | null = null;
   if (args.length === 1) input = args[0] as number | PlacementOptions | null;
   else if (args.length >= 2) input = { seed: args[0] as number, obstacles: args[1] as readonly { center: readonly [number, number, number]; radius: number }[], bedHeight: typeof args[2] === "function" ? (args[2] as (x: number, z: number) => number) : undefined };
-  const { seed: initialSeed, obstacles, bed, silty } = normalizePlacementOptions(input);
+  const { seed: initialSeed, obstacles, bed, silty, mobile } = normalizePlacementOptions(input);
   let seed = initialSeed;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const rocks: Placement[] = obstacles.map(({ center, radius }) => ({ position: [...center], scale: [radius, radius, radius], rotation: 0 }));
+  const bankCount = mobile ? 16 : 40;
   // A broken bank silhouette, not a regular perimeter wall; foreground anchors frame the school.
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < bankCount; i++) {
     const side = i % 4;
     const x = side < 2 ? (side === 0 ? -13 : 13) + random() * 1.2 - .6 : random() * 26 - 13;
     const z = side >= 2 ? (side === 2 ? -10 : 10) + random() * 1.2 - .6 : random() * 20 - 10;
@@ -144,7 +148,7 @@ export function createPlacements(...args: unknown[]): { rocks: Placement[]; grav
   rocks.push({ position: [-4.8, -2.65, 3.5], scale: [1.5, .7, 1], rotation: .3 }, { position: [4.6, -2.7, 4.7], scale: [1.2, .55, .8], rotation: 1.2 });
   const gravel: Placement[] = [];
   // Silt buries most coarse stone: a silty bed keeps fewer, smaller pebbles.
-  const gravelCount = silty ? 600 : 1150;
+  const gravelCount = mobile ? (silty ? 200 : 400) : (silty ? 600 : 1150);
   for (let i = 0; i < gravelCount; i++) {
     const x = random() * 24 - 12, z = random() * 18 - 9;
     const size = silty ? .03 + random() ** 2 * .12 : .035 + random() ** 2 * .17;
@@ -155,12 +159,12 @@ export function createPlacements(...args: unknown[]): { rocks: Placement[]; grav
     // Vallisneria meadows, not a lawn: four dense beds of long arcing tape
     // grass rooted in the silt, plus a few strays that keep the edges soft.
     const meadows = [[-5.2, 2.6], [4.8, 2.2], [-3.4, -5.2], [6.2, -4.2]];
-    for (const [px, pz] of meadows) for (let i = 0; i < 64; i++) {
+    for (const [px, pz] of meadows) for (let i = 0; i < (mobile ? 32 : 64); i++) {
       const angle = random() * Math.PI * 2, reach = Math.sqrt(random()) * 2.1;
       const x = px + Math.cos(angle) * reach * 1.25, z = pz + Math.sin(angle) * reach * .8;
       plants.push({ position: [x, bed(x, z), z], scale: [.55 + random() * .5, .8 + random() * .9, 1], rotation: random() * 6.28 });
     }
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < (mobile ? 6 : 14); i++) {
       const x = random() * 22 - 11, z = random() * 16 - 8;
       plants.push({ position: [x, bed(x, z), z], scale: [.4 + random() * .4, .35 + random() * .5, 1], rotation: random() * 6.28 });
     }

@@ -14,6 +14,7 @@ import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRa
 import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
 export function PreviewWorld({ runtime, quality, visible, water: waterProp, habitat, river }: PreviewWorldProps) {
+  const mobile = quality === "LOW";
   const scene = useThree(state => state.scene);
   const gl = useThree(state => state.gl);
   const ambient = useRef<AmbientLight>(null), hemisphere = useRef<HemisphereLight>(null);
@@ -54,7 +55,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   // read as black silhouettes.
   const boulderColor = isGanga ? "#e8dcc0" : isBrahmaputra ? "#5f6a63" : "#6b6055";
   const gravelColor = isGanga ? "#f0e6cd" : isBrahmaputra ? "#7c847a" : "#8a7a60";
-  const placements = useMemo(() => createPlacements({ seed: habitat?.seed, obstacles: habitat?.obstacles, bedHeight: bedFn, river, habitat }), [habitat, bedFn, river]);
+  const placements = useMemo(() => createPlacements({ seed: habitat?.seed, obstacles: habitat?.obstacles, bedHeight: bedFn, river, habitat, mobile }), [habitat, bedFn, river, mobile]);
   // Rock/pebble variant plan: index-keyed buckets ((i + salt) % variantCount)
   // so every placement renders exactly once across the batches; obstacle
   // boulders keep verbatim transforms via per-batch skip counts.
@@ -103,9 +104,10 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   // The bed plane extends far past the fog radius so absorption, not a plane
   // edge, ends the world: 24 x 18 ended inside visible range and read as a
   // painted backdrop behind the school.
-  const TERRAIN_W = 96, TERRAIN_D = 72;
+  const tw = mobile ? 48 : 96;
+  const td = mobile ? 36 : 72;
   const terrain = useMemo(() => {
-    const geometry = new PlaneGeometry(TERRAIN_W, TERRAIN_D, 128, 96);
+    const geometry = new PlaneGeometry(tw, td, mobile ? 64 : 128, mobile ? 48 : 96);
     geometry.rotateX(-Math.PI / 2);
     const positions = geometry.getAttribute("position");
     const colors = new Float32Array(positions.count * 3), color = new Color();
@@ -122,7 +124,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
     return geometry;
-  }, [bedFn, isGanga]);
+  }, [bedFn, isGanga, mobile]);
 
   const plantTint = isGanga ? "#c8d480" : "#3d8b3a";
   const understoryTint = isGanga ? "#8fa058" : "#2d6b28";
@@ -152,38 +154,41 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   // Distance layer: broad low boulders at 12-18 m sit inside the absorption
   // range and read as a bank receding into murk. Without them the fog wall has
   // no silhouette to break it and the scene reads as a painted backdrop.
-  const farRockPlacements = useMemo<Placement[]>(() => isGanga ? [
+  const farRockPlacements = useMemo<Placement[]>(() => {
+    if (mobile || !isGanga) return [];
+    return [
     { position: [-16, -3.4, -16], scale: [4.6, 2.6, 4.0], rotation: .7 },
     { position: [-6, -3.5, -18], scale: [4.0, 2.2, 3.6], rotation: 2.1 },
     { position: [3, -3.35, -17], scale: [5.2, 2.8, 4.2], rotation: .3 },
     { position: [12, -3.45, -15], scale: [4.4, 2.4, 3.8], rotation: 1.4 },
     { position: [22, -3.4, -10], scale: [4.8, 2.6, 4.0], rotation: .9 },
     { position: [-24, -3.4, -9], scale: [5.0, 2.6, 4.2], rotation: 1.8 },
-  ] : [], [isGanga]);
+    ];
+  }, [isGanga, mobile]);
 
   // Bottom life: freshwater mussels half-sunk in the silt, in loose beds where
   // the current keeps the sediment thin. Static, so they cost one instanced draw.
   const musselPlacements = useMemo<Placement[]>(() => {
-    if (!isGanga) return [];
+    if (mobile || !isGanga) return [];
     const spots: [number, number][] = [[-4.6, 1.2], [-4.2, 1.9], [-5.1, .4], [-3.4, -1.6], [-6.2, -2.4], [1.8, -3.4], [2.4, -2.8], [7.1, 1.2], [6.6, 2.0], [-1.2, 4.4], [-8.4, -.6], [3.9, 3.6]];
     return spots.map(([x, z], i) => ({
       position: [x, bedFn(x, z) - .012, z],
       scale: [.15 + (i % 3) * .02, .055, .095],
       rotation: i * 1.7,
     }));
-  }, [isGanga, bedFn]);
+  }, [isGanga, bedFn, mobile]);
 
   // Ghat debris: a few half-buried bricks and tiles near the driftwood. The
   // human trace a river keeps — subtle, but it places the scene on the Ganga.
   const brickPlacements = useMemo<Placement[]>(() => {
-    if (!isGanga) return [];
+    if (mobile || !isGanga) return [];
     const spots: [number, number, number][] = [[-6.1, -1.9, .3], [-5.7, -.9, 1.1], [-6.6, -.2, .7], [-4.9, -2.3, .4], [2.9, -5.2, .9], [3.4, -5.0, .2]];
     return spots.map(([x, z, rotation]) => ({
       position: [x, bedFn(x, z) + .012, z],
       scale: [.24, .045, .115],
       rotation,
     }));
-  }, [isGanga, bedFn]);
+  }, [isGanga, bedFn, mobile]);
 
   const musselGeometry = useMemo(() => new IcosahedronGeometry(1, 1), []);
   const brickGeometry = useMemo(() => new BoxGeometry(1, 1, 1), []);
@@ -471,7 +476,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
       <mesh name="DriftwoodBranch" geometry={branchGeometry} material={logMaterial} position={[.16, .7, 0]} rotation={[0, 0, -.7]} />
     </group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-      <planeGeometry args={[160, 160, 48, 48]} />
+      <planeGeometry args={[mobile ? 80 : 160, mobile ? 80 : 160, mobile ? 24 : 48, mobile ? 24 : 48]} />
       {/* shortcut: double-sided Fresnel/glints replace reflection/refraction, not physical water optics. */}
       <shaderMaterial uniforms={surfaceUniforms} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} side={DoubleSide} transparent depthWrite={false} />
     </mesh>
