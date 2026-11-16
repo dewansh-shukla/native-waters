@@ -1,0 +1,60 @@
+{
+  "labOnly": true,
+  "realUserINP": null,
+  "measurements": [
+    {
+      "sample": "mobile",
+      "performance": 95,
+      "accessibility": 100,
+      "seo": 100,
+      "LCPms": 2965.83215,
+      "TBTms": 25.5,
+      "CLS": 0,
+      "prefetchedGraphicsRequests": 0,
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      }
+    },
+    {
+      "sample": "desktop",
+      "performance": 100,
+      "accessibility": 100,
+      "seo": 100,
+      "LCPms": 595.6055000000001,
+      "TBTms": 0,
+      "CLS": 0,
+      "prefetchedGraphicsRequests": 0,
+      "throttling": {
+        "rttMs": 40,
+        "throughputKbps": 10240,
+        "requestLatencyMs": 0,
+        "downloadThroughputKbps": 0,
+        "uploadThroughputKbps": 0,
+        "cpuSlowdownMultiplier": 1
+      }
+    },
+    {
+      "sample": "species-mobile",
+      "performance": 99,
+      "accessibility": 100,
+      "seo": 100,
+      "LCPms": 1965.0973500000002,
+      "TBTms": 27.5,
+      "CLS": 0,
+      "prefetchedGraphicsRequests": 0,
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      }
+    }
+  ]
+}

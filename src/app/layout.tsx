@@ -15,8 +15,6 @@ const SITE_DESCRIPTION =
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: "#101c1e",
 };
@@ -71,7 +69,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <JsonLd data={websiteSchema()} />
         {children}
-        <Analytics />
+        {process.env.VERCEL === "1" ? <Analytics /> : null}
         {process.env.NEXT_PUBLIC_GA_ID ? (
           <ConsentGate gaId={process.env.NEXT_PUBLIC_GA_ID} />
         ) : null}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Vector3 } from "three";
 import { WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS, applyUnderwaterFog, createWaterOptics, createGangaWaterOptics, GANGA_WATER_FOG_FAR, createKrishnaWaterOptics, KRISHNA_WATER_FOG_NEAR, KRISHNA_WATER_FOG_FAR, KRISHNA_WATER_SCATTER_CSS, createGodavariWaterOptics, GODAVARI_WATER_FOG_NEAR, GODAVARI_WATER_FOG_FAR, GODAVARI_WATER_SCATTER_CSS, createBrahmaputraWaterOptics, BRAHMAPUTRA_WATER_FOG_NEAR, BRAHMAPUTRA_WATER_FOG_FAR, BRAHMAPUTRA_WATER_SCATTER_CSS } from "./waterOptics";
+import { waterBackground } from "./waterOptics";
 
 function fogShader() {
   return {
@@ -11,6 +12,11 @@ function fogShader() {
 }
 
 describe("createWaterOptics", () => {
+  it("matches the background to display-space scatter without double encoding the horizon", () => {
+    for (const scatter of ["#214538", "#2b2417", "#1e3a4a"]) {
+      expect(waterBackground(createWaterOptics({ scatter })).getHexString()).toBe(scatter.slice(1));
+    }
+  });
   it("returns the green coastal scatter in display space and per-channel absorption", () => {
     const water = createWaterOptics();
     expect(water.scatter.value).toBeInstanceOf(Vector3);

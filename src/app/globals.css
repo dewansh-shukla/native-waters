@@ -1,3 +1,4 @@
+@font-face { font-family: "Archivo"; src: url("/fonts/archivo-latin.woff2") format("woff2"); font-weight: 400 700; font-stretch: normal; font-style: normal; font-display: swap; }
 :root { color-scheme: dark; --ink: #eee9da; --quiet: #b8c8c2; --panel: rgba(15,30,29,.88); }
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; min-height: 100%; background: #101c1e; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
@@ -8,113 +9,63 @@ button:disabled { opacity: .55; cursor: wait; }
 a { color: #bce1d0; }
 h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
 p { line-height: 1.55; }
-.experience { width: 100%; height: 100svh; min-height: 500px; position: relative; overflow: hidden; isolation: isolate; }
-.scene-viewport { position: absolute; inset: 0; }
-.scene-viewport > div[role=alert], .experience > div[role=alert], .scene-loading { position: absolute; top: 25%; left: 50%; transform: translateX(-50%); background: var(--panel); padding: 1.25rem; border-radius: 10px; max-width: 90%; width: 420px; z-index: 2; }
-.experience-ui { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-.experience-ui button, .experience-ui select, .experience-ui a, .experience-ui dialog { pointer-events: auto; }
-.experience-header { position: absolute; top: max(24px, env(safe-area-inset-top)); left: 28px; right: 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.experience-brand { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: .05em; }
-.experience-preview { font-size: .75rem; background: rgba(15,30,29,.8); }
-.experience-map-intro { position: absolute; left: 5%; top: 30%; width: min(280px, 27vw); text-shadow: 0 2px 18px #091513; }
-.experience-eyebrow { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: #d4d3b0; }
-.experience-map-intro h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); margin: .4rem 0 1rem; }
-.experience-map-intro > p:not(.experience-eyebrow) { color: var(--quiet); font-size: .9rem; }
-.experience-enter { margin-top: .8rem; background: #bdcf9e; color: #15291e; border-color: #bdcf9e; padding-inline: 1.4rem; }
-.experience-readiness { font-size: .75rem !important; }
-.experience-map-disclaimer { position: absolute; right: 28px; bottom: 110px; width: 230px; color: var(--quiet); font-size: .7rem; line-height: 1.45; pointer-events: none; }
-.experience-controls { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; justify-content: center; padding: 8px; border: 1px solid #537060; border-radius: 10px; background: var(--panel); white-space: nowrap; font-size: .78rem; max-width: calc(100% - 24px); }
-.experience-controls label { display: flex; align-items: center; gap: 6px; }
-.experience-fish-controls { position: absolute; left: 28px; bottom: 108px; display: flex; gap: 8px; align-items: center; background: var(--panel); border-radius: 8px; padding: 10px; font-size: .78rem; }
-.experience-fish-controls label { display: flex; gap: 8px; align-items: center; }
-.experience-river-select { padding: 1px 8px; border-radius: 6px; max-width: 180px; }
-.experience-river-label { display: inline-flex; align-items: center; gap: 6px; margin: .4rem 0; }
-.experience-follow-card { position: absolute; right: 28px; top: 115px; background: var(--panel); padding: 24px; border-radius: 10px; border: 1px solid #6c8165; width: 340px; }
-.experience-follow-card h2 { margin: .5rem 0 1rem; font-size: 1.9rem; }
-.experience-follow-card button { font-size: .8rem; margin: 4px 4px 0 0; }
-.experience-entry-status, .experience-hover-label { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); background: var(--panel); padding: .65rem 1rem; border-radius: 8px; font-size: .85rem; }
-.experience-audio-error { position: absolute; bottom: 165px; left: 24px; max-width: 300px; background: var(--panel); padding: 12px; font-size: .8rem; }
 dialog:not([open]) { display: none; }
-.experience-dialog { width: min(760px, calc(100% - 32px)); max-height: calc(100svh - 48px); overflow-y: auto; color: var(--ink); background: #162c29; border: 1px solid #809585; border-radius: 12px; padding: 32px; pointer-events: auto; }
-.experience-dialog::backdrop { background: rgba(4,16,14,.74); backdrop-filter: blur(4px); }
-.experience-dialog-close { display: block; margin-left: auto; font-size: .8rem; }
-.experience-dialog h2 { font-size: 1.8rem; }
-.experience-study { font-size: .95rem; color: #cad7cd; }
-.experience-study h3 { color: var(--ink); font-size: 1.45rem; }
-.experience-disclaimer { border-left: 2px solid #c6ca91; padding-left: 12px; }
-.experience-map-credit, .experience-source-label { font-size: .75rem; }
-/* Phase styling is presentation, not a second source of journey state. */
-.experience[data-phase=entering] .experience-brand { opacity: .65; }
-@media(max-width: 700px) {
- /* One full-screen visual per page: the map owns the viewport and the river
-    entry sits on it as a compact bottom sheet. */
- .experience { height: 100svh; height: 100dvh; min-height: 0; }
- .experience-header { top: max(12px, env(safe-area-inset-top)); left: 14px; right: 14px; }
- .experience-brand { font-size: 1.05rem; }
- .experience-preview { font-size: .68rem; padding: .5rem .7rem; }
- .experience-map-disclaimer { top: max(60px, calc(env(safe-area-inset-top) + 46px)); left: 14px; right: 14px; bottom: auto; width: auto; font-size: .6rem; line-height: 1.35; }
- .experience-map-intro { top: auto; left: 12px; right: 12px; bottom: calc(66px + max(10px, env(safe-area-inset-bottom))); width: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 10px; padding: 12px 14px; border: 1px solid #537060; border-radius: 12px; background: var(--panel); text-shadow: none; }
- .experience-map-intro h1 { grid-column: 1 / -1; font-size: 1.6rem; margin: 0; }
- .experience-map-intro .experience-eyebrow { display: none; }
- .experience-map-intro > p:not(.experience-readiness) { display: none; }
- .experience-readiness { grid-column: 1 / -1; margin: 0 !important; font-size: .65rem !important; }
- .experience-river-label { grid-column: 1; margin: 0; min-width: 0; font-size: 0; }
- .experience-river-select { width: 100%; max-width: none; min-width: 0; font-size: .85rem; }
- .experience-enter { grid-column: 2; margin: 0; }
- .experience-controls { bottom: max(10px, env(safe-area-inset-bottom)); gap: 5px; padding: 6px; font-size: .65rem; flex-wrap: wrap; width: calc(100% - 20px); }
- .experience-controls button, .experience-controls select { padding: .5rem; }
- .experience-control-label { display: none; }
- .experience-fish-controls { left: 12px; right: 12px; bottom: 74px; padding: 7px; justify-content: center; font-size: .7rem; }
- .experience-fish-controls label { gap: 4px; }
- .experience-fish-controls select { max-width: 155px; padding: .5rem; }
- .experience-follow-card { top: 86px; right: 16px; width: 280px; padding: 18px; }
- .experience-follow-card h2 { font-size: 1.5rem; }
- .experience-dialog { padding: 20px; }
-}
 
 html, body { overscroll-behavior: none; }
 button, select, a { touch-action: manipulation; }
 .experience-ui { user-select: none; -webkit-user-select: none; }
 @media (pointer: coarse) { button, select { min-height: 44px; min-width: 44px; } }
-/* The water reads best on its side: portrait phones get a rotate prompt over
-   the paused scene, and the scene fills the viewport once turned. */
-.experience-rotate { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 28px; text-align: center; pointer-events: none; background: rgba(8, 20, 22, .8); }
-.experience-rotate svg { width: 56px; height: 56px; color: #b8cba4; }
-.experience-rotate h2 { font-size: 1.5rem; margin: 4px 0 0; }
-.experience-rotate p { margin: 0; max-width: 32ch; color: var(--quiet); font-size: .85rem; }
-/* While the prompt is up the water controls belong to the landscape view;
-   only the bottom row (with Return to Map) stays available. */
-.experience[data-rotate="true"] .experience-fish-controls,
-.experience[data-rotate="true"] .experience-follow-card { display: none; }
-@media (max-height: 520px) and (orientation: landscape) {
- /* Short landscape: the entry card shrinks to a corner card so the map keeps
-    the middle of the screen, and the reference study scrolls instead of
-    spilling under the bottom controls. */
- .experience-map-intro { top: auto; left: 16px; right: auto; bottom: calc(64px + max(6px, env(safe-area-inset-bottom))); width: min(300px, 42vw); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 8px; padding: 10px 12px; border: 1px solid #537060; border-radius: 12px; background: var(--panel); text-shadow: none; }
- .experience-map-intro h1 { grid-column: 1 / -1; font-size: 1.35rem; margin: 0; }
- .experience-map-intro .experience-eyebrow, .experience-map-intro > p:not(.experience-readiness) { display: none; }
- .experience-river-label { grid-column: 1; margin: 0; min-width: 0; font-size: 0; }
- .experience-river-select { width: 100%; min-width: 0; font-size: .8rem; }
- .experience-enter { grid-column: 2; margin: 0; }
- .experience-readiness { grid-column: 1 / -1; margin: 0 !important; font-size: .6rem !important; }
- .experience-controls { bottom: max(6px, env(safe-area-inset-bottom)); padding: 4px 6px; font-size: .6rem; }
- .experience-map-disclaimer { display: none; }
- .experience-header { top: max(8px, env(safe-area-inset-top)); }
- .experience-fish-controls { bottom: 68px; }
- .experience[data-phase="following"] .experience-fish-controls,
- .experience[data-phase="story"] .experience-fish-controls { display: none; }
- .experience-follow-card { top: 56px; right: 12px; width: min(300px, 40vw); padding: 14px; max-height: calc(100dvh - 124px); overflow-y: auto; }
- .experience-follow-card h2 { font-size: 1.3rem; }
- .experience-follow-card .fish-preview { height: 120px !important; }
- .experience-rotate h2 { font-size: 1.2rem; }
- .experience-rotate svg { width: 44px; height: 44px; }
+
+/* The atlas is HTML-first; its light tokens never leak into the underwater exhibit. */
+.public-page {
+  --paper: #edf0e8; --surface: #e0e7da; --river-ink: #163b36;
+  --secondary-ink: #425e54; --reed: #d6eaa5; --deep: #153c36;
+  --page-gutter: clamp(20px, 4vw, 64px);
+  color-scheme: light; color: var(--river-ink); background: var(--paper);
+  font-family: "Archivo", Arial, sans-serif; font-size: 17px; min-height: 100svh;
 }
-/* P1 mobile UX */
-@media (pointer: coarse) { .experience-controls button, .experience-controls select, .experience-fish-controls button, .experience-fish-controls select, .experience-enter { min-height: 44px; min-width: 44px; padding: .6rem .8rem; } }
-@media (max-width: 480px) { .experience-follow-card { top: auto; bottom: 170px; right: 12px; left: 12px; width: auto; max-width: none; } }
-.experience-controls, .experience-fish-controls { max-width: calc(100vw - 24px); }
-body { overscroll-behavior: none; }
-.experience-ui { -webkit-user-select: none; user-select: none; }
-@media (max-width: 360px) { .experience-dialog { padding: 14px; font-size: .9rem; } .experience-dialog h2 { font-size: 1.4rem; } }
-.experience-map-disclaimer { max-width: calc(100vw - 40px); }
-@media (max-width: 700px) { button, select { min-height: 44px; min-width: 44px; } }
+.public-page h1, .public-page h2, .public-page h3 { font-family: inherit; font-weight: 700; letter-spacing: -.045em; text-wrap: balance; }
+.public-page h1 { line-height: 1.02; }
+.public-page h2 { font-size: clamp(28px, 3.5vw, 52px); line-height: 1.08; }
+.public-page h3 { font-size: 24px; line-height: 1.2; }
+.public-page p { text-wrap: pretty; }
+.public-page a { color: inherit; text-underline-offset: .22em; }
+.public-page :focus-visible { outline: 3px solid #52702b; outline-offset: 5px; }
+.public-page button, .public-page select, .public-page input { font: inherit; }
+.public-page button, .public-page select { border: 0; border-radius: 0; min-height: 48px; }
+.atlas-button { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 52px; padding: 14px 24px; background: var(--deep); color: var(--paper) !important; text-decoration: none; font-weight: 700; border: 0; cursor: pointer; transition: transform .2s; }
+.atlas-button:hover { transform: translateY(-2px); }
+.atlas-button:active { transform: translateY(1px); }
+.atlas-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 28px; }
+.atlas-actions > a:not(.atlas-button) { padding-block: 12px; }
+.atlas-header { padding: 24px var(--page-gutter); display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.atlas-brand { font-size: 24px; font-weight: 700; letter-spacing: -.06em; text-decoration: none; white-space: nowrap; }
+.atlas-nav { display: flex; gap: clamp(16px, 3vw, 48px); align-items: center; flex-wrap: wrap; }
+.atlas-nav a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+.atlas-nav a:hover { text-decoration: underline; }
+.atlas-skip { position: fixed; top: 12px; left: 12px; z-index: 50; padding: 12px; background: var(--paper); transform: translateY(-200%); }
+.atlas-skip:focus { transform: none; }
+.atlas-footer { background: var(--deep); color: var(--paper); padding: 64px var(--page-gutter) 32px; }
+.atlas-footer > div { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.atlas-footer .atlas-brand { font-size: 40px; line-height: 1; }
+.atlas-footer nav { display: flex; align-items: start; flex-wrap: wrap; gap: 20px; padding-top: 20px; }
+.atlas-footer nav a { min-height: 44px; }
+.atlas-footer p { max-width: 70ch; font-size: 17px; margin-top: 36px; }
+.atlas-footer details { font-size: 16px; line-height: 1.6; margin-top: 24px; }
+.atlas-footer summary { cursor: pointer; min-height: 44px; }
+.atlas-footer li { margin-block: 12px; }
+.atlas-summary { font-size: clamp(19px, 2vw, 24px); line-height: 1.5; max-width: 60ch; }
+.atlas-reviewed { color: var(--secondary-ink); font-size: 14px; margin-top: 40px; }
+.atlas-prose { max-width: 78ch; margin-inline: auto; padding: 40px var(--page-gutter) 80px; }
+.atlas-prose h1 { font-size: clamp(38px, 5vw, 64px); margin-bottom: 32px; }
+.atlas-prose h2 { font-size: 28px; margin-top: 40px; }
+.atlas-prose p { line-height: 1.7; }
+@media (max-width: 600px) {
+  .atlas-header { padding-block: 18px; flex-wrap: wrap; gap: 4px 20px; }
+  .atlas-brand { font-size: 23px; }
+  .atlas-nav { gap: 22px; font-size: 15px; }
+  .atlas-footer { padding-top: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-page *, .public-page *::before, .public-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

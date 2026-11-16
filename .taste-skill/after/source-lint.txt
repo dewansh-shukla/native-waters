@@ -1,0 +1,18 @@
+TASTESKILL · LINT   126 file(s)
+
+WARN
+  [outlined-box] A 1px outlined box. Prefer a filled surface or no box.  (8×)
+      src/components/analytics/ConsentGate.module.css:11  border: 1px solid
+      src/components/analytics/ConsentGate.module.css:47  border: 1px solid
+      src/components/experience.css:44  border: 1px solid
+      src/components/experience.css:47  border: 1px solid
+      src/components/experience.css:51  border: 1px solid
+      src/components/experience.css:59  border: 1px solid
+      … 2 more
+  [copy] Stock marketing phrase. Say the specific thing the product does.  (1×)
+      src/experience/species.ts:42  robust
+  [em-dash] Em-dash habit. Use a full stop or a comma; keep at most one or two on a page.  (1×)
+      (all files):0  16 em dashes
+
+RESULT: 0 FAIL, 10 WARN
+Interface fragments marked data-ui keep their own borders and shadows. Any other line that must keep a flagged pattern for a real reason can carry the comment taste-skill-ignore.

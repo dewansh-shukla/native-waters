@@ -12,6 +12,8 @@ export default defineConfig([
     "dist/**",
     "artifacts/**",
     ".superpowers/**",
+    ".agents/**",
+    ".taste-skill/**",
     ".cache/**",
     "coverage/**",
     "test-results/**",

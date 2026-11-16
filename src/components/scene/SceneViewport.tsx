@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useProgress } from "@react-three/drei";
 import type { Group } from "three";
 import type { ExperienceSceneProps } from "@/experience/contracts";
 import { advanceScene } from "@/experience/frameDriver";
@@ -12,6 +12,13 @@ import { PreviewWorld } from "./world/PreviewWorld";
 import { ExperienceCamera } from "./camera/ExperienceCamera";
 import { EntryMap, CAUVERY_ANCHOR } from "./map/EntryMap";
 import { SceneBoundary, SceneFailure } from "./SceneBoundary";
+
+function LoadProgress() {
+  const { active, loaded, total } = useProgress();
+  return <p className="scene-load-progress" role="status">
+    {active ? `Loading exhibit assets · ${loaded} of ${total}` : "Preparing underwater light…"}
+  </p>;
+}
 
 function RendererGuard({ onReady }: Pick<ExperienceSceneProps, "onReady">) {
   const canvas = useThree((state) => state.gl.domElement);
@@ -45,7 +52,6 @@ function Scene(props: ExperienceSceneProps) {
       Math.floor((i + 1) * fishIds.length / allSpecies.length)
     ),
   }));
-  const allModelUrls = speciesWithIds.map(s => s.modelUrl);
   const totalSchools = speciesWithIds.length;
   const loadedSchool = useCallback(() => {
     loadedSchoolCount.current += 1;
@@ -53,17 +59,10 @@ function Scene(props: ExperienceSceneProps) {
   }, [totalSchools]);
   const { onReady } = props;
   useFrame((_, delta) => advanceScene(props.runtime.current, delta, props.state.phase, props.paused || !props.state.ready, document.hidden, props.state.selectedId), -100);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     onReady(false);
-    loadedSchoolCount.current = 0;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoaded(false);
-    if (!group.current) return;
-    let active = true;
-    // warmScene is called after all schools report ready (handled below via loaded flag)
-    return () => { active = false; onReady(false); };
-  }, [allModelUrls.join("|"), onReady]);
+    return () => onReady(false);
+  }, [onReady]);
   useEffect(() => {
     if (!loaded || !group.current) return;
     let active = true;
@@ -91,7 +90,7 @@ function Scene(props: ExperienceSceneProps) {
           return <FishSchool key={sp.modelUrl + i} modelUrl={sp.modelUrl} runtime={props.runtime} paused={props.paused || map || !props.state.ready}
             visibleIds={props.visibleIds} selectedId={props.state.selectedId} onSelect={props.onSelect}
             onHover={props.onHover} onReady={loadedSchool} fishIds={sp.fishIds}
-            detail={props.quality === "HIGH" ? "high" : "low"} />;
+            detail={props.quality === "HIGH" ? "high" : "low"} water={props.water} />;
         })}
       </Suspense>
     </group>
@@ -100,18 +99,22 @@ function Scene(props: ExperienceSceneProps) {
 
 export default function SceneViewport(props: ExperienceSceneProps) {
   const [attempt, setAttempt] = useState(0);
-  const retry = () => { props.onReady(false); for (const url of [props.modelUrl, ...(props.additionalModelUrls ?? [])]) useGLTF.clear(url); setAttempt(value => value + 1); };
+  const modelUrls = props.species?.length ? props.species.map(species => species.modelUrl) : [props.modelUrl, ...(props.additionalModelUrls ?? [])];
+  const modelKey = modelUrls.join("|");
+  const retry = () => { props.onReady(false); for (const url of new Set(modelUrls)) useGLTF.clear(url); setAttempt(value => value + 1); };
   const { onReady } = props;
   useEffect(() => () => onReady(false), [onReady]);
   const coarse = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
   const dpr = props.quality === "HIGH" ? [1, 1.5] as [number, number] : coarse ? ([1, Math.min(1.25, window.devicePixelRatio || 1)] as [number, number]) : 1;
   return <div className="scene-viewport">
-    <SceneBoundary key={`${[props.modelUrl, ...(props.additionalModelUrls ?? [])].join("|")}:${attempt}`} onRetry={retry}>
+    <SceneBoundary key={attempt} onRetry={retry}>
       <Canvas camera={{ position: [0, 30, .01], up: [0, 1, 0], fov: 45, near: .05, far: 120 }}
+        frameloop={props.paused && !(props.reducedMotion && props.state.phase === "entering") ? "demand" : "always"}
         dpr={dpr} gl={{ antialias: !coarse, powerPreference: "high-performance" }} fallback={<SceneFailure onRetry={retry} />} aria-label="Native Waters scene">
         <color attach="background" args={["#101c1e"]} />
-        <Scene {...props} />
+        <Scene key={modelKey} {...props} />
       </Canvas>
     </SceneBoundary>
+    {!props.state.ready && <LoadProgress />}
   </div>;
 }

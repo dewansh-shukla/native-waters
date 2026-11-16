@@ -16,6 +16,27 @@ function setup() {
   return { props, camera, canvas };
 }
 describe("ExperienceCamera integration", () => {
+  it("reuses the follow target and clears it when the pointer leaves or camera unmounts", () => {
+    const { props, camera, canvas } = setup();
+    props.phase = "following";
+    camera.position.set(0, 1, 3);
+    camera.lookAt(0, -1.5, 0);
+    camera.updateMatrixWorld();
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 400, 800));
+    const view = render(<ExperienceCamera {...props} />);
+    canvas.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 400 }));
+    const target = props.runtime.current.cursorTarget;
+    expect(target?.y).toBeCloseTo(-1.5);
+    const firstX = target!.x;
+    canvas.dispatchEvent(new MouseEvent("pointermove", { clientX: 250, clientY: 400 }));
+    expect(props.runtime.current.cursorTarget).toBe(target);
+    expect(target!.x).not.toBe(firstX);
+    canvas.dispatchEvent(new MouseEvent("pointerleave"));
+    expect(props.runtime.current.cursorTarget).toBeNull();
+    view.unmount();
+    canvas.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 400 }));
+    expect(props.runtime.current.cursorTarget).toBeNull();
+  });
   it("drops the first resumed frame delta so hidden-tab time does not skip entry", () => {
     const { props } = setup();
     props.phase = "entering";

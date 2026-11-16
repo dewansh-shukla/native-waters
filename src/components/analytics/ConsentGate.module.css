@@ -12,7 +12,7 @@
   border-radius: 10px;
   background: #101c1e;
   color: #c6d8d6;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); /* taste-skill-ignore: fixed consent overlay, not an at-rest card. */
   max-width: 460px;
 }
 

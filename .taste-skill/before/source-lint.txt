@@ -1,0 +1,48 @@
+TASTESKILL · LINT   120 file(s)
+
+FAIL
+  [gradient] Gradient fill. Use a flat colour or a real image (a neutral scrim over a photo is the one exception).  (4×)
+      src/app/basins/[slug]/opengraph-image.tsx:46  linear-gradient(
+      src/app/opengraph-image.tsx:19  linear-gradient(
+      src/app/page.module.css:22  linear-gradient(
+      src/app/species/[slug]/opengraph-image.tsx:76  linear-gradient(
+  [hairline] Thin rule / divider line. Separate with space, tone or scale; lines belong to real tables and form fields.  (8×)
+      src/app/field-guide/page.module.css:13  border-bottom: 1px
+      src/app/field-guide/page.module.css:16  border-bottom: 1px
+      src/app/field-guide/page.module.css:28  border-top: 1px
+      src/app/page.module.css:98  border-bottom: 1px
+      src/app/page.module.css:207  border-top: 1px
+      src/app/page.module.css:218  border-bottom: 1px
+      … 2 more
+  [shadow] Shadow. Elements at rest carry none; only real overlays (menu, dialog, sticky bar) may.  (5×)
+      src/app/globals.css:19  text-shadow:
+      src/app/globals.css:56  text-shadow:
+      src/app/globals.css:93  text-shadow:
+      src/components/analytics/ConsentGate.module.css:15  box-shadow:
+      src/components/reference/ReferenceLayout.module.css:12  box-shadow:
+  [eyebrow] Eyebrow / kicker label above a heading.  (4×)
+      src/app/page.module.css:33  .eyebrow {
+      src/app/page.tsx:58  className={styles.eyebrow
+      src/components/experience-ui/ExperienceUI.tsx:125  className="experience-eyebrow
+      src/components/experience-ui/ExperienceUI.tsx:151  className="experience-eyebrow
+  [emoji] Emoji used as UI.  (1×)
+      src/components/reference/ReferenceLayout.tsx:20  ✕
+
+WARN
+  [outlined-box] A 1px outlined box. Prefer a filled surface or no box.  (11×)
+      src/app/globals.css:26  border: 1px solid
+      src/app/globals.css:32  border: 1px solid
+      src/app/globals.css:38  border: 1px solid
+      src/app/globals.css:56  border: 1px solid
+      src/app/globals.css:93  border: 1px solid
+      src/app/page.module.css:76  border: 1px solid
+      … 5 more
+  [glass] Backdrop blur. One sticky bar at most; glass cards are a tell.  (1×)
+      src/app/globals.css:39  backdrop-filter:
+  [copy] Stock marketing phrase. Say the specific thing the product does.  (1×)
+      src/experience/species.ts:42  robust
+  [em-dash] Em-dash habit. Use a full stop or a comma; keep at most one or two on a page.  (1×)
+      (all files):0  15 em dashes
+
+RESULT: 22 FAIL, 14 WARN — fix the FAILs before rendering.
+Interface fragments marked data-ui keep their own borders and shadows. Any other line that must keep a flagged pattern for a real reason can carry the comment taste-skill-ignore.

@@ -1,0 +1,110 @@
+[WebServer] (node:4436) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 54 tests using 1 worker
+
+(node:4437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/e2e/field-guide.spec.ts:4:1 › field guide remains readable and navigable without JavaScript (3.0s)
+  ✓   2 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:5:1 › keyboard Escape from focused Explore and Return to Map restore surviving controls (7.6s)
+  ✓   3 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:21:1 › resolved compilation with denied shader linking offers Retry and never enables entry (2.9s)
+  ✓   4 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:46:1 › context loss during descent waits through delayed retry and completes after rewarming (17.7s)
+  ✓   5 [desktop-chromium] › tests/e2e/foundation.spec.ts:33:1 › real GLB playback, keyboard pause and persistent resume (4.8s)
+  ✓   6 [desktop-chromium] › tests/e2e/foundation.spec.ts:48:1 › reduced motion stays still until explicit fish resume (3.8s)
+  ✓   7 [desktop-chromium] › tests/e2e/foundation.spec.ts:55:1 › delayed required asset gates entry but study fallback works (1.8s)
+  ✓   8 [desktop-chromium] › tests/e2e/foundation.spec.ts:67:1 › failed viewer module preserves DOM and reload recovers (3.1s)
+  ✓   9 [desktop-chromium] › tests/e2e/foundation.spec.ts:84:1 › failed asset preserves DOM and cache-clearing retry recovers (2.8s)
+  ✓  10 [desktop-chromium] › tests/e2e/foundation.spec.ts:96:1 › denied WebGL leaves study and keyboard controls usable (697ms)
+  ✓  11 [desktop-chromium] › tests/e2e/foundation.spec.ts:110:1 › real context loss invalidates readiness and retry restores renderer (4.2s)
+  ✓  12 [desktop-chromium] › tests/e2e/ganga.spec.ts:3:1 › ganga experience renders (789ms)
+  ✓  13 [desktop-chromium] › tests/e2e/journey.spec.ts:3:1 › complete keyboard journey preserves canvas and cached school assets (4.6s)
+  ✓  14 [desktop-chromium] › tests/e2e/journey.spec.ts:44:1 › selected illustrative model leads to its sourced species profile and basin (2.4s)
+  -  15 [desktop-chromium] › tests/e2e/mobile.spec.ts:24:1 › mobile: no horizontal overflow
+  -  16 [desktop-chromium] › tests/e2e/mobile.spec.ts:31:1 › mobile: touch targets are at least 44px
+  -  17 [desktop-chromium] › tests/e2e/mobile.spec.ts:55:1 › mobile: story text is readable
+  -  18 [desktop-chromium] › tests/e2e/mobile.spec.ts:70:1 › mobile: sourced basin remains readable independently of the exhibit
+  -  19 [desktop-chromium] › tests/e2e/mobile.spec.ts:82:1 › mobile: portrait fish controls work without rotating or entering fullscreen
+  -  20 [desktop-chromium] › tests/e2e/mobile.spec.ts:101:1 › mobile: landscape orientation does not crash
+  ✓  21 [desktop-chromium] › tests/e2e/redesign.spec.ts:3:1 › river discovery connects the underwater exhibit to a sourced species and back (2.5s)
+  ✓  22 [desktop-chromium] › tests/e2e/redesign.spec.ts:34:1 › search routes a direct species visitor to a factual profile (501ms)
+  ✓  23 [desktop-chromium] › tests/e2e/references.spec.ts:5:1 › all basin and species paths serve factual HTML without JavaScript (1.2s)
+  ✓  24 [desktop-chromium] › tests/e2e/references.spec.ts:33:1 › HTML-first records open and close their own basin experience (2.2s)
+  ✓  25 [desktop-chromium] › tests/e2e/visibility.spec.ts:3:1 › visibility boundary pauses a resumed reduced-motion school without changing user preference (4.0s)
+  ✓  26 [desktop-chromium] › tests/e2e/visual.spec.ts:4:1 › normal five-second dive, live scene, pointer target and preview composition (38.6s)
+  ✓  27 [desktop-chromium] › tests/e2e/visual.spec.ts:46:1 › sound only activates explicitly, rejection is nonblocking and recoverable (4.1s)
+(node:9771) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  28 [touch-chromium] › tests/e2e/field-guide.spec.ts:4:1 › field guide remains readable and navigable without JavaScript (872ms)
+  ✓  29 [touch-chromium] › tests/e2e/final-fixes.spec.ts:5:1 › keyboard Escape from focused Explore and Return to Map restore surviving controls (1.8s)
+  ✓  30 [touch-chromium] › tests/e2e/final-fixes.spec.ts:21:1 › resolved compilation with denied shader linking offers Retry and never enables entry (2.4s)
+  ✓  31 [touch-chromium] › tests/e2e/final-fixes.spec.ts:46:1 › context loss during descent waits through delayed retry and completes after rewarming (13.8s)
+  ✓  32 [touch-chromium] › tests/e2e/foundation.spec.ts:33:1 › real GLB playback, keyboard pause and persistent resume (3.2s)
+  ✓  33 [touch-chromium] › tests/e2e/foundation.spec.ts:48:1 › reduced motion stays still until explicit fish resume (3.0s)
+  ✓  34 [touch-chromium] › tests/e2e/foundation.spec.ts:55:1 › delayed required asset gates entry but study fallback works (1.5s)
+  ✓  35 [touch-chromium] › tests/e2e/foundation.spec.ts:67:1 › failed viewer module preserves DOM and reload recovers (2.3s)
+  ✓  36 [touch-chromium] › tests/e2e/foundation.spec.ts:84:1 › failed asset preserves DOM and cache-clearing retry recovers (2.6s)
+  ✓  37 [touch-chromium] › tests/e2e/foundation.spec.ts:96:1 › denied WebGL leaves study and keyboard controls usable (711ms)
+  ✓  38 [touch-chromium] › tests/e2e/foundation.spec.ts:110:1 › real context loss invalidates readiness and retry restores renderer (3.4s)
+  ✓  39 [touch-chromium] › tests/e2e/ganga.spec.ts:3:1 › ganga experience renders (810ms)
+  ✘  40 [touch-chromium] › tests/e2e/journey.spec.ts:3:1 › complete keyboard journey preserves canvas and cached school assets (1.1m)
+(node:13813) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  41 [touch-chromium] › tests/e2e/journey.spec.ts:44:1 › selected illustrative model leads to its sourced species profile and basin (2.0s)
+  ✓  42 [touch-chromium] › tests/e2e/mobile.spec.ts:24:1 › mobile: no horizontal overflow (1.3s)
+  ✓  43 [touch-chromium] › tests/e2e/mobile.spec.ts:31:1 › mobile: touch targets are at least 44px (1.7s)
+  ✓  44 [touch-chromium] › tests/e2e/mobile.spec.ts:55:1 › mobile: story text is readable (1.6s)
+  ✓  45 [touch-chromium] › tests/e2e/mobile.spec.ts:70:1 › mobile: sourced basin remains readable independently of the exhibit (1.4s)
+  ✓  46 [touch-chromium] › tests/e2e/mobile.spec.ts:82:1 › mobile: portrait fish controls work without rotating or entering fullscreen (1.7s)
+  ✓  47 [touch-chromium] › tests/e2e/mobile.spec.ts:101:1 › mobile: landscape orientation does not crash (1.8s)
+  ✓  48 [touch-chromium] › tests/e2e/redesign.spec.ts:3:1 › river discovery connects the underwater exhibit to a sourced species and back (5.2s)
+  ✓  49 [touch-chromium] › tests/e2e/redesign.spec.ts:34:1 › search routes a direct species visitor to a factual profile (521ms)
+  ✓  50 [touch-chromium] › tests/e2e/references.spec.ts:5:1 › all basin and species paths serve factual HTML without JavaScript (1.3s)
+  ✓  51 [touch-chromium] › tests/e2e/references.spec.ts:33:1 › HTML-first records open and close their own basin experience (2.0s)
+  ✓  52 [touch-chromium] › tests/e2e/visibility.spec.ts:3:1 › visibility boundary pauses a resumed reduced-motion school without changing user preference (2.7s)
+  ✓  53 [touch-chromium] › tests/e2e/visual.spec.ts:4:1 › normal five-second dive, live scene, pointer target and preview composition (37.4s)
+  ✓  54 [touch-chromium] › tests/e2e/visual.spec.ts:46:1 › sound only activates explicitly, rejection is nonblocking and recoverable (1.7s)
+
+
+  1) [touch-chromium] › tests/e2e/journey.spec.ts:3:1 › complete keyboard journey preserves canvas and cached school assets 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('combobox', { name: 'Select fish', exact: true }).locator('option[value=\'fish-9\']')
+    Expected: 1
+    Received: 0
+    Timeout:  60000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('combobox', { name: 'Select fish', exact: true }).locator('option[value=\'fish-9\']') with timeout 60000ms
+      - waiting for getByRole('combobox', { name: 'Select fish', exact: true }).locator('option[value=\'fish-9\']')
+        123 × locator resolved to 0 elements
+            - unexpected value "0"
+
+
+      21 |   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "following");
+      22 |   await page.getByRole("combobox", { name: "Quality", exact: true }).selectOption("LOW");
+    > 23 |   await expect(page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option[value='fish-9']")).toHaveCount(1);
+         |                                                                                                                    ^
+      24 |   await expect(page.locator(".scene-load-progress")).toHaveCount(0, { timeout: 60_000 });
+      25 |   const explore = page.getByRole("button", { name: "Explore Species" });
+      26 |   await explore.focus(); await page.keyboard.press("Enter");
+        at /Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/tests/e2e/journey.spec.ts:23:116
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/journey-complete-keyboard--3e2d4-as-and-cached-school-assets-touch-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/journey-complete-keyboard--3e2d4-as-and-cached-school-assets-touch-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/journey-complete-keyboard--3e2d4-as-and-cached-school-assets-touch-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/journey-complete-keyboard--3e2d4-as-and-cached-school-assets-touch-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [touch-chromium] › tests/e2e/journey.spec.ts:3:1 › complete keyboard journey preserves canvas and cached school assets 
+  6 skipped
+  47 passed (4.7m)

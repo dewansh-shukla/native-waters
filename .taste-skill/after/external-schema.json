@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/",
+    "result": "WebSite: 0 ERRORS, 0 WARNINGS"
+  },
+  {
+    "path": "/basins/ganga",
+    "result": "\n0 ERRORS0 WARNINGS4 ITEMS\nBodyOfWater\n0 ERRORS0 WARNINGS1 ITEM\nBreadcrumbList\n0 ERRORS0 WARNINGS1 ITEM\nArticle\n0 ERRORS0 WARNINGS1 ITEM\nWebSite\n0 ERRORS0 WARNINGS1 ITEM\nplay_arrow\nVALIDATE"
+  },
+  {
+    "path": "/field-guide",
+    "result": "\n0 ERRORS0 WARNINGS7 ITEMS\nCollectionPage\n0 ERRORS0 WARNINGS1 ITEM\nBreadcrumbList\n0 ERRORS0 WARNINGS1 ITEM\nDataset\n0 ERRORS0 WARNINGS1 ITEM\nArticle\n0 ERRORS0 WARNINGS1 ITEM\nWebSite\n0 ERRORS0 WARNINGS1 ITEM\nFAQPage\n0 ERRORS0 WARNINGS1 ITEM\nDefinedTermSet\n0 ERRORS0 WARNINGS1 ITEM\nplay_arrow\nVALIDATE"
+  }
+]

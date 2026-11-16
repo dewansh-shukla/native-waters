@@ -83,16 +83,7 @@ export const DEFAULT_SPECIES: SpeciesEntry[] = [
     behavior: "Schooling mid-to-top swimmer; peaceful and active. Groups of six or more reduce stress and encourage natural shoaling.",
     notes: "Lacks melanin, giving a pale body with pink to red eyes. Husbandry is otherwise identical to the wild type; avoid very bright lighting.",
   } },
-  { modelUrl: "/models/fish/arulius-barb/arulius-barb-high.glb", fishIds: ["fish-10", "fish-11", "fish-12"], label: "Arulius Barb", study: {
-    scientificName: "Dawkinsia arulius (syn. Puntius arulius, Dawkinsia tambraparniei)",
-    origin: "Endemic to the Western Ghats of southern India - the Tamiraparani and other river systems of Tamil Nadu and Kerala.",
-    maxSize: "10-15 cm (4-6 in) in the aquarium, occasionally a little larger. One of the larger barbs commonly kept, needing a spacious tank.",
-    habitat: "Large, fast-flowing, well-oxygenated streams, rivers and lakes. In aquaria, a long tank with strong filtration and open swimming space.",
-    waterParams: "18-25 C (64-77 F), pH 6.0-6.5, hardness around 10 dGH; high dissolved oxygen is essential. Cooler and cleaner than most tropical community fish.",
-    diet: "Omnivore: insects, plant matter, algae and small invertebrates. Accepts quality pellets, flakes and frozen foods in captivity.",
-    behavior: "Schooling and active; keep in groups of five or more. Needs a tank of 4 ft (120 cm) or larger to accommodate its size and activity.",
-    notes: "Endemic to southern India and threatened by habitat loss and collection pressure. Requires cooler, well-oxygenated water than most tropical community fish.",
-  } },
+  { modelUrl: "/models/fish/arulius-barb/arulius-barb-high.glb", fishIds: ["fish-10", "fish-11", "fish-12"], label: "Arulius Barb" },
 ];
 
 export function resolveSpecies(species?: { modelUrl: string; fishIds: string[]; label?: string; study?: SpeciesStudy }[], additionalModelUrls?: string[]): SpeciesEntry[] {

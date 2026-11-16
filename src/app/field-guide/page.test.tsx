@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import FieldGuide, { metadata } from './page';
 import sitemap from '../sitemap';
@@ -15,6 +15,7 @@ describe('crawlable freshwater guide', () => {
     for (const species of catalog.species) {
       const article = document.getElementById(species.id)!;
       expect(article).toHaveTextContent(species.scientificName);
+      fireEvent.click(within(article).getByText('Read the evidence'));
       for (const a of species.associations) {
         expect(article).toHaveTextContent(a.locality);
         expect(article).toHaveTextContent(a.evidencePeriod);

@@ -1,11 +1,10 @@
 import { expect, test } from "@playwright/test";
-import fixture from "../../content/fixtures/pipeline-test.json" with { type: "json" };
 
-const modelRoute = `**${fixture.modelUrl}`;
+const modelRoute = /\/models\/fish\/zebra-danio\/zebra-danio-(?:high|low)\.glb$/;
 
 test("keyboard Escape from focused Explore and Return to Map restore surviving controls", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/experience");
   const enter = page.getByRole("button", { name: "Enter Water", exact: true });
   await expect(enter).toBeEnabled(); await enter.focus(); await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");
@@ -33,10 +32,10 @@ test("resolved compilation with denied shader linking offers Retry and never ena
       return original.call(this, program, parameter);
     };
   });
-  await page.goto("/");
+  await page.goto("/experience");
   const retry = page.getByRole("button", { name: "Retry", exact: true });
   await expect(retry).toBeVisible();
-  await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Experience preview", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("link", { name: "Public domain license" })).toBeVisible();
   await page.getByRole("button", { name: "Close preview" }).click();
@@ -48,10 +47,11 @@ test("context loss during descent waits through delayed retry and completes afte
   test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   let models = 0;
-  page.on("request", request => { if (request.url().includes(fixture.modelUrl)) models++; });
-  await page.goto("/");
+  page.on("request", request => { if (modelRoute.test(request.url())) models++; });
+  await page.goto("/experience");
   const phase = page.locator("[data-phase]");
   await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled();
+  const initialModels = models;
   await page.getByRole("button", { name: "Enter Water", exact: true }).click();
   await expect(phase).toHaveAttribute("data-phase", "entering");
   await page.waitForTimeout(1000);
@@ -67,7 +67,7 @@ test("context loss during descent waits through delayed retry and completes afte
   await page.route(modelRoute, async route => { await gate; await route.continue(); });
   try {
     await page.getByRole("button", { name: "Retry", exact: true }).click();
-    await expect.poll(() => models).toBe(2);
+    await expect.poll(() => models).toBe(initialModels + 1);
     // Real loading delay exceeds descent duration; no animation timer or runtime override.
     await page.waitForTimeout(6500);
     await expect(phase).toHaveAttribute("data-phase", "entering");
@@ -77,5 +77,5 @@ test("context loss during descent waits through delayed retry and completes afte
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Return to Map", exact: true }).click();
   await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeFocused();
-  expect(models).toBe(2);
+  expect(models).toBe(initialModels + 1);
 });

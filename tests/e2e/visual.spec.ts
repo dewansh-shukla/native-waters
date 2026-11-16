@@ -7,7 +7,7 @@ test("normal five-second dive, live scene, pointer target and preview compositio
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
-  await page.goto("/");
+  await page.goto("/experience");
   await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled();
   await mkdir("artifacts/experience-preview", { recursive: true });
   const prefix = testInfo.project.name === "touch-chromium" ? "mobile" : "desktop";
@@ -53,7 +53,7 @@ test("sound only activates explicitly, rejection is nonblocking and recoverable"
       resume() { if (rejects) { rejects = false; return Promise.reject(new Error("Activation denied")); } return super.resume(); }
     };
   });
-  await page.goto("/"); await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled();
+  await page.goto("/experience"); await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => (window as unknown as { __audioCreated: number }).__audioCreated)).toBe(0);
   await page.getByRole("button", { name: "Sound on", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Sound is unavailable" })).toBeVisible();

@@ -1,0 +1,16 @@
+Native Waters redesign verification — 17 November 2026 (local time)
+
+Production: npm run build — PASS, Next.js 16.4.6, 51 static outputs.
+Types: npm run typecheck — PASS.
+ESLint: npm run lint — 0 errors; 2 pre-existing unused-import warnings in src/experience/riverProfiles.test.ts (KRISHNA_ANCHOR, krishnaAnchor).
+Units: integrated suite — 44 files, 439 tests passed. After the canonical host correction, reference/schema/SEO-validator focused check — 3 files, 27 tests passed. These counts overlap and must not be added.
+Browser: final full Chromium run — 54 configured cases; 47 passed, 6 desktop skips for mobile-only cases, 1 obsolete mobile picker-visibility assertion failed. The visible selected-fish panel correctly retained Albino Zebra Danio after quality changed to LOW. Assertion updated to check that consumer-visible state. Targeted desktop+touch keyboard-journey rerun — 2 passed. Across the full run and targeted follow-up, all 48 applicable cases are verified; do not describe the initial full run as clean. Raw logs: browser-tests.txt, journey-regression.txt.
+SEO: final www-canonical production crawl — 26/26 pages, 51 requests, no JavaScript executed, no failures. Includes page-specific metadata/canonical/schema, sitemap/robots, social images, internal links/anchors and unknown-route 404s.
+TasteSkill: source 0 FAIL / 10 WARN; browser 0 FAIL / 3 WARN. Final screenshot sheets read; warning rationale in ../final-critique.md.
+Official structured-data tools: Schema.org validator 0 errors/0 warnings for home, Ganga, Rohu and field guide; Google Rich Results Rohu 3 valid items with optional Article image recommendation. Code-input validation occurred before the bare→www canonical correction; final corrected output passed the local production validator.
+Responsive: public home/reference surfaces and active/following exhibit inspected at 1440, 768 and 390 pixels. No horizontal overflow in measured records. Portrait controls work without rotation/fullscreen requirements. Reduced motion, keyboard focus, model/chunk failures, WebGL denial/context recovery, audio rejection and cached re-entry covered by browser tests.
+No commit, push, deployment, Google Search Console indexing request or real-user CWV certification performed.
+Final font/prefetch optimization build: 51 static outputs; TypeScript and changed-file ESLint pass. Public-route links no longer prefetch the 197KB graphics chunk; final Lighthouse network records show zero requests for it on all three samples.
+Final Lighthouse: home mobile 95 performance, LCP 2965.83215ms, TBT 25.5ms; home desktop 100, LCP 595.6055ms, TBT 0ms; Rohu mobile 99, LCP 1965.09735ms, TBT 27.5ms. All three: accessibility/best-practices/SEO 100; CLS 0. Homepage mobile lab LCP is above target; field p75/INP remain unverified.
+Final manual navigation reached /experience and exploring with one canvas. Initial probe clicked before explicitly waiting for readiness and timed out; retrying the entry action after asserting the button was enabled passed. Screenshot: deferred-entry-desktop.png. No application workaround was added for that probe.
+Final report: ../../docs/taste-redesign-results.md. Includes comparable baseline/after reports, screenshots, optional schema recommendation, explained inspection warnings, physical-device/field-data limits and owner-operated Search Console steps.

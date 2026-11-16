@@ -73,7 +73,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           position: 'relative',
           overflow: 'hidden',
           padding: '72px',
-          background: 'linear-gradient(135deg, #101c1e 0%, #0e3b3f 100%)',
+          background: '#153c36',
           fontFamily: 'sans-serif',
         }}
       >

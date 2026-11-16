@@ -1,0 +1,7 @@
+.plate { margin: 32px 0; }
+.plate img { display: block; width: 100%; height: auto; max-height: 460px; object-fit: contain; background: #fff; }
+.plate figcaption { margin-top: 14px; font-size: 14px; line-height: 1.5; }
+.compact { margin: 0 0 24px; }
+.compact img { height: 230px; object-fit: contain; }
+.compact figcaption { max-width: 44ch; }
+@media (max-width: 700px) { .compact img { height: 200px; } }

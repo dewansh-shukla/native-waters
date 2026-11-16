@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SITE_ORIGIN } from '@/lib/reference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { articleSchema } from '@/lib/structuredData';
+import { SiteHeader, SiteFooter } from '@/components/reference/SiteNavigation';
 
 export const metadata: Metadata = {
   title: 'Method and evidence policy',
@@ -25,8 +26,8 @@ const DESCRIPTION = 'How Native Waters selects, reads and presents its sourced f
 
 export default function MethodPage() {
   return (
-    <main style={{ maxWidth: '72ch', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
-      <JsonLd data={articleSchema({ title: 'Method and evidence policy', description: DESCRIPTION, url: `${SITE_ORIGIN}/method`, datePublished: '2026-11-16', dateModified: '2026-11-16' })} />
+    <div className="public-page"><SiteHeader /><main id="main-content" className="atlas-prose">
+      <JsonLd data={articleSchema({ title: 'Method and evidence policy', description: DESCRIPTION, url: `${SITE_ORIGIN}/method`, dateModified: '2026-11-16' })} />
       <nav aria-label="Breadcrumb" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
         <Link href="/">Home</Link> / Method
       </nav>
@@ -50,6 +51,6 @@ export default function MethodPage() {
 
       <h2>Citations and review</h2>
       <p>Names follow the cited publications; further taxonomic review may change names or distribution limits. Historical threat categories are omitted pending a current assessment check.</p>
-    </main>
+    </main><SiteFooter /></div>
   );
 }

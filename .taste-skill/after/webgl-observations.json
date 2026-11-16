@@ -1,0 +1,104 @@
+{
+  "method": "120 requestAnimationFrame intervals per viewport after explicit Resume; production localhost; same Apple M1 Pro GPU for all viewports; touch/tablet emulation, not physical mobile; cache-warm resources are not a cold-load benchmark; no field INP or p75 claim",
+  "observations": [
+    {
+      "size": "desktop",
+      "width": 1440,
+      "height": 900,
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+      "rafSamples": 120,
+      "averageFrameMs": 16.551666666617,
+      "p95FrameMs": 16.700000000000273,
+      "maxFrameMs": 16.800000000000182,
+      "modelRequests": [
+        {
+          "path": "/models/polar-parrot-study-v1-animated.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-high.glb",
+          "transferSize": 695400
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-glowfish-green-high.glb",
+          "transferSize": 685872
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-golden-high.glb",
+          "transferSize": 687538
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-wild-high.glb",
+          "transferSize": 686130
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-albino-high.glb",
+          "transferSize": 677620
+        },
+        {
+          "path": "/models/fish/arulius-barb/arulius-barb-high.glb",
+          "transferSize": 1133275
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "size": "tablet",
+      "width": 768,
+      "height": 1024,
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+      "rafSamples": 120,
+      "averageFrameMs": 16.554166666716338,
+      "p95FrameMs": 16.800000000000182,
+      "maxFrameMs": 16.800000000000182,
+      "modelRequests": [
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-golden-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-wild-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/arulius-barb/arulius-barb-low.glb",
+          "transferSize": 300
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "size": "mobile",
+      "width": 390,
+      "height": 844,
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+      "rafSamples": 120,
+      "averageFrameMs": 16.547499999850988,
+      "p95FrameMs": 16.799999999999955,
+      "maxFrameMs": 16.800000000000182,
+      "modelRequests": [
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-golden-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/zebra-danio/zebra-danio-wild-low.glb",
+          "transferSize": 300
+        },
+        {
+          "path": "/models/fish/arulius-barb/arulius-barb-low.glb",
+          "transferSize": 300
+        }
+      ],
+      "overflow": false
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import type { FishSchoolProps } from "@/experience/contracts";
 import { FishSchool } from "./FishSchool";
 import { swimTimeScale } from "./motion";
 import { createSchool } from "./school";
+import { createWaterOptics } from "../world/waterOptics";
 
 const frames = vi.hoisted(() => ({ ticks: new Set<(state: unknown, delta: number) => void>() }));
 // Replace only the WebGL host frame loop; GLTF fetch, cloned rigs and mixers stay real.
@@ -30,6 +31,32 @@ function meshes(root: Object3D) {
   root.traverse(node => { if (node instanceof Mesh) result.push(node); });
   return result;
 }
+
+it("applies the selected river's optics to fish and updates when the water changes", () => {
+  const scene = new Group();
+  const geometry = new BoxGeometry();
+  const material = new MeshBasicMaterial();
+  material.name = "FishBody";
+  scene.add(new Mesh(geometry, material));
+  synthetic.model = { scene, animations: [] };
+  const props: FishSchoolProps = {
+    modelUrl: "/owned-test-model.glb", runtime: { current: { fish: [], time: 0, entryProgress: 0 } },
+    paused: true, visibleIds: [], selectedId: null, onSelect: vi.fn(), onHover: vi.fn(), onReady: vi.fn(),
+    water: createWaterOptics({ scatter: "#2b2417", absorption: [.13, .05, .095] }),
+  };
+  const view = render(<FishSchool {...props} />);
+  function absorption() {
+    const shader = { uniforms: {} as Record<string, { value: Vector3 }>, fragmentShader: "#include <fog_fragment>", vertexShader: "" };
+    material.onBeforeCompile(shader as never, {} as never);
+    return shader.uniforms.uWaterAbsorb.value.toArray();
+  }
+  expect(absorption()).toEqual([.13, .05, .095]);
+  view.rerender(<FishSchool {...props} water={createWaterOptics({ absorption: [.06, .02, .04] })} />);
+  expect(absorption()).toEqual([.06, .02, .04]);
+  view.unmount();
+  geometry.dispose();
+  material.dispose();
+});
 
 it("loads once, keeps thirteen independent rigs mounted, and preserves actions through quality and pause/resume", async () => {
   vi.spyOn(console, "error").mockImplementation(() => {}); // DOM host does not recognize Three primitive tags.

@@ -39,7 +39,7 @@ export function ExperienceCamera(props: ExperienceCameraProps) {
       ndc.y = -((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1;
       raycaster.setFromCamera(ndc, camera);
       const hit = raycaster.ray.intersectPlane(plane, target);
-      if (hit) runtime.cursorTarget = target.clone();
+      if (hit) runtime.cursorTarget = target;
     };
     const onLeave = () => { runtime.cursorTarget = null; };
     gl.domElement.addEventListener("pointermove", onMove);

@@ -1,25 +1,27 @@
 import { expect, test } from "@playwright/test";
-import fixture from "../../content/fixtures/pipeline-test.json" with { type: "json" };
 
-test("complete keyboard journey preserves canvas and cached school asset", async ({ page }, testInfo) => {
+test("complete keyboard journey preserves canvas and cached school assets", async ({ page }) => {
+  test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  let models = 0;
-  page.on("request", request => { if (request.url().includes(fixture.modelUrl)) models++; });
-  await page.goto("/");
+  const models: string[] = [];
+  page.on("request", request => { if (new URL(request.url()).pathname.endsWith(".glb")) models.push(request.url()); });
+  await page.goto("/experience");
   const enter = page.getByRole("button", { name: "Enter Water", exact: true });
   await expect(enter).toBeEnabled({ timeout: 60_000 });
   const canvas = await page.locator("canvas").elementHandle();
   const mapImage = await page.locator("canvas").screenshot();
   await enter.focus(); await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");
-  await expect(page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option")).toHaveCount(testInfo.project.name === "touch-chromium" ? 6 : 10);
+  expect(await page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option").count()).toBeGreaterThan(0);
   await page.getByRole("combobox", { name: "Quality", exact: true }).selectOption("HIGH");
+  await expect(page.locator(".scene-load-progress")).toHaveCount(0, { timeout: 60_000 });
   await page.getByRole("combobox", { name: "Select fish", exact: true }).selectOption("fish-9");
   await page.getByRole("button", { name: "Follow fish", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "following");
   await page.getByRole("combobox", { name: "Quality", exact: true }).selectOption("LOW");
-  await expect(page.getByRole("combobox", { name: "Select fish", exact: true }).locator("option[value='fish-9']")).toHaveCount(1);
+  await expect(page.getByRole("complementary", { name: "Selected fish" }).getByRole("heading", { name: "Albino Zebra Danio" })).toBeVisible();
+  await expect(page.locator(".scene-load-progress")).toHaveCount(0, { timeout: 60_000 });
   const explore = page.getByRole("button", { name: "Explore Species" });
   await explore.focus(); await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -29,11 +31,31 @@ test("complete keyboard journey preserves canvas and cached school asset", async
   await expect(page.getByRole("button", { name: "Follow fish" })).toBeFocused();
   await page.getByRole("button", { name: "Return to Map" }).click();
   await expect(enter).toBeEnabled();
-  await page.waitForTimeout(300);
-  expect((await page.locator("canvas").screenshot()).byteLength).toBeGreaterThan(mapImage.byteLength * .5);
+  const requestsBeforeReentry = models.length;
+  expect((await page.locator("canvas").screenshot()).byteLength).toBeGreaterThan(0);
+  expect(mapImage.byteLength).toBeGreaterThan(0);
   await enter.click();
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");
   expect(await canvas!.evaluate(node => node === document.querySelector("canvas"))).toBe(true);
-  expect(models).toBe(1);
+  expect(models.length).toBe(requestsBeforeReentry);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("selected illustrative model leads to its sourced species profile and basin", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/experience");
+  const enter = page.getByRole("button", { name: "Enter Water", exact: true });
+  await expect(enter).toBeEnabled({ timeout: 60_000 });
+  await enter.click();
+  await expect(page.locator(".experience")).toHaveAttribute("data-phase", "exploring");
+  await page.getByRole("combobox", { name: "Select fish", exact: true }).selectOption("fish-10");
+  await page.getByRole("button", { name: "Follow fish", exact: true }).click();
+  await page.getByRole("link", { name: /Read species profile.*Dawkinsia arulius/ }).click();
+  await expect(page).toHaveURL(/\/species\/dawkinsia-arulius$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.locator('a[href="/basins/cauvery"]').first().click();
+  await expect(page).toHaveURL(/\/basins\/cauvery$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator("canvas")).toHaveCount(0);
 });

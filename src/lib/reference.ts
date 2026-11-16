@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { freshwaterCatalog } from './catalog';
-export const SITE_ORIGIN = 'https://discovernativewaters.com';
+export const SITE_ORIGIN = 'https://www.discovernativewaters.com';
 export const SITE_NAME = 'Native Waters';
 export const CONTENT_UPDATED_AT = new Date('2026-11-16T00:00:00.000Z');
 const DEFAULT_SHARE_IMAGE = '/opengraph-image';

@@ -25,6 +25,7 @@ export type FishSchoolProps = {
   selectedId: string | null; onSelect: (id: string) => void;
   onHover: (id: string | null) => void; onReady: () => void;
   fishIds?: string[];
+  water?: WaterOptics;
   /** HIGH enables the animated silver-body surface; LOW keeps it static. */
   detail?: "high" | "low";
 };
