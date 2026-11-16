@@ -44,17 +44,17 @@ export function breadcrumbSchema(items: Crumb[]): Schema {
 }
 
 /**
- * A river basin. `point` is an existing vertex of the mapped river line; we only
- * emit `geo` when the caller supplies a real coordinate, never an estimated one.
+ * The river described by a basin page. `point` is a vertex of its mapped line; we
+ * emit `geo` only when the caller supplies a real coordinate.
  */
 export function bodyOfWaterSchema(river: River, point?: LonLat): Schema {
   const schema: Schema = {
     '@context': 'https://schema.org',
     '@type': 'BodyOfWater',
-    name: `${river.name} river basin`,
+    name: `${river.name} river`,
     description: river.summary,
     url: absolute(`/basins/${river.id}`),
-    containedInPlace: { '@type': 'Country', name: 'India' },
+    mainEntityOfPage: absolute(`/basins/${river.id}`),
   };
   if (river.aliases.length > 0) schema.alternateName = river.aliases;
   if (point) schema.geo = { '@type': 'GeoCoordinates', longitude: point[0], latitude: point[1] };
@@ -73,12 +73,11 @@ export function taxonSchema(species: Species): Schema {
   const schema: Schema = {
     '@context': 'https://schema.org',
     '@type': 'Taxon',
-    name: species.commonName,
-    scientificName: species.scientificName,
+    name: species.scientificName,
     alternateName: alternateNames,
     description: species.summary,
     url: absolute(`/species/${species.id}`),
-    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_ORIGIN}/` },
+    mainEntityOfPage: absolute(`/species/${species.id}`),
   };
   const ids = SPECIES_EXTERNAL_IDS[species.id];
   const sameAs: string[] = [];
@@ -126,8 +125,7 @@ export function datasetSchema(): Schema {
     '@type': 'Dataset',
     name: 'Native Waters freshwater fish reference dataset',
     description: 'Sourced reference records for native freshwater fishes of five Indian river systems, with basin-specific native status.',
-    url: `${SITE_ORIGIN}/`,
-    license: 'Data derived from cited publications; see citations on each record.',
+    url: absolute('/field-guide'),
     creator: publisher,
     inLanguage: 'en',
     spatialCoverage: { '@type': 'Place', name: 'India' },
@@ -155,19 +153,12 @@ export function definedTermSetSchema(terms: { term: string; definition: string }
   };
 }
 
-export function speakableSchema(selectors: string[]): Schema {
-  return {
-    '@type': 'SpeakableSpecification',
-    cssSelector: selectors,
-  };
-}
-
 export function articleSchema(input: {
   title: string;
   description: string;
   url: string;
-  datePublished: string | Date;
-  dateModified: string | Date;
+  datePublished?: string | Date;
+  dateModified?: string | Date;
   author?: Schema;
 }): Schema {
   const author = input.author ?? publisher;
@@ -191,8 +182,8 @@ export function webPageSchema(input: {
   title: string;
   description: string;
   url: string;
-  datePublished: string | Date;
-  dateModified: string | Date;
+  datePublished?: string | Date;
+  dateModified?: string | Date;
 }): Schema {
   return {
     '@context': 'https://schema.org',

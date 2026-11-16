@@ -7,7 +7,7 @@ import { AnimationMixer, Box3, Group, Mesh, MeshBasicMaterial, Quaternion, Skinn
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { prepareFishMaterials } from "./fishMaterials";
 import { updateFishShimmer } from "./bodyShimmer";
-import { createWaterOptics } from "../world/waterOptics";
+import { createWaterOptics, type WaterOptics } from "../world/waterOptics";
 import { driveFins, gillHz, pectoralRowHz } from "./finMotion";
 import { bankAngle, swimTimeScale } from "./motion";
 import type { FishSchoolProps, FishState } from "@/experience/contracts";
@@ -191,17 +191,19 @@ function Fish({ source, animations, rest, fish, runtime, index, paused, visible,
   />;
 }
 
-export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds, detail = "low" }: FishSchoolProps) {
+export function FishSchool({ modelUrl, runtime, paused, visibleIds, selectedId, onSelect, onHover, onReady, fishIds, detail = "low", water: waterProp }: FishSchoolProps) {
   // One loader/cache entry; ten SkeletonUtils clones share geometry/materials/textures.
   const { scene, animations } = useGLTF(modelUrl);
   const readyScene = useRef<Object3D | null>(null);
   const readyDetail = useRef<string | null>(null);
-  const water = useMemo(() => createWaterOptics(), []);
+  const water = useMemo(() => waterProp ?? createWaterOptics(), [waterProp]);
+  const readyWater = useRef<WaterOptics | null>(null);
   useEffect(() => {
-    if (readyScene.current === scene && readyDetail.current === detail) return;
+    if (readyScene.current === scene && readyDetail.current === detail && readyWater.current === water) return;
     prepareFishMaterials(scene, water, { detail });
     readyScene.current = scene;
     readyDetail.current = detail;
+    readyWater.current = water;
     onReady();
   }, [scene, water, onReady, detail]);
   const fishToRender = fishIds ? runtime.current.fish.filter(f => fishIds.includes(f.id)) : runtime.current.fish;

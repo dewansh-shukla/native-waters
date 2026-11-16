@@ -7,6 +7,8 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: "http://127.0.0.1:43187",
+    // Full Chromium's headless mode exercises the real browser graphics stack.
+    channel: "chromium",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     launchOptions: { args: ["--enable-unsafe-swiftshader"] },

@@ -1,0 +1,10 @@
+{
+  "baseUrl": "http://127.0.0.1:43200",
+  "canonicalOrigin": "https://www.discovernativewaters.com",
+  "checkedPages": 26,
+  "expectedPages": 26,
+  "checkedRequests": 51,
+  "noJavaScriptExecuted": true,
+  "failures": [],
+  "passed": true
+}

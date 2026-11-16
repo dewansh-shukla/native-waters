@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("visibility boundary pauses a resumed reduced-motion school without changing user preference", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/experience");
   await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Enter Water", exact: true }).click();
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring");

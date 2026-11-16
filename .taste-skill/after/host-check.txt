@@ -1,0 +1,4 @@
+Observed with curl -sSIL on 17 November 2026 (local time).
+https://www.discovernativewaters.com/ → HTTP/2 200, x-nextjs-prerender: 1, server: Vercel.
+https://discovernativewaters.com/ → HTTP/2 308, Location: https://www.discovernativewaters.com/ → HTTP/2 200.
+The redesigned build therefore uses https://www.discovernativewaters.com as SITE_ORIGIN. Existing paths are unchanged. These HEAD responses describe current deployed hosting, not deployment of this worktree.

@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import fixture from "../../../content/fixtures/pipeline-test.json";
 import { journeyReducer } from "@/experience/journey";
-import type { JourneyState, QualityPreference } from "@/experience/contracts";
+import type { ExperienceUIProps, JourneyState, QualityPreference } from "@/experience/contracts";
 import { ExperienceUI } from "./ExperienceUI";
 
 // jsdom does not implement the native dialog boundary.
@@ -11,18 +11,60 @@ beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
 });
-function Harness({ initial = { phase: "map", ready: false, selectedId: null } as JourneyState }) {
+function Harness({ initial = { phase: "map", ready: false, selectedId: null } as JourneyState, ...overrides }: { initial?: JourneyState } & Partial<ExperienceUIProps>) {
   const [state, dispatch] = useReducer(journeyReducer, initial);
   const [paused, onPausedChange] = useState(false);
   const [quality, onQualityChange] = useState<QualityPreference>("AUTO");
   return <ExperienceUI state={state} fixture={fixture} paused={paused} onPausedChange={onPausedChange}
     quality={quality} onQualityChange={onQualityChange} visibleFishIds={["fish-0", "fish-1"]}
     hoveredId={null} dispatch={dispatch} audio={{ enabled: false, error: null, enable: vi.fn(), disable: vi.fn() }}
-    onEntryIntent={() => dispatch({ type: "ENTER" })} onMapHighlight={vi.fn()} />;
+    onEntryIntent={() => dispatch({ type: "ENTER" })} onMapHighlight={vi.fn()} {...overrides} />;
 }
 const disclaimer = "Polar parrot reference study in an illustrative environment; no occurrence in this Indian location is asserted.";
 
 describe("ExperienceUI", () => {
+  it("closes only the inner study when embedded in a fullscreen exhibit dialog", () => {
+    const closeExhibit = vi.fn();
+    render(<dialog open aria-label="River exhibit" onCancel={closeExhibit}>
+      <Harness initial={{ phase: "following", ready: true, selectedId: "fish-0" }} />
+    </dialog>);
+    const explore = screen.getByRole("button", { name: "Explore Species" });
+    fireEvent.click(explore);
+    const study = screen.getByRole("dialog", { name: "Polar parrot — reference study" });
+    fireEvent(study, new Event("cancel", { bubbles: true, cancelable: true }));
+    expect(closeExhibit).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "River exhibit" })).toBeVisible();
+    expect(explore).toHaveFocus();
+  });
+  it("offers an exact profile from a selected model without claiming occurrence", () => {
+    render(<Harness initial={{ phase: "following", ready: true, selectedId: "fish-0" }}
+      selectedRiver="Cauvery" speciesLabels={{ "fish-0": "Arulius Barb" }}
+      speciesModelUrls={{ "fish-0": "/models/fish/arulius-barb/arulius-barb-low.glb" }} />);
+    expect(screen.getByRole("link", { name: /Read species profile.*Dawkinsia arulius/ })).toHaveAttribute("href", "/species/dawkinsia-arulius");
+    expect(screen.getByRole("link", { name: "Cauvery basin" })).toHaveAttribute("href", "/basins/cauvery");
+    expect(screen.getByText("Illustrative model")).toBeVisible();
+  });
+  it("keeps unmatched models separate from the basin's sourced records", () => {
+    render(<Harness initial={{ phase: "following", ready: true, selectedId: "fish-0" }}
+      selectedRiver="Ganga" speciesLabels={{ "fish-0": "Badis" }}
+      speciesModelUrls={{ "fish-0": "/models/fish/badis/badis-high.glb" }} />);
+    expect(screen.queryByRole("link", { name: /Read species profile/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse Ganga basin records" })).toHaveAttribute("href", "/basins/ganga");
+  });
+  it("describes the chosen river rather than the unrelated polar-parrot fixture in the overview", () => {
+    render(<Harness selectedRiver="Ganga" />);
+    fireEvent.click(screen.getByRole("button", { name: "Experience preview" }));
+    const dialog = screen.getByRole("dialog", { name: "Experience preview" });
+    expect(within(dialog).getByText(/The Ganga overview/)).toBeVisible();
+    expect(within(dialog).queryByText(disclaimer)).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "Ganga basin · sourced records" })).toHaveAttribute("href", "/basins/ganga");
+  });
+  it("disables entry again while a different river's assets prepare", () => {
+    const view = render(<Harness state={{ phase: "map", ready: true, selectedId: null }} />);
+    expect(screen.getByRole("button", { name: "Enter Water" })).toBeEnabled();
+    view.rerender(<Harness state={{ phase: "map", ready: false, selectedId: null }} selectedRiver="Ganga" />);
+    expect(screen.getByRole("button", { name: "Enter Water" })).toBeDisabled();
+  });
   it("gates entry but makes the same study and source label available before graphics readiness", () => {
     render(<Harness />);
     expect(screen.getByRole("button", { name: "Enter Water" })).toBeDisabled();

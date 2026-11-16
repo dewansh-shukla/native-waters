@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import catalog from '../../content/catalog/freshwater.json' with { type: 'json' };
+const SITE_ORIGIN = "https://www.discovernativewaters.com";
 
 test('all basin and species paths serve factual HTML without JavaScript', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
@@ -8,14 +9,14 @@ test('all basin and species paths serve factual HTML without JavaScript', async 
     const response = await page.goto(`${baseURL}/basins/${river.id}`);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${river.name} river basin`);
-    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `https://native-waters.vercel.app/basins/${river.id}`);
+    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `${SITE_ORIGIN}/basins/${river.id}`);
     await expect(page.getByText(river.scope, { exact: true })).toBeVisible();
   }
   for (const species of catalog.species) {
     const response = await page.goto(`${baseURL}/species/${species.id}`);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(species.commonName);
-    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `https://native-waters.vercel.app/species/${species.id}`);
+    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', `${SITE_ORIGIN}/species/${species.id}`);
     await expect(page.locator('main')).toContainText(species.scientificName);
     for (const association of species.associations) {
       await expect(page.locator('main')).toContainText(association.note);
@@ -29,27 +30,26 @@ test('all basin and species paths serve factual HTML without JavaScript', async 
   await context.close();
 });
 
-test('responsive split, linked records and optional illustrative preview', async ({ page }, info) => {
+test('HTML-first records open and close their own basin experience', async ({ page }, info) => {
   await page.goto('/basins/godavari');
   await page.getByRole('link', { name: 'Blue perch', exact: true }).click();
   await expect(page).toHaveURL(/\/species\/badis-badis$/);
   await expect(page.getByText('Native status uncertain', { exact: true })).toBeVisible();
-  const visual = await page.locator('[data-reference-visual]').boundingBox();
-  const panel = await page.getByRole('region', { name: 'River and species reference' }).boundingBox();
-  expect(visual).not.toBeNull(); expect(panel).not.toBeNull();
-  if (info.project.name === 'desktop-chromium') {
-    expect(visual!.width / (visual!.width + panel!.width)).toBeCloseTo(.65, 2);
-    expect(panel!.x).toBeCloseTo(visual!.width, 0);
-  } else {
-    expect(panel!.y).toBeCloseTo(visual!.height, 0);
-    expect(visual!.height).toBeCloseTo(page.viewportSize()!.height, 0);
-  }
+  const heading = await page.getByRole('heading', { level: 1 }).boundingBox();
+  expect(heading!.y).toBeLessThan(page.viewportSize()!.height);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('reference-layout.png') });
   await expect(page.locator('canvas')).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.getByRole('button', { name: 'Open illustrative 3D preview' }).click();
-  await expect(page.locator('canvas')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Enter Water', exact: true })).toBeEnabled();
+  const open = page.getByRole('button', { name: 'Open illustrative 3D preview' });
+  await open.click();
+  const dialog = page.getByRole('dialog', { name: 'Godavari underwater experience' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('canvas')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Enter Water', exact: true })).toBeEnabled();
+  await dialog.getByRole('button', { name: 'Close experience', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.locator('canvas')).toHaveCount(0);
+  await expect(open).toBeFocused();
   await expect(page.getByText('Native status uncertain', { exact: true })).toBeVisible();
 });

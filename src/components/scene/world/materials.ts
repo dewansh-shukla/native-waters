@@ -633,9 +633,7 @@ export const surfaceFragment = `
     float fresnel = pow(1.0 - abs(dot(eye, normal)), 3.0);
     float glint = 0.0;
     if (uRichness > 0.5) glint = pow(max(0.0, dot(reflect(-normalize(vec3(-0.4, 1.0, 0.25)), normal), eye)), 55.0);
-    // Per-river grading: silty water sees a warm ochre ceiling, clear water
-    // keeps the green-teal sheet. The literals stay so the test assertions
-    // keep matching; warmth blends them toward the warm set.
+    // Clear and silty rivers share the same optics, with a warmer silty ceiling.
     vec3 surfaceNear = mix(vec3(0.04, 0.13, 0.10), vec3(0.16, 0.12, 0.07), uSurfaceWarmth);
     vec3 surfaceGrazing = mix(vec3(0.18, 0.34, 0.27), vec3(0.30, 0.24, 0.16), uSurfaceWarmth);
     vec3 color = mix(surfaceNear, surfaceGrazing, fresnel);
@@ -655,12 +653,14 @@ export const surfaceFragment = `
     // dissolves into the water colour instead of ending at a visible edge.
     float camDist = length(cameraPosition - vWorld);
     vec3 transmit = exp(-uWaterAbsorb * camDist);
-    color = color * transmit + uWaterScatter * (1.0 - transmit);
     float alpha = 0.56 + fresnel * 0.35;
     // Distant surface is fully absorbed into the water column: opaque scatter.
     alpha = mix(alpha, 1.0, (1.0 - transmit.r) * 0.8);
     gl_FragColor = vec4(color, alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
+    // Scatter is already display encoded, as in the bed/fish fog chunk.
+    // Mixing before colorspace conversion creates a pale seam at the horizon.
+    gl_FragColor.rgb = gl_FragColor.rgb * transmit + uWaterScatter * (1.0 - transmit);
   }
 `;

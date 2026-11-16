@@ -9,7 +9,7 @@ import type { PreviewWorldProps } from "@/experience/contracts";
 import { currentAt } from "@/experience/current";
 import { SILT_COUNT, advanceParticle, bedHeight, brahmaputraBedHeight, createPlacements, createSiltParticles, gangaBedHeight, godavariBedHeight, siltParticleAt, updateAtmosphere, type Placement } from "./worldMotion";
 import { declareLogTextureColorSpaces, declareRockTextureColorSpaces, logShader, plantShader, rockShader, substrateShader, surfaceFragment, surfaceVertex, underwaterStandardMaterial, type LogTextures, type RockTextures } from "./materials";
-import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, WATER_SCATTER_CSS } from "./waterOptics";
+import { applyUnderwaterFog, createWaterOptics, WATER_FOG_FAR, WATER_FOG_NEAR, waterBackground } from "./waterOptics";
 import { createGodRayMaterial, godRayStrength, sunScreenPosition } from "./godRays";
 import { createGravelGeometry, createLogGeometry, createPlantClumpGeometry, createRockGeometry, fillBatch, planStoneBatches } from "./worldAssets";
 
@@ -80,7 +80,10 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     uSurfaceWarmth: { value: isGanga ? 1 : 0 },
   }), [uniforms, water, isGanga]);
   const plant = useMemo(() => plantShader(uniforms, water), [uniforms, water]);
-  const atmosphere = useMemo(() => ({ fog: new Fog(new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), WATER_FOG_NEAR, WATER_FOG_FAR), background: new Color(water.scatter.value.x, water.scatter.value.y, water.scatter.value.z), previousFog: scene.fog, previousBackground: scene.background, active: false }), [scene, water]);
+  const atmosphere = useMemo(() => {
+    const background = waterBackground(water);
+    return { fog: new Fog(background, WATER_FOG_NEAR, WATER_FOG_FAR), background, previousFog: scene.fog, previousBackground: scene.background, active: false };
+  }, [scene, water]);
   const env = useMemo(() => createUnderwaterEnvironment(gl, isGanga ? SILTY_WATER_ENV : CLEAR_WATER_ENV), [gl, isGanga]);
   const motion = useMemo(() => {
     const positions = new Float32Array((240 + SILT_COUNT.HIGH) * 3);
@@ -104,8 +107,8 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
   // The bed plane extends far past the fog radius so absorption, not a plane
   // edge, ends the world: 24 x 18 ended inside visible range and read as a
   // painted backdrop behind the school.
-  const tw = mobile ? 48 : 96;
-  const td = mobile ? 36 : 72;
+  const tw = 128;
+  const td = 128;
   const terrain = useMemo(() => {
     const geometry = new PlaneGeometry(tw, td, mobile ? 64 : 128, mobile ? 48 : 96);
     geometry.rotateX(-Math.PI / 2);
@@ -132,9 +135,13 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     if (worldGroup.current) worldGroup.current.userData.underwaterEnvironment = env;
   }, [env]);
   useEffect(() => {
+    const previousEnvironment = scene.environment;
     if (!visible) updateAtmosphere(scene, atmosphere, false);
-    return () => { updateAtmosphere(scene, atmosphere, false); };
-  }, [scene, atmosphere, visible]);
+    return () => {
+      updateAtmosphere(scene, atmosphere, false);
+      if (scene.environment === env) scene.environment = previousEnvironment;
+    };
+  }, [scene, atmosphere, visible, env]);
   useEffect(() => () => terrain.dispose(), [terrain]);
   useEffect(() => () => env.dispose(), [env]);
 
@@ -404,7 +411,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     // darker fog/env read through. Above water the trio stays at full strength.
     const sunScale = underwater ? .7 : 1;
     if (keyLight.current) keyLight.current.intensity = 2.4 * sunScale;
-    if (fillLight.current) fillLight.current.intensity = 1.2 * sunScale;
+    if (fillLight.current) fillLight.current.intensity = .65 * sunScale;
     if (backlight.current) backlight.current.intensity = 1.1 * sunScale;
     const time = runtime.current.time;
     const { uniforms, motion } = mutable.current;
@@ -423,8 +430,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
       }
       for (let i = 0; i < motion.silt.length; i++) {
         const pos = siltParticleAt(motion.silt[i], time, motion.scratch);
-        pos.toArray(motion.positions, (240 + i) * 3);  // high tier
-        pos.toArray(motion.positions, (80 + i) * 3);   // low tier
+        pos.toArray(motion.positions, (snowCount + i) * 3);
       }
       if (particleAttribute.current) particleAttribute.current.needsUpdate = true;
     }
@@ -436,7 +442,7 @@ export function PreviewWorld({ runtime, quality, visible, water: waterProp, habi
     <ambientLight ref={ambient} name="AboveWaterAmbient" color="#b0cce0" intensity={.5} />
     <hemisphereLight ref={hemisphere} name="AboveWaterHemisphere" args={["#e0f0f4", "#3a4a38", .85]} />
     <directionalLight ref={keyLight} position={[-6, 9, 3]} color={isGanga ? "#e8d0a0" : "#ffe9c0"} intensity={2.4} />
-    <directionalLight ref={fillLight} position={[4, -3, -2]} color={isGanga ? "#b5a57a" : "#9ab8cc"} intensity={1.2} />
+    <directionalLight ref={fillLight} position={[4, -3, -2]} color={isGanga ? "#b5a57a" : "#9ab8cc"} intensity={.65} />
     <directionalLight ref={backlight} position={[-3, 1.5, -7]} color={isGanga ? "#c4b48a" : "#bfe0e8"} intensity={1.1} />
     <ambientLight ref={underwaterAmbient} name="UnderwaterAmbient" color={isGanga ? "#9a8f6e" : "#7aa0b0"} intensity={isGanga ? 0.55 : 0.4} visible={false} />
     <mesh geometry={terrain}>

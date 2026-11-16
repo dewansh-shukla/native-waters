@@ -1,4 +1,4 @@
-import { Vector3, type MeshStandardMaterial } from "three";
+import { Color, SRGBColorSpace, Vector3, type MeshStandardMaterial } from "three";
 
 type Shader = Parameters<MeshStandardMaterial["onBeforeCompile"]>[0];
 
@@ -53,6 +53,12 @@ export function createWaterOptics(config?: { scatter?: string; absorption?: read
     scatter: { value: new Vector3(...scatter) },
     absorption: { value: new Vector3(...absorption) },
   };
+}
+
+/** Three backgrounds use linear RGB; absorption uniforms use display RGB. */
+export function waterBackground(water: WaterOptics): Color {
+  const { x, y, z } = water.scatter.value;
+  return new Color().setRGB(x, y, z, SRGBColorSpace);
 }
 
 // Ganga: brownish, turbid scatter with higher suspended sediment.

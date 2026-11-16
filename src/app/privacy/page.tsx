@@ -1,20 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
+import { SITE_ORIGIN, CONTENT_UPDATED_AT, referenceMetadata } from '@/lib/reference';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { articleSchema } from '@/lib/structuredData';
+import { webPageSchema } from '@/lib/structuredData';
+import { SiteHeader, SiteFooter } from '@/components/reference/SiteNavigation';
 
-export const metadata: Metadata = {
-  title: 'Privacy',
-  description: 'How Native Waters handles analytics, consent and the data it collects.',
-  alternates: { canonical: `${SITE_ORIGIN}/privacy` },
-  robots: { index: true, follow: true },
-};
+export const metadata: Metadata = referenceMetadata(
+  'Privacy',
+  'How Native Waters handles analytics, consent and the data it collects.',
+  '/privacy',
+);
 
 export default function PrivacyPage() {
   return (
-    <main style={{ maxWidth: '72ch', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
-      <JsonLd data={articleSchema({ title: 'Privacy', description: 'How Native Waters handles analytics, consent and the data it collects.', url: `${SITE_ORIGIN}/privacy`, datePublished: CONTENT_UPDATED_AT.toISOString(), dateModified: CONTENT_UPDATED_AT.toISOString() })} />
+    <div className="public-page"><SiteHeader /><main id="main-content" className="atlas-prose">
+      <JsonLd data={webPageSchema({ title: 'Privacy', description: 'How Native Waters handles analytics, consent and the data it collects.', url: `${SITE_ORIGIN}/privacy`, dateModified: CONTENT_UPDATED_AT.toISOString() })} />
       <nav aria-label="Breadcrumb" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
         <Link href="/">Home</Link> / Privacy
       </nav>
@@ -47,6 +47,6 @@ export default function PrivacyPage() {
       <p>Questions about this page or the data handling can be raised as an issue on the project&apos;s <a href="https://github.com/dewansh-shukla/native-waters">GitHub repository</a>. This policy is reviewed when the site&apos;s data practices change.</p>
 
       <p style={{ marginTop: '2rem' }}><Link href="/">Return to Native Waters</Link></p>
-    </main>
+    </main><SiteFooter /></div>
   );
 }

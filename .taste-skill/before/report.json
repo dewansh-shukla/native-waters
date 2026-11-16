@@ -1,0 +1,1589 @@
+{
+ "url": "http://127.0.0.1:43188",
+ "at": "2026-11-16T20:59:24.212Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.8,
+    0.34,
+    0.32
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 2205,
+     "screens": 2.5,
+     "words": 244,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "chars": 40,
+     "lines": 2,
+     "size": 56,
+     "vw": 3.9,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.02,
+     "leading": 1.05,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "center",
+     "position": "center",
+     "widthRatio": 0.51,
+     "top": 273,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "lines": 2,
+     "size": 56,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "words": 5,
+      "chars": 40,
+      "lines": 2,
+      "size": 56,
+      "vw": 3.9,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.02,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "center",
+      "position": "center",
+      "widthRatio": 0.51,
+      "top": 273,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 1,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Arial",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      12,
+      14,
+      16,
+      18,
+      20,
+      26,
+      56
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Arial",
+      "size": 14.4,
+      "leading": 1.5,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 9.6
+     },
+     "measureChars": 31,
+     "max": {
+      "size": 56,
+      "vw": 3.9,
+      "font": "Georgia",
+      "text": "Discover India's Hidden Freshwater World"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 1,
+     "microLabelShare": 0.008,
+     "microSamples": [
+      "Native Waters"
+     ],
+     "upperShare": 0.04,
+     "centerShare": 0.14,
+     "smallText": 2
+    },
+    "eyebrows": [
+     {
+      "text": "Native Waters",
+      "above": "Discover India's Hidden Freshwater World",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 13.6,
+      "top": 242
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [],
+     "textColors": [
+      {
+       "color": "#a9c4bd",
+       "share": 0.62
+      },
+      {
+       "color": "#8fb3ab",
+       "share": 0.19
+      },
+      {
+       "color": "#e8f1ee",
+       "share": 0.14
+      },
+      {
+       "color": "#5f7d78",
+       "share": 0.03
+      },
+      {
+       "color": "#101c1e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#8fb3ab",
+      "hsl": {
+       "h": 167,
+       "s": 0.19,
+       "l": 0.63
+      },
+      "fg": "#101c1e"
+     },
+     "lowContrast": [
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": "pill",
+     "height": 48,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Explore Rivers",
+      "Discover Fish"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 1,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "a 255px",
+      "footer._8aEwW_footer 1152px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1219
+      },
+      {
+       "count": 5,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1619
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.88
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 2205,
+    "margins": {
+     "left": 168,
+     "right": 272
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 0,
+      "height": 792,
+      "words": 34,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Discover India's Hidden Freshwater World",
+       "size": 56,
+       "tag": "h1"
+      },
+      "left": 364,
+      "right": 364,
+      "textLeft": 364,
+      "textRight": 364,
+      "fullBleed": true,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 792,
+      "height": 285,
+      "words": 18,
+      "media": 0,
+      "middle": 9530,
+      "heading": {
+       "text": "Search fish, rivers or species",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 0,
+      "right": 432,
+      "textLeft": -9567,
+      "textRight": 952,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1077,
+      "height": 400,
+      "words": 53,
+      "media": 0,
+      "middle": 122,
+      "heading": {
+       "text": "Featured fish",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 168,
+      "right": 272,
+      "textLeft": 168,
+      "textRight": 272,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1477,
+      "height": 631,
+      "words": 150,
+      "media": 0,
+      "middle": 70,
+      "heading": {
+       "text": "Popular river guides",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 168,
+      "right": 200,
+      "textLeft": 168,
+      "textRight": 200,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "size": 56,
+      "top": 273,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 189,
+      "n": 5
+     },
+     {
+      "x": 168,
+      "n": 4
+     },
+     {
+      "x": 469,
+      "n": 3
+     },
+     {
+      "x": 749,
+      "n": 3
+     },
+     {
+      "x": 1029,
+      "n": 3
+     }
+    ],
+    "leftBlocks": 18,
+    "bodySize": 14,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.04,
+    "voidBox": {
+     "x": 540,
+     "y": 840,
+     "w": 900,
+     "h": 60
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.73,
+    0.53,
+    0.46
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 2563,
+     "screens": 2.5,
+     "words": 244,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "chars": 40,
+     "lines": 2,
+     "size": 46.1,
+     "vw": 6,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.02,
+     "leading": 1.05,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "center",
+     "position": "center",
+     "widthRatio": 0.94,
+     "top": 342,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "lines": 2,
+     "size": 46.1,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "words": 5,
+      "chars": 40,
+      "lines": 2,
+      "size": 46.1,
+      "vw": 6,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.02,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "center",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 342,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 1,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Arial",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      12,
+      14,
+      16,
+      17,
+      18,
+      20,
+      26,
+      46
+     ],
+     "sizeCount": 8,
+     "notLoaded": [],
+     "body": {
+      "font": "Arial",
+      "size": 14.4,
+      "leading": 1.5,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 9.6
+     },
+     "measureChars": 43,
+     "max": {
+      "size": 46.1,
+      "vw": 6,
+      "font": "Georgia",
+      "text": "Discover India's Hidden Freshwater World"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 1,
+     "microLabelShare": 0.008,
+     "microSamples": [
+      "Native Waters"
+     ],
+     "upperShare": 0.04,
+     "centerShare": 0.14,
+     "smallText": 2
+    },
+    "eyebrows": [
+     {
+      "text": "Native Waters",
+      "above": "Discover India's Hidden Freshwater World",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 13.6,
+      "top": 311
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [],
+     "textColors": [
+      {
+       "color": "#a9c4bd",
+       "share": 0.62
+      },
+      {
+       "color": "#8fb3ab",
+       "share": 0.19
+      },
+      {
+       "color": "#e8f1ee",
+       "share": 0.14
+      },
+      {
+       "color": "#5f7d78",
+       "share": 0.03
+      },
+      {
+       "color": "#101c1e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#8fb3ab",
+      "hsl": {
+       "h": 167,
+       "s": 0.19,
+       "l": 0.63
+      },
+      "fg": "#101c1e"
+     },
+     "lowContrast": [
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": "pill",
+     "height": 48,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Explore Rivers",
+      "Discover Fish"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 1,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "a 255px",
+      "footer._8aEwW_footer 768px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1328
+      },
+      {
+       "count": 5,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1889
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.88
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 2563,
+    "margins": {
+     "left": 24,
+     "right": 33
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 0,
+      "height": 901,
+      "words": 34,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Discover India's Hidden Freshwater World",
+       "size": 46,
+       "tag": "h1"
+      },
+      "left": 25,
+      "right": 25,
+      "textLeft": 25,
+      "textRight": 25,
+      "fullBleed": true,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 901,
+      "height": 285,
+      "words": 18,
+      "media": 0,
+      "middle": 9722,
+      "heading": {
+       "text": "Search fish, rivers or species",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 0,
+      "right": 96,
+      "textLeft": -9903,
+      "textRight": 424,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1186,
+      "height": 561,
+      "words": 53,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Featured fish",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 24,
+      "right": 134,
+      "textLeft": 24,
+      "textRight": 134,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1747,
+      "height": 719,
+      "words": 150,
+      "media": 0,
+      "middle": 58,
+      "heading": {
+       "text": "Popular river guides",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 24,
+      "right": 47,
+      "textLeft": 24,
+      "textRight": 47,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "size": 46,
+      "top": 342,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 45,
+      "n": 8
+     },
+     {
+      "x": 413,
+      "n": 6
+     },
+     {
+      "x": 24,
+      "n": 4
+     }
+    ],
+    "leftBlocks": 18,
+    "bodySize": 14,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.81,
+    0.65,
+    0.77,
+    0.66
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 3067,
+     "screens": 3.6,
+     "words": 244,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "chars": 40,
+     "lines": 2,
+     "size": 32,
+     "vw": 8.2,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.02,
+     "leading": 1.05,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "center",
+     "position": "center",
+     "widthRatio": 0.88,
+     "top": 267,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Discover India's Hidden Freshwater World",
+     "words": 5,
+     "lines": 2,
+     "size": 32,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "words": 5,
+      "chars": 40,
+      "lines": 2,
+      "size": 32,
+      "vw": 8.2,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.02,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "center",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 267,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Search fish, rivers or species",
+      "words": 5,
+      "chars": 30,
+      "lines": 1,
+      "size": 25.6,
+      "vw": 6.6,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 791,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Featured fish",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 25.6,
+      "vw": 6.6,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 1076,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Popular river guides",
+      "words": 3,
+      "chars": 20,
+      "lines": 1,
+      "size": 25.6,
+      "vw": 6.6,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 1950,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 4,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 1,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Arial",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      12,
+      14,
+      16,
+      18,
+      20,
+      26,
+      32
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Arial",
+      "size": 14.4,
+      "leading": 1.5,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 9.6
+     },
+     "measureChars": 42,
+     "max": {
+      "size": 32,
+      "vw": 8.2,
+      "font": "Georgia",
+      "text": "Discover India's Hidden Freshwater World"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 1,
+     "microLabelShare": 0.008,
+     "microSamples": [
+      "Native Waters"
+     ],
+     "upperShare": 0.04,
+     "centerShare": 0.14,
+     "smallText": 2
+    },
+    "eyebrows": [
+     {
+      "text": "Native Waters",
+      "above": "Discover India's Hidden Freshwater World",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 13.6,
+      "top": 236
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [],
+     "textColors": [
+      {
+       "color": "#a9c4bd",
+       "share": 0.62
+      },
+      {
+       "color": "#8fb3ab",
+       "share": 0.19
+      },
+      {
+       "color": "#e8f1ee",
+       "share": 0.14
+      },
+      {
+       "color": "#5f7d78",
+       "share": 0.03
+      },
+      {
+       "color": "#101c1e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#8fb3ab",
+      "hsl": {
+       "h": 167,
+       "s": 0.19,
+       "l": 0.63
+      },
+      "fg": "#101c1e"
+     },
+     "lowContrast": [
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native · Basin endemic",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      },
+      {
+       "text": "Native",
+       "ratio": 4,
+       "need": 4.5,
+       "size": 12,
+       "fg": "#5f7d78",
+       "bg": "#0e1a1c"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": "pill",
+     "height": 48,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Explore Rivers",
+      "Discover Fish"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 1,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "a 255px",
+      "footer._8aEwW_footer 390px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1194
+      },
+      {
+       "count": 5,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 2044
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.88
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 3067,
+    "margins": {
+     "left": 24,
+     "right": 28
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 0,
+      "height": 743,
+      "words": 34,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Discover India's Hidden Freshwater World",
+       "size": 32,
+       "tag": "h1"
+      },
+      "left": 32,
+      "right": 32,
+      "textLeft": 32,
+      "textRight": 32,
+      "fullBleed": true,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 743,
+      "height": 285,
+      "words": 18,
+      "media": 0,
+      "middle": 9794,
+      "heading": {
+       "text": "Search fish, rivers or species",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 0,
+      "right": 24,
+      "textLeft": -9975,
+      "textRight": 46,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1028,
+      "height": 875,
+      "words": 53,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Featured fish",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 24,
+      "right": 60,
+      "textLeft": 24,
+      "textRight": 60,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_section",
+      "tag": "section",
+      "top": 1902,
+      "height": 1068,
+      "words": 150,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Popular river guides",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 24,
+      "right": 45,
+      "textLeft": 24,
+      "textRight": 45,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Discover India's Hidden Freshwater World",
+      "size": 32,
+      "top": 267,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 45,
+      "n": 14
+     },
+     {
+      "x": 24,
+      "n": 4
+     }
+    ],
+    "leftBlocks": 18,
+    "bodySize": 14,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 1440,
+   "message": "1 eyebrow/kicker label(s) above headings: \"Native Waters\" above \"Discover India's Hidden Freshwater World\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "1 tiny uppercase letter-spaced label(s): \"Native Waters\"",
+   "fix": "Prefer sentence case at body size.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "hairline",
+   "width": 1440,
+   "message": "2 thin rule(s)/divider line(s): a 255px | footer._8aEwW_footer 1152px",
+   "fix": "Delete. Separate with space, a tone change, or scale. Lines are only for real tables and form fields.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "outlined-box",
+   "width": 1440,
+   "message": "9 boxes drawn with a 1px outline.",
+   "fix": "Define a surface by its fill (one tone step from the page) or leave the content unboxed.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "card-rows",
+   "width": 1440,
+   "message": "2 rows of identical boxed cards.",
+   "fix": "Vary the composition; not every section is a card grid.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "contrast",
+   "width": 1440,
+   "message": "Low-contrast text: \"Native\" 4:1 needs 4.5:1; \"Native · Basin endemic\" 4:1 needs 4.5:1; \"Native · Basin endemic\" 4:1 needs 4.5:1; \"Native\" 4:1 needs 4.5:1",
+   "fix": "Darken or lighten the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "body-size",
+   "width": 1440,
+   "message": "Body text is 14.4px (the size most of the running text is set in).",
+   "fix": "Body copy 16–20px. Map small sizes from blueprints onto your body step.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "few-pictures",
+   "width": 1440,
+   "message": "Only 1 picture(s) on the page (1 photographs, footage or raster images, 0 interface fragments). Drawings in SVG do not count.",
+   "fix": "Find real pictures of the subject's world with scripts/assets.mjs (photographs, archival images, maps, engravings, footage), download them to assets/ and give them room: a hero picture, one per section that has a subject, a full-width band. At least four, usually six to twelve."
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "WARN",
+   "id": "small-text",
+   "width": 1440,
+   "message": "2 text block(s) under 13px.",
+   "fix": "Nothing meant to be read goes below 13px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt General Sans and General Sans, but the page renders Arial, Georgia.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "off-centre",
+   "width": 1440,
+   "message": "The page sits off-centre: its content comes to 168px from the left edge but only to 272px from the right, at 1440px.",
+   "fix": "Give the page one pair of equal margins. Check the wrapper for a max-width without margin-inline: auto, a grid with an empty last column, or padding on one side only. If one side is meant to hold air, it must still be closed by something that reaches the margin (a picture, the navigation's last item, a figure)."
+  },
+  {
+   "level": "WARN",
+   "id": "empty-middle",
+   "width": 1440,
+   "message": "1 section(s) have content at both edges and 9530px of nothing between: \"Search fish, rivers or species\"",
+   "fix": "Bring the two parts together on the grid, or put the picture or figure of the section in the middle. An empty middle third reads as a hole, the same as an empty half.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Only 0 element(s) moved while the page loaded and scrolled.",
+   "fix": "Build the motion layer (SKILL.md step 9, references/motion.md): the signature move, an entrance for the parts of every section, feedback on every control, and one moving picture. Transform and opacity only, with a reduced-motion fallback."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/desktop-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/tablet-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/mobile-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/before/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

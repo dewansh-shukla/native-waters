@@ -1,0 +1,16 @@
+.selector { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.choices { display: flex; flex-direction: column; gap: 4px; }
+.choices button { padding: 18px 22px; background: transparent; color: var(--river-ink); display: flex; justify-content: space-between; align-items: center; text-align: left; font-size: clamp(23px, 3vw, 40px); letter-spacing: -.04em; transition: transform .2s; }
+.choices button[aria-pressed=true] { background: var(--deep); color: var(--paper); }
+.choices button:hover { transform: translateX(4px); }
+.record { padding: clamp(24px, 4vw, 56px); background: var(--surface); display: flex; flex-direction: column; justify-content: center; }
+.record h3 { margin: 0 0 20px; font-size: 24px; }
+.record p { margin: 0 0 24px; }
+.record .note { font-size: 17px; margin: 28px 0 0; }
+@media (max-width: 700px) { .selector { grid-template-columns: 1fr; gap: 24px; } .choices { display: flex; flex-flow: row wrap; gap: 8px; } .choices button { font-size: 17px; padding: 12px 16px; background: var(--surface); gap: 16px; } .choices button span { display: none; } .record { padding: 24px; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .choices button { animation: river-arrive linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+  }
+}
+@keyframes river-arrive { from { transform: translateX(-12px); } to { transform: none; } }

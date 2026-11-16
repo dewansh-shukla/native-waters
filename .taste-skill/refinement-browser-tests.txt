@@ -1,0 +1,73 @@
+[WebServer] (node:53500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 48 tests using 1 worker
+
+(node:53518) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/e2e/field-guide.spec.ts:4:1 › field guide remains readable and navigable without JavaScript (750ms)
+  ✓   2 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:6:1 › keyboard Escape from focused Explore and Return to Map restore surviving controls (27.6s)
+  ✓   3 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:22:1 › resolved compilation with denied shader linking offers Retry and never enables entry (7.2s)
+  ✘   4 [desktop-chromium] › tests/e2e/final-fixes.spec.ts:47:1 › context loss during descent waits through delayed retry and completes after rewarming (1.7m)
+(node:58346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   5 [desktop-chromium] › tests/e2e/foundation.spec.ts:34:1 › real GLB playback, keyboard pause and persistent resume (1.5m)
+(node:61680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   6 [desktop-chromium] › tests/e2e/foundation.spec.ts:49:1 › reduced motion stays still until explicit fish resume (41.7s)
+(node:63556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   7 [desktop-chromium] › tests/e2e/foundation.spec.ts:56:1 › delayed required asset gates entry but study fallback works (5.4s)
+(node:63691) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   8 [desktop-chromium] › tests/e2e/foundation.spec.ts:68:1 › failed viewer module preserves DOM and reload recovers (6.9s)
+(node:64087) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   9 [desktop-chromium] › tests/e2e/foundation.spec.ts:85:1 › failed asset preserves DOM and cache-clearing retry recovers (11.2s)
+(node:64561) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  10 [desktop-chromium] › tests/e2e/foundation.spec.ts:97:1 › denied WebGL leaves study and keyboard controls usable (668ms)
+(node:64580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  11 [desktop-chromium] › tests/e2e/foundation.spec.ts:111:1 › real context loss invalidates readiness and retry restores renderer (1.2m)
+(node:67780) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  12 [desktop-chromium] › tests/e2e/journey.spec.ts:3:1 › complete keyboard journey preserves canvas and cached school assets (40.3s)
+  ✓  13 [desktop-chromium] › tests/e2e/journey.spec.ts:44:1 › selected illustrative model leads to its sourced species profile and basin (22.1s)
+  -  14 [desktop-chromium] › tests/e2e/mobile.spec.ts:24:1 › mobile: no horizontal overflow
+  -  15 [desktop-chromium] › tests/e2e/mobile.spec.ts:31:1 › mobile: touch targets are at least 44px
+  -  16 [desktop-chromium] › tests/e2e/mobile.spec.ts:55:1 › mobile: story text is readable
+  -  17 [desktop-chromium] › tests/e2e/mobile.spec.ts:70:1 › mobile: sourced basin remains readable independently of the exhibit
+  -  18 [desktop-chromium] › tests/e2e/mobile.spec.ts:82:1 › mobile: portrait fish controls work without rotating or entering fullscreen
+  -  19 [desktop-chromium] › tests/e2e/mobile.spec.ts:101:1 › mobile: landscape orientation does not crash
+  ✓  20 [desktop-chromium] › tests/e2e/redesign.spec.ts:3:1 › river discovery connects the underwater exhibit to a sourced species and back (27.0s)
+  ✓  21 [desktop-chromium] › tests/e2e/redesign.spec.ts:34:1 › search routes a direct species visitor to a factual profile (421ms)
+  ✓  22 [desktop-chromium] › tests/e2e/references.spec.ts:5:1 › all basin and species paths serve factual HTML without JavaScript (1.2s)
+  ✓  23 [desktop-chromium] › tests/e2e/references.spec.ts:33:1 › HTML-first records open and close their own basin experience (4.6s)
+  ✘  24 [desktop-chromium] › tests/e2e/visibility.spec.ts:3:1 › visibility boundary pauses a resumed reduced-motion school without changing user preference (55.3s)
+(node:73394) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 [touch-chromium] › tests/e2e/field-guide.spec.ts:4:1 › field guide remains readable and navigable without JavaScript (680ms)
+  ✓  26 [touch-chromium] › tests/e2e/final-fixes.spec.ts:6:1 › keyboard Escape from focused Explore and Return to Map restore surviving controls (7.0s)
+  ✓  27 [touch-chromium] › tests/e2e/final-fixes.spec.ts:22:1 › resolved compilation with denied shader linking offers Retry and never enables entry (5.7s)
+  ✘  28 [touch-chromium] › tests/e2e/final-fixes.spec.ts:47:1 › context loss during descent waits through delayed retry and completes after rewarming (1.2m)
+(node:76748) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  29 [touch-chromium] › tests/e2e/foundation.spec.ts:34:1 › real GLB playback, keyboard pause and persistent resume (2.0m)
+(node:80889) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  30 [touch-chromium] › tests/e2e/foundation.spec.ts:49:1 › reduced motion stays still until explicit fish resume (10.4s)
+(node:81501) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  31 [touch-chromium] › tests/e2e/foundation.spec.ts:56:1 › delayed required asset gates entry but study fallback works (4.3s)
+(node:81646) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  32 [touch-chromium] › tests/e2e/foundation.spec.ts:68:1 › failed viewer module preserves DOM and reload recovers (4.7s)
+(node:82015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  33 [touch-chromium] › tests/e2e/foundation.spec.ts:85:1 › failed asset preserves DOM and cache-clearing retry recovers (1.0m)
+(node:84128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  34 [touch-chromium] › tests/e2e/foundation.spec.ts:97:1 › denied WebGL leaves study and keyboard controls usable (628ms)
+(node:84249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)

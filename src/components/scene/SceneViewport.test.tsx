@@ -31,6 +31,15 @@ afterEach(() => {
 });
 
 describe("SceneViewport", () => {
+  it("suspends continuous rendering while paused but permits a reduced-motion entry frame", () => {
+    renderer.failed = false;
+    const view = render(<SceneViewport {...props} />);
+    expect(vi.mocked(Canvas).mock.calls.at(-1)?.[0].frameloop).toBe("demand");
+    view.rerender(<SceneViewport {...props} state={{ ...props.state, phase: "entering" }} />);
+    expect(vi.mocked(Canvas).mock.calls.at(-1)?.[0].frameloop).toBe("always");
+    view.rerender(<SceneViewport {...props} paused={false} />);
+    expect(vi.mocked(Canvas).mock.calls.at(-1)?.[0].frameloop).toBe("always");
+  });
   it("uses a Y-up perspective camera and stable scene module label", () => {
     renderer.failed = false;
     render(<SceneViewport {...props} />);
@@ -52,4 +61,14 @@ describe("SceneViewport", () => {
     expect(screen.getByText("Renderer ready")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+});
+
+it("retries the active species assets rather than an unused fixture", () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const clear = vi.spyOn(useGLTF, "clear");
+  render(<SceneViewport {...props} species={[
+    { modelUrl: "/models/fish/arulius-barb/arulius-barb-low.glb", fishIds: ["fish-10"] },
+  ]} />);
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(clear).toHaveBeenCalledExactlyOnceWith("/models/fish/arulius-barb/arulius-barb-low.glb");
 });

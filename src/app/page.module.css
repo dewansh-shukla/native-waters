@@ -1,219 +1,69 @@
-.page {
-  color: #e8f1ee;
+.page main { position: relative; z-index: 1; background: var(--paper); }
+.hero { display: grid; grid-template-columns: 48% 52%; margin: 16px var(--page-gutter) 0; min-height: min(740px, 78svh); background: var(--surface); }
+.heroSheet { padding: clamp(28px, 4vw, 64px); display: flex; flex-direction: column; justify-content: center; align-items: start; }
+.hero h1 { font-size: clamp(44px, 5.1vw, 78px); margin: 0; letter-spacing: -.065em; }
+.heroSheet > p { font-size: clamp(18px, 1.55vw, 23px); max-width: 34ch; margin: 32px 0; }
+.heroNote { margin-top: 64px; font-size: 17px; line-height: 1.6; }
+.heroMedia { margin: 0; position: relative; overflow: hidden; min-height: 420px; background: var(--deep); }
+.heroMedia img { object-fit: cover; object-position: 60% center; animation: water-drift 24s ease-in-out infinite alternate; }
+.heroMedia figcaption { position: absolute; bottom: 24px; left: 24px; right: 24px; background: #153c36; color: #edf0e8; padding: 12px 16px; font-size: 14px; width: fit-content; }
+.rivers, .species { padding: 120px var(--page-gutter) 0; scroll-margin-top: 24px; }
+.sectionIntro { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; align-items: start; }
+.sectionIntro h2 { margin: 0; max-width: 15ch; }
+.sectionIntro p { margin: 0 0 20px; max-width: 48ch; }
+.basinLinks { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 24px; }
+.basinLinks a { min-height: 44px; display: inline-flex; align-items: center; }
+.speciesShelf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+.speciesShelf article { min-width: 0; }
+.speciesShelf h3 { margin: 24px 0 8px; }
+.speciesShelf h3 a { text-decoration: none; }
+.speciesShelf h3 a:hover { text-decoration: underline; }
+.speciesShelf p { margin: 8px 0; max-width: 42ch; }
+.search { margin: 100px var(--page-gutter) 0; padding: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; background: var(--surface); align-items: center; }
+.search h2 { margin: 0; }
+.evidence { padding: 120px var(--page-gutter); display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; align-items: center; }
+.evidence figure { margin: 0; }
+.evidence img { width: 100%; height: auto; display: block; aspect-ratio: 5 / 4; object-fit: cover; }
+.evidence figcaption { font-size: 14px; margin-top: 16px; line-height: 1.5; }
+.evidence h2 { margin: 0 0 32px; }
+.evidence p { max-width: 45ch; }
+.evidence :global(.atlas-button) { margin-top: 20px; }
+.page :global(.atlas-header) a, .hero h1, .heroSheet > p, .actions a, .heroNote, .heroMedia { animation: atlas-enter .8s both; }
+.heroSheet > p { animation-delay: .08s; }
+.actions a { animation-delay: .16s; }
+.heroNote { animation-delay: .24s; }
+@keyframes atlas-enter { from { transform: translateY(20px); } to { transform: translateY(0); } }
+@keyframes water-drift { from { transform: scale(1); } to { transform: scale(1.04); } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .speciesShelf figure { animation: plate-arrive linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+    .speciesShelf h3, .evidence h2 { animation: atlas-enter linear both; animation-timeline: view(); animation-range: entry 0% entry 90%; }
+  }
 }
-
-.hero {
-  position: relative;
-  min-height: 88vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  padding: 6rem 1.5rem 4rem;
+@keyframes plate-arrive { from { transform: translateY(24px); } to { transform: none; } }
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: 52% 48%; min-height: 620px; }
+  .heroSheet { padding: 32px; }
+  .hero h1 { font-size: 48px; }
+  .heroNote { margin-top: 40px; }
+  .sectionIntro { gap: 32px; }
+  .speciesShelf { gap: 24px; }
+  .evidence { gap: 32px; }
 }
-
-.heroImage {
-  object-fit: cover;
-  object-position: center 30%;
-}
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(16, 28, 30, 0.35) 0%, rgba(16, 28, 30, 0.85) 70%, #101c1e 100%);
-}
-
-.heroInner {
-  position: relative;
-  z-index: 1;
-  max-width: 46rem;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.eyebrow {
-  display: inline-block;
-  font-size: 0.85rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #8fb3ab;
-  margin-bottom: 1rem;
-}
-
-.heroTitle {
-  font-size: clamp(2rem, 6vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem;
-  color: #e8f1ee;
-}
-
-.heroSub {
-  font-size: clamp(1rem, 2.2vw, 1.25rem);
-  line-height: 1.5;
-  color: #a9c4bd;
-  margin: 0 0 2rem;
-}
-
-.ctaRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-bottom: 1.25rem;
-}
-
-.ctaPrimary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 1.5rem;
-  border-radius: 999px;
-  background: #8fb3ab;
-  color: #101c1e;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid #8fb3ab;
-}
-
-.ctaSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 1.5rem;
-  border-radius: 999px;
-  background: transparent;
-  color: #e8f1ee;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid #446166;
-}
-
-.experienceLink {
-  display: inline-block;
-  font-size: 0.9rem;
-  color: #8fb3ab;
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
-}
-
-.searchWrap {
-  max-width: 36rem;
-  margin: 0 auto 3rem;
-}
-
-.section {
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-}
-
-.sectionTitle {
-  font-size: 1.6rem;
-  margin: 0 0 0.5rem;
-  color: #e8f1ee;
-}
-
-.sectionIntro {
-  color: #8fb3ab;
-  margin: 0 0 2rem;
-  max-width: 52ch;
-}
-
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1rem;
-}
-
-.card {
-  display: block;
-  padding: 1.25rem;
-  border: 1px solid #446166;
-  border-radius: 12px;
-  background: #0e1a1c;
-  text-decoration: none;
-  color: #e8f1ee;
-  transition: border-color 0.15s ease;
-}
-
-.card:hover {
-  border-color: #8fb3ab;
-}
-
-.cardName {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #e8f1ee;
-}
-
-.cardSci {
-  font-style: italic;
-  font-size: 0.9rem;
-  color: #8fb3ab;
-  margin: 0 0 0.75rem;
-}
-
-.cardMeta {
-  font-size: 0.85rem;
-  color: #a9c4bd;
-  margin: 0;
-}
-
-.cardStatus {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #5f7d78;
-}
-
-.riverCard {
-  display: block;
-  padding: 1.25rem;
-  border: 1px solid #446166;
-  border-radius: 12px;
-  background: #0e1a1c;
-  text-decoration: none;
-  color: #e8f1ee;
-  transition: border-color 0.15s ease;
-}
-
-.riverCard:hover {
-  border-color: #8fb3ab;
-}
-
-.riverName {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #e8f1ee;
-}
-
-.riverSummary {
-  font-size: 0.9rem;
-  color: #a9c4bd;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.footer {
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
-  border-top: 1px solid #446166;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #8fb3ab;
-}
-
-.footer a {
-  color: #8fb3ab;
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
+@media (max-width: 700px) {
+  .hero { grid-template-columns: 1fr; margin-top: 8px; min-height: auto; }
+  .heroSheet { padding: 32px 24px; }
+  .hero h1 { font-size: clamp(36px, 9.6vw, 58px); }
+  .heroSheet > p { margin: 24px 0; font-size: 18px; }
+  .heroNote { display: none; }
+  .heroMedia { min-height: 280px; }
+  .heroMedia figcaption { left: 16px; right: 16px; bottom: 16px; font-size: 13px; }
+  .rivers, .species { padding-top: 72px; }
+  .sectionIntro { grid-template-columns: 1fr; gap: 24px; margin-bottom: 28px; }
+  .sectionIntro h2 { max-width: 18ch; }
+  .speciesShelf { grid-template-columns: 1fr; gap: 40px; }
+  .search { margin-top: 64px; padding: 24px; grid-template-columns: 1fr; gap: 24px; }
+  .search h2 { font-size: 28px; }
+  .evidence { padding-block: 72px; grid-template-columns: 1fr; gap: 32px; }
+  .evidence h2 { margin-bottom: 24px; }
 }

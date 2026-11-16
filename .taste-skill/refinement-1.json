@@ -1,0 +1,2099 @@
+{
+ "url": "http://127.0.0.1:43200",
+ "at": "2026-11-16T21:23:12.170Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 5,
+   "filled": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 11,
+    "css": 11,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 3886,
+     "screens": 4.3,
+     "words": 357,
+     "img": 5,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w",
+      "image?url=%2Fatlas%2Flabeo-rohita-1807-1822-prin",
+      "image?url=%2Fatlas%2Fbarbus-arulius-mintern-142.",
+      "image?url=%2Fatlas%2Flabeo-calbasu-day-mintern-1",
+      "image?url=%2Fatlas%2Frapids-kaveri-doddegaudana-"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Native Waters",
+     "words": 2,
+     "chars": 13,
+     "lines": 1,
+     "size": 120,
+     "vw": 8.3,
+     "font": "Archivo",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 1,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.49,
+     "top": 523,
+     "tag": "a",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "India, beneath the surface",
+     "words": 4,
+     "lines": 2,
+     "size": 73.4,
+     "font": "Archivo"
+    },
+    "headings": [
+     {
+      "text": "India, beneath the surface",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 73.4,
+      "vw": 5.1,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1.02,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.3,
+      "top": 217,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Native Waters",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 120,
+      "vw": 8.3,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.49,
+      "top": 523,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Choose your river",
+      "words": 3,
+      "chars": 17,
+      "lines": 1,
+      "size": 50.4,
+      "vw": 3.5,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.31,
+      "top": 930,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Ganga ↗",
+      "words": 2,
+      "chars": 7,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Archivo",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 1051,
+      "tag": "button",
+      "kind": "heading"
+     },
+     {
+      "text": "Brahmaputra ↗",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Archivo",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 1151,
+      "tag": "button",
+      "kind": "heading"
+     },
+     {
+      "text": "Cauvery",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 32,
+      "vw": 2.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.37,
+      "top": 1156,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Cauvery ↗",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Archivo",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 1251,
+      "tag": "button",
+      "kind": "heading"
+     },
+     {
+      "text": "Krishna ↗",
+      "words": 2,
+      "chars": 9,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Archivo",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 1351,
+      "tag": "button",
+      "kind": "heading"
+     },
+     {
+      "text": "Godavari ↗",
+      "words": 2,
+      "chars": 10,
+      "lines": 1,
+      "size": 40,
+      "vw": 2.8,
+      "font": "Archivo",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 1451,
+      "tag": "button",
+      "kind": "heading"
+     },
+     {
+      "text": "Meet the river’s residents",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 50.4,
+      "vw": 3.5,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.31,
+      "top": 1735,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Find a fish or river",
+      "words": 5,
+      "chars": 20,
+      "lines": 1,
+      "size": 32,
+      "vw": 2.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 2513,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Curiosity, with evidence",
+      "words": 3,
+      "chars": 24,
+      "lines": 1,
+      "size": 50.4,
+      "vw": 3.5,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.41,
+      "top": 2874,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 12,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 2,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Archivo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      15,
+      16,
+      17,
+      22,
+      24,
+      32,
+      40,
+      50,
+      73,
+      120
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "Archivo",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 10.6
+     },
+     "measureChars": 80,
+     "max": {
+      "size": 120,
+      "vw": 8.3,
+      "font": "Archivo",
+      "text": "Native Waters"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#edf0e8",
+       "top": 0,
+       "hsl": {
+        "h": 82,
+        "s": 0.21,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#e0e7da",
+       "top": 108,
+       "hsl": {
+        "h": 92,
+        "s": 0.21,
+        "l": 0.88
+       }
+      },
+      {
+       "color": "#153c36",
+       "top": 108,
+       "hsl": {
+        "h": 171,
+        "s": 0.48,
+        "l": 0.16
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#163b36",
+       "share": 0.69
+      },
+      {
+       "color": "#edf0e8",
+       "share": 0.31
+      }
+     ],
+     "button": {
+      "bg": "#153c36",
+      "hsl": {
+       "h": 171,
+       "s": 0.48,
+       "l": 0.16
+      },
+      "fg": "#edf0e8"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 2,
+     "radius": 0,
+     "height": 52,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Skip to content",
+      "Explore in 3D ↗"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 5,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.38
+     }
+    ],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 92,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "archivo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 3886,
+    "margins": {
+     "left": 58,
+     "right": 58
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 108,
+      "height": 702,
+      "words": 43,
+      "media": 1,
+      "middle": 147,
+      "heading": {
+       "text": "India, beneath",
+       "size": 73,
+       "tag": "h1"
+      },
+      "left": 115,
+      "right": 56,
+      "textLeft": 115,
+      "textRight": 479,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#rivers._8aEwW_rivers",
+      "tag": "section",
+      "top": 810,
+      "height": 805,
+      "words": 80,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Choose your river",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 58,
+      "right": 148,
+      "textLeft": 58,
+      "textRight": 148,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_species",
+      "tag": "section",
+      "top": 1615,
+      "height": 719,
+      "words": 117,
+      "media": 3,
+      "middle": 40,
+      "heading": {
+       "text": "Meet the river’s residents",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 58,
+      "right": 58,
+      "textLeft": 58,
+      "textRight": 69,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_search",
+      "tag": "section",
+      "top": 2433,
+      "height": 195,
+      "words": 17,
+      "media": 0,
+      "middle": 408,
+      "heading": {
+       "text": "Find a fish or river",
+       "size": 32,
+       "tag": "h2"
+      },
+      "left": 98,
+      "right": 98,
+      "textLeft": 98,
+      "textRight": 365,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_evidence",
+      "tag": "section",
+      "top": 2628,
+      "height": 817,
+      "words": 58,
+      "media": 1,
+      "middle": 64,
+      "heading": {
+       "text": "Curiosity, with evidence",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 58,
+      "right": 131,
+      "textLeft": 58,
+      "textRight": 131,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.atlas-footer",
+      "tag": "footer",
+      "top": 459,
+      "height": 441,
+      "words": 66,
+      "media": 0,
+      "middle": 356,
+      "heading": {
+       "text": "Native Waters",
+       "size": 120,
+       "tag": "a"
+      },
+      "left": 58,
+      "right": 58,
+      "textLeft": 58,
+      "textRight": 58,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": true
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "India, beneath the surface",
+      "size": 73,
+      "top": 217,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 796,
+      "n": 6
+     },
+     {
+      "x": 58,
+      "n": 4
+     },
+     {
+      "x": 115,
+      "n": 3
+     },
+     {
+      "x": 513,
+      "n": 2
+     },
+     {
+      "x": 744,
+      "n": 2
+     },
+     {
+      "x": 967,
+      "n": 2
+     },
+     {
+      "x": 98,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 20,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.03,
+    "voidBox": {
+     "x": 720,
+     "y": 840,
+     "w": 720,
+     "h": 60
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 11,
+    "css": 11,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 3619,
+     "screens": 3.5,
+     "words": 357,
+     "img": 5,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w",
+      "image?url=%2Fatlas%2Flabeo-rohita-1807-1822-prin",
+      "image?url=%2Fatlas%2Fbarbus-arulius-mintern-142.",
+      "image?url=%2Fatlas%2Flabeo-calbasu-day-mintern-1",
+      "image?url=%2Fatlas%2Frapids-kaveri-doddegaudana-"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Native Waters",
+     "words": 2,
+     "chars": 13,
+     "lines": 1,
+     "size": 69.1,
+     "vw": 9,
+     "font": "Archivo",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 1,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.53,
+     "top": 698,
+     "tag": "a",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "India, beneath the surface",
+     "words": 4,
+     "lines": 2,
+     "size": 48,
+     "font": "Archivo"
+    },
+    "headings": [
+     {
+      "text": "India, beneath the surface",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 48,
+      "vw": 6.3,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1.02,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.37,
+      "top": 194,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Native Waters",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 69.1,
+      "vw": 9,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.53,
+      "top": 698,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Choose your river",
+      "words": 3,
+      "chars": 17,
+      "lines": 1,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 848,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Cauvery",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.35,
+      "top": 999,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Meet the river’s residents",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 1638,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Find a fish or river",
+      "words": 5,
+      "chars": 20,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 2511,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Curiosity, with evidence",
+      "words": 3,
+      "chars": 24,
+      "lines": 1,
+      "size": 28,
+      "vw": 3.6,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.41,
+      "top": 2756,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 7,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Archivo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      23,
+      24,
+      28,
+      32,
+      48,
+      69
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "Archivo",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 10.6
+     },
+     "measureChars": 80,
+     "max": {
+      "size": 69.1,
+      "vw": 9,
+      "font": "Archivo",
+      "text": "Native Waters"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#edf0e8",
+       "top": 0,
+       "hsl": {
+        "h": 82,
+        "s": 0.21,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#e0e7da",
+       "top": 108,
+       "hsl": {
+        "h": 92,
+        "s": 0.21,
+        "l": 0.88
+       }
+      },
+      {
+       "color": "#153c36",
+       "top": 634,
+       "hsl": {
+        "h": 171,
+        "s": 0.48,
+        "l": 0.16
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#163b36",
+       "share": 0.69
+      },
+      {
+       "color": "#edf0e8",
+       "share": 0.31
+      }
+     ],
+     "button": {
+      "bg": "#153c36",
+      "hsl": {
+       "h": 171,
+       "s": 0.48,
+       "l": 0.16
+      },
+      "fg": "#edf0e8"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 2,
+     "radius": 0,
+     "height": 52,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Skip to content",
+      "Explore in 3D ↗"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 5,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.27
+     }
+    ],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 92,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "archivo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 3619,
+    "margins": {
+     "left": 31,
+     "right": 31
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 108,
+      "height": 620,
+      "words": 43,
+      "media": 1,
+      "middle": 52,
+      "heading": {
+       "text": "India, beneath",
+       "size": 48,
+       "tag": "h1"
+      },
+      "left": 63,
+      "right": 30,
+      "textLeft": 63,
+      "textRight": 103,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#rivers._8aEwW_rivers",
+      "tag": "section",
+      "top": 728,
+      "height": 790,
+      "words": 80,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Cauvery",
+       "size": 32,
+       "tag": "h3"
+      },
+      "left": 31,
+      "right": 42,
+      "textLeft": 31,
+      "textRight": 42,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_species",
+      "tag": "section",
+      "top": 1518,
+      "height": 802,
+      "words": 117,
+      "media": 3,
+      "middle": 24,
+      "heading": {
+       "text": "Meet the river’s residents",
+       "size": 28,
+       "tag": "h2"
+      },
+      "left": 31,
+      "right": 31,
+      "textLeft": 31,
+      "textRight": 37,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_search",
+      "tag": "section",
+      "top": 2420,
+      "height": 216,
+      "words": 17,
+      "media": 0,
+      "middle": 99,
+      "heading": {
+       "text": "Find a fish or river",
+       "size": 32,
+       "tag": "h2"
+      },
+      "left": 71,
+      "right": 71,
+      "textLeft": 71,
+      "textRight": 105,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_evidence",
+      "tag": "section",
+      "top": 2636,
+      "height": 593,
+      "words": 58,
+      "media": 1,
+      "middle": 32,
+      "heading": {
+       "text": "Curiosity, with evidence",
+       "size": 28,
+       "tag": "h2"
+      },
+      "left": 31,
+      "right": 39,
+      "textLeft": 31,
+      "textRight": 39,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.atlas-footer",
+      "tag": "footer",
+      "top": 634,
+      "height": 391,
+      "words": 66,
+      "media": 0,
+      "middle": 9,
+      "heading": {
+       "text": "Native Waters",
+       "size": 69,
+       "tag": "a"
+      },
+      "left": 31,
+      "right": 31,
+      "textLeft": 31,
+      "textRight": 31,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": true
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "India, beneath the surface",
+      "size": 48,
+      "top": 194,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 31,
+      "n": 4
+     },
+     {
+      "x": 63,
+      "n": 4
+     },
+     {
+      "x": 424,
+      "n": 3
+     },
+     {
+      "x": 439,
+      "n": 3
+     },
+     {
+      "x": 274,
+      "n": 2
+     },
+     {
+      "x": 400,
+      "n": 2
+     },
+     {
+      "x": 518,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 20,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 10,
+    "css": 10,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 5145,
+     "screens": 6.1,
+     "words": 340,
+     "img": 5,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "image?url=%2Fhero%2Findian-freshwater-fish.png&w",
+      "image?url=%2Fatlas%2Flabeo-rohita-1807-1822-prin",
+      "image?url=%2Fatlas%2Fbarbus-arulius-mintern-142.",
+      "image?url=%2Fatlas%2Flabeo-calbasu-day-mintern-1",
+      "image?url=%2Fatlas%2Frapids-kaveri-doddegaudana-"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "India, beneath the surface",
+     "words": 4,
+     "chars": 26,
+     "lines": 2,
+     "size": 37.4,
+     "vw": 9.6,
+     "font": "Archivo",
+     "weight": 700,
+     "tracking": -0.065,
+     "leading": 1.02,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.56,
+     "top": 149,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "India, beneath the surface",
+     "words": 4,
+     "lines": 2,
+     "size": 37.4,
+     "font": "Archivo"
+    },
+    "headings": [
+     {
+      "text": "Native Waters",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 18,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "India, beneath the surface",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 37.4,
+      "vw": 9.6,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1.02,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.56,
+      "top": 149,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Choose your river",
+      "words": 3,
+      "chars": 17,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 856,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Cauvery",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 32,
+      "vw": 8.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 1163,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Meet the river’s residents",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 1833,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Rohu",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2343,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Arulius barb",
+      "words": 2,
+      "chars": 12,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2795,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Calbasu",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 3247,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Find a fish or river",
+      "words": 5,
+      "chars": 20,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 3493,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Curiosity, with evidence",
+      "words": 3,
+      "chars": 24,
+      "lines": 1,
+      "size": 28,
+      "vw": 7.2,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4150,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Native Waters",
+      "words": 2,
+      "chars": 13,
+      "lines": 1,
+      "size": 40,
+      "vw": 10.3,
+      "font": "Archivo",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.6,
+      "top": 4580,
+      "tag": "a",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 11,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 2,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Archivo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      23,
+      24,
+      28,
+      32,
+      37,
+      40
+     ],
+     "sizeCount": 12,
+     "notLoaded": [],
+     "body": {
+      "font": "Archivo",
+      "size": 17,
+      "leading": 1.55,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 10.6
+     },
+     "measureChars": 50,
+     "max": {
+      "size": 40,
+      "vw": 10.3,
+      "font": "Archivo",
+      "text": "Native Waters"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#101c1e",
+     "bodyBgHsl": {
+      "h": 189,
+      "s": 0.3,
+      "l": 0.09
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#edf0e8",
+       "top": 0,
+       "hsl": {
+        "h": 82,
+        "s": 0.21,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#e0e7da",
+       "top": 117,
+       "hsl": {
+        "h": 92,
+        "s": 0.21,
+        "l": 0.88
+       }
+      },
+      {
+       "color": "#153c36",
+       "top": 4540,
+       "hsl": {
+        "h": 171,
+        "s": 0.48,
+        "l": 0.16
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#163b36",
+       "share": 0.68
+      },
+      {
+       "color": "#edf0e8",
+       "share": 0.32
+      }
+     ],
+     "button": {
+      "bg": "#153c36",
+      "hsl": {
+       "h": 171,
+       "s": 0.48,
+       "l": 0.16
+      },
+      "fg": "#163b36"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 9,
+     "inHero": 2,
+     "radius": 0,
+     "height": 48,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Skip to content",
+      "Explore in 3D ↗"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 5,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.3
+     }
+    ],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 109,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "archivo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 5145,
+    "margins": {
+     "left": 20,
+     "right": 20
+    },
+    "sections": [
+     {
+      "sel": "section._8aEwW_hero",
+      "tag": "section",
+      "top": 117,
+      "height": 667,
+      "words": 31,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "India, beneath",
+       "size": 37,
+       "tag": "h1"
+      },
+      "left": 19,
+      "right": 19,
+      "textLeft": 44,
+      "textRight": 63,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#rivers._8aEwW_rivers",
+      "tag": "section",
+      "top": 784,
+      "height": 977,
+      "words": 80,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Cauvery",
+       "size": 32,
+       "tag": "h3"
+      },
+      "left": 20,
+      "right": 47,
+      "textLeft": 20,
+      "textRight": 47,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div._8aEwW_sectionIntro",
+      "tag": "div",
+      "top": 1833,
+      "height": 203,
+      "words": 26,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Meet the river’s residents",
+       "size": 28,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 50,
+      "textLeft": 20,
+      "textRight": 50,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div._8aEwW_speciesShelf",
+      "tag": "div",
+      "top": 2063,
+      "height": 1342,
+      "words": 91,
+      "media": 3,
+      "middle": 0,
+      "heading": {
+       "text": "Rohu",
+       "size": 24,
+       "tag": "h3"
+      },
+      "left": 20,
+      "right": 20,
+      "textLeft": 20,
+      "textRight": 24,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_search",
+      "tag": "section",
+      "top": 3469,
+      "height": 239,
+      "words": 17,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Find a fish or river",
+       "size": 28,
+       "tag": "h2"
+      },
+      "left": 44,
+      "right": 44,
+      "textLeft": 44,
+      "textRight": 91,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section._8aEwW_evidence",
+      "tag": "section",
+      "top": 3708,
+      "height": 832,
+      "words": 58,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Curiosity, with evidence",
+       "size": 28,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 20,
+      "textLeft": 20,
+      "textRight": 25,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.atlas-footer",
+      "tag": "footer",
+      "top": 4540,
+      "height": 605,
+      "words": 57,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Native Waters",
+       "size": 40,
+       "tag": "a"
+      },
+      "left": 20,
+      "right": 48,
+      "textLeft": 20,
+      "textRight": 48,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "India, beneath the surface",
+      "size": 37,
+      "top": 149,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 20,
+      "n": 13
+     },
+     {
+      "x": 44,
+      "n": 7
+     }
+    ],
+    "leftBlocks": 20,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "11 different font sizes (14, 15, 16, 17, 22, 24, 32, 40, 50, 73, 120).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "FAIL",
+   "id": "covered-text",
+   "width": 1440,
+   "message": "Large text lies under another element at some scroll position: \"Native Waters\" (screen 4, 100% hidden)",
+   "fix": "Nothing may sit on top of a headline or statement. Move the picture, shorten the pinned run, or raise the text above it (z-index) and give it a ground.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "pinned-over-picture",
+   "width": 1440,
+   "message": "Pinned large text slides across pictures while the page scrolls: \"Native Waters\" (screen 4, 50% over a picture)",
+   "fix": "Jurors read a pinned title crossing drawings or photographs as a collision. Keep the pictures in the column the title does not occupy, or unpin it.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Little motion: 11 element(s) moved while the page loaded and scrolled.",
+   "fix": "Give every section an entrance for its parts (not one fade of the whole block) and add one moving picture: a looping clip or a slow move on a photograph."
+  },
+  {
+   "level": "WARN",
+   "id": "ragged-edges",
+   "width": 768,
+   "message": "Left-aligned text starts at 7 different lines (31px, 63px, 424px, 439px, 274px, 400px, 518px); the three most used hold only 55% of it.",
+   "fix": "Pick two or three anchor lines from the grid and start every heading and paragraph on one of them."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/desktop-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/desktop-page-01.jpg",
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/desktop-page-02.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/tablet-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/mobile-fold.jpg",
+   "pages": [
+    "/Users/dewanshshukla/Desktop/Personal/SAAS/native-waters-taste-redesign/.taste-skill/after/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

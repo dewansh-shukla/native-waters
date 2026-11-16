@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.use({ viewport: { width: 390, height: 844 } });
 
 async function waitForMap(page: import("@playwright/test").Page) {
-  await page.goto("/");
+  await page.goto("/experience");
   await expect(page.getByRole("button", { name: "Enter Water", exact: true })).toBeEnabled({ timeout: 60_000 });
   await expect(page.locator(".experience-ui")).toBeVisible({ timeout: 60_000 });
 }
@@ -14,8 +14,7 @@ async function enterWater(page: import("@playwright/test").Page) {
   await expect(page.locator("[data-phase]")).toHaveAttribute("data-phase", "exploring", { timeout: 75_000 });
 }
 
-/** Turn the phone sideways for the water; fullscreen/orientation lock is best
- *  effort, so drop it first and force a deterministic landscape viewport. */
+/** Keep landscape coverage alongside the fully usable portrait layout. */
 async function landscape(page: import("@playwright/test").Page) {
   await page.evaluate(() => (document.fullscreenElement ? document.exitFullscreen() : undefined));
   await page.setViewportSize({ width: 844, height: 390 });
@@ -68,34 +67,35 @@ test("mobile: story text is readable", async ({ page }, testInfo) => {
   expect(followCardFont).toBeGreaterThanOrEqual(12);
 });
 
-test("mobile: map owns the viewport and the reference follows it", async ({ page }, testInfo) => {
+test("mobile: sourced basin remains readable independently of the exhibit", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "touch-chromium", "touch-chromium only");
   test.setTimeout(120_000);
   await waitForMap(page);
-  const viewport = page.viewportSize()!;
-  const visualHeight = await page.locator("[data-reference-visual]").evaluate(el => el.getBoundingClientRect().height);
-  expect(visualHeight).toBeGreaterThanOrEqual(viewport.height - 2);
-  // The reference panel is in normal document flow below the full-screen map.
-  const panelTop = await page.locator("#river-reference").evaluate(el => el.getBoundingClientRect().top);
-  expect(panelTop).toBeGreaterThanOrEqual(visualHeight - 2);
-  await page.locator("#river-reference h1").scrollIntoViewIfNeeded();
-  await expect(page.getByRole("heading", { name: "Indian rivers, living records." })).toBeVisible();
+  await page.getByRole("link", { name: "Cauvery basin", exact: true }).tap();
+  await expect(page).toHaveURL(/\/basins\/cauvery$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator("canvas")).toHaveCount(0);
+  await expect(page.locator('a[href="/species/dawkinsia-arulius"]').first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("mobile: portrait water asks for landscape, which then fills the screen", async ({ page }, testInfo) => {
+test("mobile: portrait fish controls work without rotating or entering fullscreen", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "touch-chromium", "touch-chromium only");
   test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await waitForMap(page);
   await enterWater(page);
-  // Fullscreen/orientation lock is best effort; exit it so the viewport is
-  // deterministic, then force each orientation.
-  await page.evaluate(() => (document.fullscreenElement ? document.exitFullscreen() : undefined));
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator(".experience-rotate")).toBeVisible();
-  await page.setViewportSize({ width: 844, height: 390 });
-  await expect(page.locator(".experience-rotate")).toBeHidden();
-  await expect(page.locator("canvas")).toBeVisible();
+  expect(await page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+  await expect(page.getByRole("button", { name: "Follow fish", exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Select fish", exact: true }).selectOption("fish-10");
+  await page.getByRole("button", { name: "Follow fish", exact: true }).tap();
+  await expect(page.getByRole("link", { name: /Read species profile/ })).toBeVisible();
+  await page.getByRole("button", { name: "Back to Water", exact: true }).tap();
+  await expect(page.getByRole("button", { name: "Follow fish", exact: true })).toBeFocused();
+  const controls = await page.locator(".experience-controls").boundingBox();
+  expect(controls!.y + controls!.height).toBeLessThanOrEqual(844);
+  await landscape(page);
+  await expect(page.locator(".scene-viewport canvas")).toBeVisible();
 });
 
 test("mobile: landscape orientation does not crash", async ({ page }, testInfo) => {

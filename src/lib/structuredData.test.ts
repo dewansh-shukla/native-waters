@@ -43,7 +43,9 @@ describe('structured data', () => {
     const withoutPoint = bodyOfWaterSchema(river);
     expect(withoutPoint['@type']).toBe('BodyOfWater');
     expect(withoutPoint.url).toBe(`${SITE_ORIGIN}/basins/${river.id}`);
-    expect(withoutPoint.containedInPlace).toMatchObject({ '@type': 'Country', name: 'India' });
+    expect(withoutPoint.name).toBe('Ganga river');
+    expect(withoutPoint.mainEntityOfPage).toBe(`${SITE_ORIGIN}/basins/ganga`);
+    expect(withoutPoint).not.toHaveProperty('containedInPlace');
     expect(withoutPoint).not.toHaveProperty('geo');
 
     const withPoint = bodyOfWaterSchema(river, [88.1, 25.4]);
@@ -56,7 +58,10 @@ describe('structured data', () => {
 
     const taxon = taxonSchema(species);
     expect(taxon['@type']).toBe('Taxon');
-    expect(taxon.scientificName).toBe(species.scientificName);
+    expect(taxon.name).toBe('Labeo rohita');
+    expect(taxon).not.toHaveProperty('scientificName');
+    expect(taxon).not.toHaveProperty('isPartOf');
+    expect(taxon.mainEntityOfPage).toBe(`${SITE_ORIGIN}/species/labeo-rohita`);
     expect(taxon.url).toBe(`${SITE_ORIGIN}/species/${species.id}`);
     expect(taxon.alternateName).toEqual(expect.arrayContaining([species.commonName]));
     expect(taxon.alternateName).not.toContain(species.scientificName);
@@ -115,7 +120,8 @@ describe('structured data', () => {
   it('describes the catalog as a Dataset with Indian spatial coverage', () => {
     const schema = datasetSchema();
     expect(schema['@type']).toBe('Dataset');
-    expect(typeof schema.license).toBe('string');
+    expect(schema.url).toBe(`${SITE_ORIGIN}/field-guide`);
+    expect(schema).not.toHaveProperty('license');
     expect(schema.spatialCoverage).toMatchObject({ '@type': 'Place', name: 'India' });
   });
 
@@ -145,6 +151,17 @@ describe('structured data', () => {
     expect(page['@id']).toBe(url);
     expect((schema.author as { '@type': string })['@type']).toBe('Organization');
     expect(schema.isAccessibleForFree).toBe(true);
+  });
+
+  it('does not invent publication dates when only a review date is known', () => {
+    const schema = articleSchema({
+      title: 'Rohu',
+      description: 'A sourced record.',
+      url: `${SITE_ORIGIN}/species/labeo-rohita`,
+      dateModified: '2026-11-16',
+    });
+    expect(JSON.parse(JSON.stringify(schema))).not.toHaveProperty('datePublished');
+    expect(schema.dateModified).toBe('2026-11-16');
   });
 
   it('wires a FishBase sameAs URL onto labeo-rohita', () => {
