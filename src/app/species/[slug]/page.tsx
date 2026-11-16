@@ -4,6 +4,10 @@ import { Evidence, EvidencePolicy } from '@/components/reference/Evidence';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { loadPipelineFixture } from '@/lib/content';
 import { getSpecies, referenceMetadata } from '@/lib/reference';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { Breadcrumbs } from '@/components/reference/Breadcrumbs';
+import { taxonSchema, breadcrumbSchema } from '@/lib/structuredData';
+import type { Crumb } from '@/lib/structuredData';
 export const dynamicParams = false;
 export function generateStaticParams() { return catalog.species.map(species => ({ slug: species.id })); }
 type Props = { params: Promise<{ slug: string }> };
@@ -13,7 +17,10 @@ export async function generateMetadata({ params }: Props) {
 }
 export default async function SpeciesPage({ params }: Props) {
   const species = getSpecies((await params).slug);
+  const crumbs: Crumb[] = [{ name: 'Home', path: '/' }, { name: 'Field guide', path: '/field-guide' }, { name: species.commonName, path: `/species/${species.id}` }];
   return <ReferenceLayout visual={<ScenePreview fixture={loadPipelineFixture()} />}>
+    <JsonLd data={[taxonSchema(species), breadcrumbSchema(crumbs)]} />
+    <Breadcrumbs items={crumbs} />
     <h1>{species.commonName}</h1>
     {species.commonName !== species.scientificName && <p><i>{species.scientificName}</i></p>}
     {species.aliases.length > 0 && <p>Also called {species.aliases.join(', ')}.</p>}

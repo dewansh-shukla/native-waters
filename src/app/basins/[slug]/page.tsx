@@ -5,6 +5,11 @@ import { Citations, EvidencePolicy } from '@/components/reference/Evidence';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { loadPipelineFixture } from '@/lib/content';
 import { getRiver, referenceMetadata } from '@/lib/reference';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { Breadcrumbs } from '@/components/reference/Breadcrumbs';
+import { bodyOfWaterSchema, breadcrumbSchema } from '@/lib/structuredData';
+import type { Crumb } from '@/lib/structuredData';
+import { RIVER_LABELS } from '@/experience/geography';
 export const dynamicParams = false;
 export function generateStaticParams() { return catalog.rivers.map(river => ({ slug: river.id })); }
 type Props = { params: Promise<{ slug: string }> };
@@ -15,7 +20,11 @@ export async function generateMetadata({ params }: Props) {
 export default async function BasinPage({ params }: Props) {
   const river = getRiver((await params).slug);
   const species = catalog.species.filter(s => s.associations.some(a => a.riverId === river.id));
+  const crumbs: Crumb[] = [{ name: 'Home', path: '/' }, { name: 'Field guide', path: '/field-guide' }, { name: river.name, path: `/basins/${river.id}` }];
+  const point = RIVER_LABELS.find(label => label.name === river.name)?.point;
   return <ReferenceLayout visual={<ScenePreview fixture={loadPipelineFixture()} river={river.id} />}>
+    <JsonLd data={[bodyOfWaterSchema(river, point), breadcrumbSchema(crumbs)]} />
+    <Breadcrumbs items={crumbs} />
     <h1>{river.name} river basin</h1>
     {river.aliases.length > 0 && <p>Also known as {river.aliases.join(', ')}.</p>}
     <p>{river.summary}</p><h2>Where the evidence applies</h2><p>{river.scope}</p><Citations ids={river.sourceIds} />
