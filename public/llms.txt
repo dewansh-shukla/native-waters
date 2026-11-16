@@ -1,0 +1,35 @@
+# Native Waters
+
+> Sourced reference for the native freshwater fishes of five Indian river systems (Ganga, Brahmaputra, Cauvery, Krishna, Godavari), with an illustrative underwater experience.
+
+Native Waters is a sourced reference for native freshwater fishes of five Indian river systems, paired with an illustrative underwater experience. All data is derived from cited publications; see the citations on each page.
+
+## Key pages
+- [Home](/)
+- [Field guide](/field-guide)
+- [Ganga](/basins/ganga)
+- [Brahmaputra](/basins/brahmaputra)
+- [Cauvery](/basins/cauvery)
+- [Krishna](/basins/krishna)
+- [Godavari](/basins/godavari)
+- [Rohu](/species/labeo-rohita)
+- [Calbasu](/species/labeo-calbasu)
+- [Hump-backed mahseer](/species/tor-remadevii)
+- [Arulius barb](/species/dawkinsia-arulius)
+- [Labeo kontius](/species/labeo-kontius)
+- [Hemibagrus punctatus](/species/hemibagrus-punctatus)
+- [Glyptothorax poonaensis](/species/glyptothorax-poonaensis)
+- [Blue perch](/species/badis-badis)
+- [Badis blosyrus](/species/badis-blosyrus)
+- [Dawkinsia rubrotinctus](/species/dawkinsia-rubrotinctus)
+- [Hypselobarbus dubius](/species/hypselobarbus-dubius)
+- [Hypselobarbus micropogon](/species/hypselobarbus-micropogon)
+- [Kantaka brevidorsalis](/species/kantaka-brevidorsalis)
+- [Method](/method)
+- [Privacy](/privacy)
+
+## Citation policy
+Data is derived from cited publications; each page lists its sources. Species names follow the cited sources, and basin-native status is only claimed where the cited evidence supports it.
+
+## Optional
+- [Full reference (llms-full.txt)](/llms-full.txt)

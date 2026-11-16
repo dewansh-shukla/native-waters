@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_ORIGIN}/experience/godavari`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${SITE_ORIGIN}/experience/brahmaputra`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${SITE_ORIGIN}/privacy`, lastModified, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_ORIGIN}/method`, lastModified: CONTENT_UPDATED_AT, changeFrequency: 'monthly', priority: 0.6 },
   ];
   const riverRoutes: MetadataRoute.Sitemap = catalog.rivers.map(river => ({
     url: `${SITE_ORIGIN}/basins/${river.id}`,

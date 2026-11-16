@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  articleSchema,
   bodyOfWaterSchema,
   breadcrumbSchema,
+  datasetSchema,
+  definedTermSetSchema,
   faqSchema,
   fieldGuideSchema,
   taxonSchema,
@@ -107,5 +110,52 @@ describe('structured data', () => {
     const json = JSON.stringify(payload);
     expect(json).not.toContain('undefined');
     expect(JSON.parse(json)).toHaveLength(5);
+  });
+
+  it('describes the catalog as a Dataset with Indian spatial coverage', () => {
+    const schema = datasetSchema();
+    expect(schema['@type']).toBe('Dataset');
+    expect(typeof schema.license).toBe('string');
+    expect(schema.spatialCoverage).toMatchObject({ '@type': 'Place', name: 'India' });
+  });
+
+  it('turns a list of terms into the matching number of DefinedTerm nodes', () => {
+    const terms = [
+      { term: 'Native', definition: 'Originally occurring in the basin.' },
+      { term: 'Endemic', definition: 'Restricted to the basin.' },
+      { term: 'Introduced', definition: 'Brought in by humans.' },
+    ];
+    const schema = definedTermSetSchema(terms);
+    const nodes = schema.hasDefinedTerm as { '@type': string }[];
+    expect(nodes).toHaveLength(terms.length);
+    expect(nodes.every(node => node['@type'] === 'DefinedTerm')).toBe(true);
+  });
+
+  it('gives an Article a WebPage mainEntityOfPage and a free-access flag', () => {
+    const url = `${SITE_ORIGIN}/species/labeo-rohita`;
+    const schema = articleSchema({
+      title: 'Rohu',
+      description: 'A sourced record.',
+      url,
+      datePublished: '2026-01-01',
+      dateModified: '2026-01-02',
+    });
+    const page = schema.mainEntityOfPage as { '@type': string; '@id': string };
+    expect(page['@type']).toBe('WebPage');
+    expect(page['@id']).toBe(url);
+    expect((schema.author as { '@type': string })['@type']).toBe('Organization');
+    expect(schema.isAccessibleForFree).toBe(true);
+  });
+
+  it('wires a FishBase sameAs URL onto labeo-rohita', () => {
+    const taxon = taxonSchema(species);
+    const sameAs = taxon.sameAs as string[];
+    expect(sameAs).toContain('https://www.fishbase.se/summary/Labeo-rohita.html');
+  });
+
+  it('wires a Wikipedia sameAs URL onto ganga when externalIds declares one', () => {
+    const schema = bodyOfWaterSchema(river);
+    const sameAs = schema.sameAs as string[];
+    expect(sameAs).toContain('https://en.wikipedia.org/wiki/Ganges');
   });
 });
