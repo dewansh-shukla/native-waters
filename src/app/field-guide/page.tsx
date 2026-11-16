@@ -1,16 +1,23 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
+import { SITE_ORIGIN } from '@/lib/reference';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
-  title: 'Indian river fish field guide | Native Waters',
+  title: 'Indian river fish field guide',
   description: 'Explore sourced freshwater fish records from the Ganga, Brahmaputra, Cauvery, Krishna and Godavari, with basin-specific native status and survey context.',
-  alternates: { canonical: 'https://native-waters.vercel.app/field-guide' },
+  alternates: { canonical: `${SITE_ORIGIN}/field-guide` },
   openGraph: {
-    title: 'Indian river fish field guide | Native Waters',
+    title: 'Indian river fish field guide',
     description: 'Five rivers, thirteen freshwater fishes, and the evidence behind their basin associations.',
-    url: 'https://native-waters.vercel.app/field-guide', type: 'website',
+    url: `${SITE_ORIGIN}/field-guide`, type: 'website', siteName: 'Native Waters', locale: 'en',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Indian river fish field guide — Native Waters' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Indian river fish field guide',
+    description: 'Five rivers, thirteen freshwater fishes, and the evidence behind their basin associations.',
   },
 };
 

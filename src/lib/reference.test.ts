@@ -12,9 +12,10 @@ describe('reference routing', () => {
     expect(() => getRiver('unknown')).toThrow();
     expect(() => getSpecies('unknown')).toThrow();
   });
-  it('uses the existing origin for canonical and share URLs', () => {
+  it('uses the production origin and bare titles', () => {
     const m = referenceMetadata('Cauvery', 'Basin reference', '/basins/cauvery');
-    expect(m.alternates?.canonical).toBe('https://native-waters.vercel.app/basins/cauvery');
-    expect(m.openGraph).toMatchObject({ url: 'https://native-waters.vercel.app/basins/cauvery' });
+    expect(m.alternates?.canonical).toBe('https://discovernativewaters.com/basins/cauvery');
+    expect(m.openGraph).toMatchObject({ url: 'https://discovernativewaters.com/basins/cauvery', title: 'Cauvery' });
+    expect(m.title).toBe('Cauvery');
   });
 });
