@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
-import { SITE_ORIGIN } from '@/lib/reference';
+import { SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { breadcrumbSchema, faqSchema, fieldGuideSchema } from '@/lib/structuredData';
+import { articleSchema, breadcrumbSchema, datasetSchema, definedTermSetSchema, faqSchema, fieldGuideSchema } from '@/lib/structuredData';
 import type { Crumb } from '@/lib/structuredData';
 import styles from './page.module.css';
 
@@ -49,6 +49,12 @@ const BREADCRUMBS: Crumb[] = [
   { name: 'Field guide', path: '/field-guide' },
 ];
 
+const DEFINED_TERMS = [
+  { term: 'Native', definition: 'The cited evidence supports origin in that river system.' },
+  { term: 'Basin endemic', definition: 'The source limits the natural range to that system.' },
+  { term: 'Native status uncertain', definition: 'A record supports occurrence, but does not settle origin.' },
+];
+
 function Citations({ ids }: { ids: string[] }) {
   return <ul className={styles.citations}>{ids.map(id => {
     const source = catalog.sources.find(s => s.id === id)!;
@@ -59,7 +65,7 @@ function Citations({ ids }: { ids: string[] }) {
 
 export default function FieldGuide() {
   return <main className={styles.guide}>
-    <JsonLd data={[fieldGuideSchema(), faqSchema(FAQ), breadcrumbSchema(BREADCRUMBS)]} />
+    <JsonLd data={[fieldGuideSchema(), datasetSchema(), definedTermSetSchema(DEFINED_TERMS), faqSchema(FAQ), breadcrumbSchema(BREADCRUMBS), articleSchema({ title: 'Indian river fish field guide', description: 'Explore sourced freshwater fish records from the Ganga, Brahmaputra, Cauvery, Krishna and Godavari, with basin-specific native status and survey context.', url: `${SITE_ORIGIN}/field-guide`, datePublished: CONTENT_UPDATED_AT.toISOString(), dateModified: CONTENT_UPDATED_AT.toISOString() })]} />
     <header className={styles.header}><Link href='/'>Native Waters</Link><a href='#reading-the-evidence'>How to read this guide</a></header>
     <section className={styles.intro}>
       <h1>Indian rivers,<br />one fish at a time.</h1>
@@ -98,6 +104,7 @@ export default function FieldGuide() {
         <dd>{entry.answer}</dd>
       </div>)}</dl>
     </section>
+    <p style={{ fontSize: '0.8rem', color: '#5f7d78', margin: '1.5rem 0 0' }}>Last reviewed {CONTENT_UPDATED_AT.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
     <footer className={styles.footer}><p>Names follow the cited publications. Further taxonomic review may change names or distribution limits; this guide makes no claim to a complete current revision.</p><Link href='/'>Return to the underwater experience</Link></footer>
   </main>;
 }

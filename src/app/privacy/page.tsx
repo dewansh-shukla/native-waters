@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SITE_ORIGIN } from '@/lib/reference';
+import { SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { articleSchema } from '@/lib/structuredData';
 
 export const metadata: Metadata = {
   title: 'Privacy',
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <main style={{ maxWidth: '72ch', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
+      <JsonLd data={articleSchema({ title: 'Privacy', description: 'How Native Waters handles analytics, consent and the data it collects.', url: `${SITE_ORIGIN}/privacy`, datePublished: CONTENT_UPDATED_AT.toISOString(), dateModified: CONTENT_UPDATED_AT.toISOString() })} />
       <nav aria-label="Breadcrumb" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
         <Link href="/">Home</Link> / Privacy
       </nav>

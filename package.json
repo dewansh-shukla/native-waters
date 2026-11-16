@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
+    "gen:llms": "node scripts/gen-llms.mjs",
     "build": "next build",
     "test:e2e": "playwright test"
   },
