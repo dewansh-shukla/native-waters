@@ -4,6 +4,7 @@ import FieldGuide, { metadata } from './page';
 import sitemap from '../sitemap';
 import robots from '../robots';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
+import { SITE_ORIGIN } from '@/lib/reference';
 
 describe('crawlable freshwater guide', () => {
   it('renders every river, taxon, evidence limitation and citation as DOM text', () => {
@@ -27,12 +28,13 @@ describe('crawlable freshwater guide', () => {
     expect(document.getElementById('badis-badis')).toHaveTextContent('Native status uncertain');
   });
   it('lists only real routes in discovery metadata', () => {
-    expect(metadata.alternates?.canonical).toBe('https://native-waters.vercel.app/field-guide');
-    expect(sitemap()).toHaveLength(3 + catalog.rivers.length + catalog.species.length);
+    expect(metadata.alternates?.canonical).toBe(`${SITE_ORIGIN}/field-guide`);
+    // three static routes (/, /field-guide, /experience) + three per-river experience routes
+    expect(sitemap()).toHaveLength(3 + 3 + catalog.rivers.length + catalog.species.length);
     const urls = sitemap().map(entry => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
-    for (const river of catalog.rivers) expect(urls).toContain(`https://native-waters.vercel.app/basins/${river.id}`);
-    for (const species of catalog.species) expect(urls).toContain(`https://native-waters.vercel.app/species/${species.id}`);
-    expect(robots().sitemap).toBe('https://native-waters.vercel.app/sitemap.xml');
+    for (const river of catalog.rivers) expect(urls).toContain(`${SITE_ORIGIN}/basins/${river.id}`);
+    for (const species of catalog.species) expect(urls).toContain(`${SITE_ORIGIN}/species/${species.id}`);
+    expect(robots().sitemap).toBe(`${SITE_ORIGIN}/sitemap.xml`);
   });
 });

@@ -4,7 +4,7 @@ import ReferenceLayout from '@/components/reference/ReferenceLayout';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { loadPipelineFixture } from '@/lib/content';
 import { referenceMetadata } from '@/lib/reference';
-export const metadata = referenceMetadata('Indian rivers and native freshwater fishes', 'Explore sourced fish records from five Indian river systems, alongside an illustrative underwater experience.', '/');
+export const metadata = referenceMetadata('Native Waters — Indian rivers and native freshwater fishes', 'Explore sourced fish records from five Indian river systems, alongside an illustrative underwater experience.', '/', { absoluteTitle: true });
 export default function Page() {
   return <ReferenceLayout visual={<Experience fixture={loadPipelineFixture()} />}>
     <h1>Indian rivers, living records.</h1><p>Follow a river into its freshwater fish records. Each profile connects a name with the evidence for its basin association.</p>

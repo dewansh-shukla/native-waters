@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { SITE_ORIGIN } from "@/lib/reference";
 import "./globals.css";
+
+const SITE_TITLE = "Native Waters — Indian rivers and native freshwater fishes";
+const SITE_DESCRIPTION =
+  "Explore sourced native freshwater fish records for five Indian river systems — Ganga, Brahmaputra, Cauvery, Krishna and Godavari — with an interactive underwater experience and an evidence-based field guide.";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -15,8 +20,39 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Native Waters — Experience preview",
-  description: "A geographic river overview and an illustrative underwater fish study.",
+  metadataBase: new URL(SITE_ORIGIN),
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Native Waters",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: "Native Waters",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en",
+    siteName: "Native Waters",
+    url: "/",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
