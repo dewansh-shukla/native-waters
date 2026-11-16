@@ -3,6 +3,7 @@ import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { SITE_ORIGIN } from '@/lib/reference';
 import { HomeSearch } from '@/components/home/HomeSearch';
 import styles from './page.module.css';
+import NextImage from 'next/image';
 
 export const metadata = {
   title: "Discover India's Hidden Freshwater World",
@@ -44,18 +45,13 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
-        <div
-          className={styles.heroImage}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(180deg, rgba(16,28,30,0.35) 0%, rgba(16,28,30,0.85) 70%, #101c1e 100%), url(/hero/indian-freshwater-fish.jpg)",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 30%',
-          }}
-          role="img"
-          aria-label="An Indian freshwater fish in clear river water"
+        <NextImage
+          src="/hero/indian-freshwater-fish.png"
+          alt="Sunlit underwater scene in a clear Indian freshwater river"
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
         />
         <div className={styles.overlay} aria-hidden="true" />
         <div className={styles.heroInner}>
