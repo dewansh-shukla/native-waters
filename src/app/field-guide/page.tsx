@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
-import { SITE_ORIGIN } from '@/lib/reference';
+import { SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { articleSchema, breadcrumbSchema, datasetSchema, definedTermSetSchema, faqSchema, fieldGuideSchema } from '@/lib/structuredData';
+import type { Crumb } from '@/lib/structuredData';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -21,6 +24,37 @@ export const metadata: Metadata = {
   },
 };
 
+/** One source of truth for both the visible FAQ and its FAQPage schema. */
+const FAQ: { question: string; answer: string }[] = [
+  {
+    question: 'What does native mean in this field guide?',
+    answer: 'Native means the cited evidence supports origin in that river system. Basin endemic means the source limits the natural range to that system; native status uncertain means a record supports occurrence but does not settle origin.',
+  },
+  {
+    question: 'Which Indian rivers does the field guide cover?',
+    answer: 'The Ganga, Brahmaputra, Cauvery, Krishna and Godavari, with a sourced selection of freshwater fish records for each.',
+  },
+  {
+    question: 'Is this a complete checklist of Indian freshwater fish?',
+    answer: 'No. It is a selected reference and not a complete checklist or a current population survey. Evidence dates describe the source, not a new sighting.',
+  },
+  {
+    question: 'Does the underwater experience show these exact species?',
+    answer: 'No. The underwater experience is an illustrative visual study. The field guide records do not identify its fish or certify its habitat.',
+  },
+];
+
+const BREADCRUMBS: Crumb[] = [
+  { name: 'Home', path: '/' },
+  { name: 'Field guide', path: '/field-guide' },
+];
+
+const DEFINED_TERMS = [
+  { term: 'Native', definition: 'The cited evidence supports origin in that river system.' },
+  { term: 'Basin endemic', definition: 'The source limits the natural range to that system.' },
+  { term: 'Native status uncertain', definition: 'A record supports occurrence, but does not settle origin.' },
+];
+
 function Citations({ ids }: { ids: string[] }) {
   return <ul className={styles.citations}>{ids.map(id => {
     const source = catalog.sources.find(s => s.id === id)!;
@@ -31,6 +65,7 @@ function Citations({ ids }: { ids: string[] }) {
 
 export default function FieldGuide() {
   return <main className={styles.guide}>
+    <JsonLd data={[fieldGuideSchema(), datasetSchema(), definedTermSetSchema(DEFINED_TERMS), faqSchema(FAQ), breadcrumbSchema(BREADCRUMBS), articleSchema({ title: 'Indian river fish field guide', description: 'Explore sourced freshwater fish records from the Ganga, Brahmaputra, Cauvery, Krishna and Godavari, with basin-specific native status and survey context.', url: `${SITE_ORIGIN}/field-guide`, datePublished: CONTENT_UPDATED_AT.toISOString(), dateModified: CONTENT_UPDATED_AT.toISOString() })]} />
     <header className={styles.header}><Link href='/'>Native Waters</Link><a href='#reading-the-evidence'>How to read this guide</a></header>
     <section className={styles.intro}>
       <h1>Indian rivers,<br />one fish at a time.</h1>
@@ -62,6 +97,14 @@ export default function FieldGuide() {
         </article>
       ))}</div>
     </section>)}
+    <section className={styles.faq} aria-labelledby='faq-title'>
+      <h2 id='faq-title'>Questions this guide answers</h2>
+      <dl>{FAQ.map(entry => <div key={entry.question}>
+        <dt>{entry.question}</dt>
+        <dd>{entry.answer}</dd>
+      </div>)}</dl>
+    </section>
+    <p style={{ fontSize: '0.8rem', color: '#5f7d78', margin: '1.5rem 0 0' }}>Last reviewed {CONTENT_UPDATED_AT.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
     <footer className={styles.footer}><p>Names follow the cited publications. Further taxonomic review may change names or distribution limits; this guide makes no claim to a complete current revision.</p><Link href='/'>Return to the underwater experience</Link></footer>
   </main>;
 }

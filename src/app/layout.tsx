@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { ConsentGate } from "@/components/analytics/ConsentGate";
 import { SITE_ORIGIN } from "@/lib/reference";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { websiteSchema } from "@/lib/structuredData";
 import "./globals.css";
 
 const SITE_TITLE = "Native Waters — Indian rivers and native freshwater fishes";
@@ -30,6 +32,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
   openGraph: {
     type: "website",
     locale: "en",
@@ -64,10 +69,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <JsonLd data={websiteSchema()} />
         {children}
         <Analytics />
         {process.env.NEXT_PUBLIC_GA_ID ? (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          <ConsentGate gaId={process.env.NEXT_PUBLIC_GA_ID} />
         ) : null}
       </body>
     </html>

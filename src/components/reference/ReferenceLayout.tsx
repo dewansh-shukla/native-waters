@@ -9,7 +9,7 @@ export default function ReferenceLayout({ visual, children }: { visual: ReactNod
   return <main className={open ? styles.layout : `${styles.layout} ${styles.closed}`}>
     <div className={styles.visual} data-reference-visual>{visual}</div>
     <section id='river-reference' className={styles.panel} aria-label='River and species reference' tabIndex={0} hidden={!open}>
-      <nav aria-label='Reference navigation'><Link href='/'>Native Waters</Link><Link href='/field-guide'>Field guide</Link><Link href='/experience'>Full-screen experience</Link>
+      <nav aria-label='Reference navigation'><Link href='/'>Native Waters</Link><Link href='/field-guide'>Field guide</Link><Link href='/experience'>Full-screen experience</Link><Link href='/privacy'>Privacy</Link>
         <button
           type='button'
           className={styles.close}

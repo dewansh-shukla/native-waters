@@ -1,0 +1,252 @@
+# Native Waters — full reference
+
+> Sourced reference for the native freshwater fishes of five Indian river systems (Ganga, Brahmaputra, Cauvery, Krishna, Godavari), with an illustrative underwater experience.
+
+Data is derived from cited publications; see the citations on each page and in the Sources section below. Species names follow the cited sources, and basin-native status is only claimed where the cited evidence supports it.
+
+## Rivers
+
+### Ganga
+
+Riverine germplasm connects freshwater biodiversity with restoration. ICAR-CIFRI documents indigenous carps used in its Ganga breeding and ranching programme.
+
+Scope: Ganga river system; no reach-specific occurrence inferred.
+Species records: 2
+
+- Rohu (Labeo rohita): status native; basin endemic: no
+- Calbasu (Labeo calbasu): status native; basin endemic: no
+
+### Brahmaputra
+
+The upper drainage supports small freshwater fishes as well as the life of the main river. Catalog distribution records provide a starting point without implying that every tributary shares the same fauna.
+
+Scope: Upper Brahmaputra drainage in Assam and Arunachal Pradesh; no precise collection localities published here.
+Species records: 1
+
+- Badis blosyrus (Badis blosyrus): status native; basin endemic: no
+
+### Cauvery
+
+A sanctuary survey documents basin-endemic fishes alongside introduced species. Being native to India does not establish native status in the Cauvery.
+
+Scope: Cauvery Wildlife Sanctuary, Karnataka; survey observations from 2015–2019.
+Species records: 8
+
+- Hump-backed mahseer (Tor remadevii): status native; basin endemic: yes
+- Arulius barb (Dawkinsia arulius): status native; basin endemic: yes
+- Labeo kontius (Labeo kontius): status native; basin endemic: yes
+- Hemibagrus punctatus (Hemibagrus punctatus): status native; basin endemic: yes
+- Dawkinsia rubrotinctus (Dawkinsia rubrotinctus): status native; basin endemic: yes
+- Hypselobarbus dubius (Hypselobarbus dubius): status native; basin endemic: yes
+- Hypselobarbus micropogon (Hypselobarbus micropogon): status native; basin endemic: yes
+- Kantaka brevidorsalis (Kantaka brevidorsalis): status native; basin endemic: yes
+
+### Krishna
+
+Catfish surveys reveal diversity that can be overlooked in familiar river landscapes. This reference covers a studied Maharashtra stretch, rather than the entire basin.
+
+Scope: Krishna River, Sangli region, Maharashtra; survey from June 2009 to July 2012.
+Species records: 1
+
+- Glyptothorax poonaensis (Glyptothorax poonaensis): status native; basin endemic: no
+
+### Godavari
+
+Small tributary streams contribute to basin diversity. A published Blue perch record comes from two sub-basins and does not establish presence throughout the main river.
+
+Scope: Manjeera and Wardha sub-basin streams in Telangana.
+Species records: 1
+
+- Blue perch (Badis badis): status uncertain; basin endemic: no
+
+## Species
+
+### Rohu (Labeo rohita)
+
+Aliases: none
+
+An indigenous Gangetic carp represented in ICAR-CIFRI’s riverine germplasm programme.
+
+- River: Ganga
+  - Status: native
+  - Basin endemic: no
+  - Record area: Ganga river system
+  - Evidence period: Programme reports include 2017–2024
+  - Note: The source supports indigenous status in the Ganga; it does not support assigning Rohu as native to every Indian river.
+  - Citations: ICAR-CIFRI — Seed production and Gangetic riverine germplasm
+
+### Calbasu (Labeo calbasu)
+
+Aliases: none
+
+One of four commercially significant carps selected for the Ganga germplasm programme.
+
+- River: Ganga
+  - Status: native
+  - Basin endemic: no
+  - Record area: Ganga river system
+  - Evidence period: Programme reports include 2017–2024
+  - Note: River ranching is a conservation intervention, not evidence that the species naturally occurs in every reach.
+  - Citations: ICAR-CIFRI — Seed production and Gangetic riverine germplasm
+
+### Hump-backed mahseer (Tor remadevii)
+
+Aliases: none
+
+The survey identifies the hump-backed mahseer and distinguishes it from unresolved mahseer morphotypes.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: Reported as endemic to the Cauvery system. No present-day Red List category is inferred from this 2021 paper.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Arulius barb (Dawkinsia arulius)
+
+Aliases: none
+
+A barb listed among the Cauvery-system endemics in the sanctuary survey.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The basin-endemic designation describes range, not abundance throughout the river.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Labeo kontius (Labeo kontius)
+
+Aliases: none
+
+A carp documented among the survey’s Cauvery-system endemics.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The record is limited to the study area; the guide does not infer a surveyed underwater scene.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Hemibagrus punctatus (Hemibagrus punctatus)
+
+Aliases: none
+
+A catfish included among the Cauvery-system endemics.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: Locality is intentionally coarse. Historical threat assessments are not displayed as current status.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Glyptothorax poonaensis (Glyptothorax poonaensis)
+
+Aliases: none
+
+A sisorid catfish for which the Krishna study reports a range extension.
+
+- River: Krishna
+  - Status: native
+  - Basin endemic: no
+  - Record area: Krishna River, Sangli region, Maharashtra
+  - Evidence period: June 2009–July 2012
+  - Note: The paper describes an endemic Indian fish; this guide does not claim it is endemic to the Krishna basin.
+  - Citations: Kumbar & Lad (2014) — Catfish fauna of the Krishna River, Sangli District
+
+### Blue perch (Badis badis)
+
+Aliases: Chameleon fish
+
+A freshwater fish recorded in tributary streams of the Godavari basin.
+
+- River: Godavari
+  - Status: uncertain
+  - Basin endemic: no
+  - Record area: Manjeera and Wardha sub-basins, Telangana
+  - Evidence period: Published 2019; observation dates not transcribed
+  - Note: Occurrence is documented. This record alone does not resolve whether the Godavari populations are native or introduced.
+  - Citations: Prasad & Srinivasulu (2019) — New record of Badis badis from the Godavari basin
+
+### Badis blosyrus (Badis blosyrus)
+
+Aliases: none
+
+A valid badid species whose catalog distribution includes the upper Brahmaputra drainage in northeastern India.
+
+- River: Brahmaputra
+  - Status: native
+  - Basin endemic: no
+  - Record area: Upper Brahmaputra drainage, Assam and Arunachal Pradesh
+  - Evidence period: Catalog distribution reviewed 2026-10-23; no observation date stated
+  - Note: A regional natural-range summary, not evidence of ubiquitous main-channel occurrence. No microhabitat or basin-endemic claim is made.
+  - Citations: Eschmeyer’s Catalog of Fishes — Badis blosyrus
+
+### Dawkinsia rubrotinctus (Dawkinsia rubrotinctus)
+
+Aliases: none
+
+Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Hypselobarbus dubius (Hypselobarbus dubius)
+
+Aliases: none
+
+Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Hypselobarbus micropogon (Hypselobarbus micropogon)
+
+Aliases: none
+
+Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+### Kantaka brevidorsalis (Kantaka brevidorsalis)
+
+Aliases: none
+
+Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+- River: Cauvery
+  - Status: native
+  - Basin endemic: yes
+  - Record area: Cauvery Wildlife Sanctuary, Karnataka
+  - Evidence period: 2015–2019
+  - Note: The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat.
+  - Citations: Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary
+
+## Sources
+
+- ICAR-CIFRI — Seed production and Gangetic riverine germplasm — https://namamigangacifri.com/seed-production/ — published: not stated; accessed: 2026-10-23
+- Sreenivasan, Mahesh & Raghavan (2021) — Freshwater fishes of Cauvery Wildlife Sanctuary — https://doi.org/10.11609/jott.6778.13.1.17470-17476 — published: 2021-01-26; accessed: 2026-10-23
+- Kumbar & Lad (2014) — Catfish fauna of the Krishna River, Sangli District — https://doi.org/10.11609/JoTT.o3394.5362-7 — published: 2014-01-26; accessed: 2026-10-23
+- Prasad & Srinivasulu (2019) — New record of Badis badis from the Godavari basin — https://doi.org/10.11609/jott.4820.11.9.14212-14215 — published: 2019-07-26; accessed: 2026-10-23
+- Eschmeyer’s Catalog of Fishes — Badis blosyrus — https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=67204 — published: not stated; accessed: 2026-10-23
