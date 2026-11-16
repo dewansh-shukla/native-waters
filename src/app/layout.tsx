@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { ConsentGate } from "@/components/analytics/ConsentGate";
 import { SITE_ORIGIN } from "@/lib/reference";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { websiteSchema } from "@/lib/structuredData";
@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {children}
         <Analytics />
         {process.env.NEXT_PUBLIC_GA_ID ? (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          <ConsentGate gaId={process.env.NEXT_PUBLIC_GA_ID} />
         ) : null}
       </body>
     </html>
