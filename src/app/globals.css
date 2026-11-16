@@ -11,7 +11,7 @@ p { line-height: 1.55; }
 .experience { width: 100%; height: 100svh; min-height: 500px; position: relative; overflow: hidden; isolation: isolate; }
 .scene-viewport { position: absolute; inset: 0; }
 .scene-viewport > div[role=alert], .experience > div[role=alert], .scene-loading { position: absolute; top: 25%; left: 50%; transform: translateX(-50%); background: var(--panel); padding: 1.25rem; border-radius: 10px; max-width: 90%; width: 420px; z-index: 2; }
-.experience-ui { position: absolute; inset: 0; pointer-events: none; }
+.experience-ui { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .experience-ui button, .experience-ui select, .experience-ui a, .experience-ui dialog { pointer-events: auto; }
 .experience-header { position: absolute; top: max(24px, env(safe-area-inset-top)); left: 28px; right: 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .experience-brand { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: .05em; }
@@ -46,18 +46,25 @@ dialog:not([open]) { display: none; }
 /* Phase styling is presentation, not a second source of journey state. */
 .experience[data-phase=entering] .experience-brand { opacity: .65; }
 @media(max-width: 700px) {
- .experience[data-phase=map] .scene-viewport > div:not([role=alert]) { height: calc(100% - 250px) !important; top: 64px; }
- .experience-header { top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; }
+ /* One full-screen visual per page: the map owns the viewport and the river
+    entry sits on it as a compact bottom sheet. */
+ .experience { height: 100svh; height: 100dvh; min-height: 0; }
+ .experience-header { top: max(12px, env(safe-area-inset-top)); left: 14px; right: 14px; }
  .experience-brand { font-size: 1.05rem; }
- .experience-map-disclaimer { top: 80px; left: 20px; right: 20px; bottom: auto; width: auto; font-size: .65rem; }
- .experience-map-intro { top: auto; left: 20px; bottom: 102px; width: calc(100% - 40px); }
- .experience-map-intro h1 { font-size: 2.3rem; margin: .2rem 0; }
- .experience-map-intro > p:not(.experience-eyebrow) { max-width: 300px; margin: .5rem 0; font-size: .78rem; }
- .experience-eyebrow { margin: .5rem 0; }
- .experience-enter { margin-top: .2rem; }
- .experience-controls { bottom: max(12px, env(safe-area-inset-bottom)); gap: 5px; padding: 6px; font-size: .65rem; flex-wrap: wrap; width: calc(100% - 24px); }
+ .experience-preview { font-size: .68rem; padding: .5rem .7rem; }
+ .experience-map-disclaimer { top: max(60px, calc(env(safe-area-inset-top) + 46px)); left: 14px; right: 14px; bottom: auto; width: auto; font-size: .6rem; line-height: 1.35; }
+ .experience-map-intro { top: auto; left: 12px; right: 12px; bottom: calc(66px + max(10px, env(safe-area-inset-bottom))); width: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 10px; padding: 12px 14px; border: 1px solid #537060; border-radius: 12px; background: var(--panel); text-shadow: none; }
+ .experience-map-intro h1 { grid-column: 1 / -1; font-size: 1.6rem; margin: 0; }
+ .experience-map-intro .experience-eyebrow { display: none; }
+ .experience-map-intro > p:not(.experience-readiness) { display: none; }
+ .experience-readiness { grid-column: 1 / -1; margin: 0 !important; font-size: .65rem !important; }
+ .experience-river-label { grid-column: 1; margin: 0; min-width: 0; font-size: 0; }
+ .experience-river-select { width: 100%; max-width: none; min-width: 0; font-size: .85rem; }
+ .experience-enter { grid-column: 2; margin: 0; }
+ .experience-controls { bottom: max(10px, env(safe-area-inset-bottom)); gap: 5px; padding: 6px; font-size: .65rem; flex-wrap: wrap; width: calc(100% - 20px); }
  .experience-controls button, .experience-controls select { padding: .5rem; }
- .experience-fish-controls { left: 12px; right: 12px; bottom: 125px; padding: 7px; justify-content: center; font-size: .7rem; }
+ .experience-control-label { display: none; }
+ .experience-fish-controls { left: 12px; right: 12px; bottom: 74px; padding: 7px; justify-content: center; font-size: .7rem; }
  .experience-fish-controls label { gap: 4px; }
  .experience-fish-controls select { max-width: 155px; padding: .5rem; }
  .experience-follow-card { top: 86px; right: 16px; width: 280px; padding: 18px; }
@@ -69,7 +76,39 @@ html, body { overscroll-behavior: none; }
 button, select, a { touch-action: manipulation; }
 .experience-ui { user-select: none; -webkit-user-select: none; }
 @media (pointer: coarse) { button, select { min-height: 44px; min-width: 44px; } }
-@media (max-height: 500px) and (orientation: landscape) { .experience[data-phase=map] .scene-viewport > div:not([role=alert]) { height: calc(100% - 140px) !important; top: 48px; } .experience-map-intro { bottom: 60px; } .experience-controls { bottom: max(8px, env(safe-area-inset-bottom)); } }
+/* The water reads best on its side: portrait phones get a rotate prompt over
+   the paused scene, and the scene fills the viewport once turned. */
+.experience-rotate { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 28px; text-align: center; pointer-events: none; background: rgba(8, 20, 22, .8); }
+.experience-rotate svg { width: 56px; height: 56px; color: #b8cba4; }
+.experience-rotate h2 { font-size: 1.5rem; margin: 4px 0 0; }
+.experience-rotate p { margin: 0; max-width: 32ch; color: var(--quiet); font-size: .85rem; }
+/* While the prompt is up the water controls belong to the landscape view;
+   only the bottom row (with Return to Map) stays available. */
+.experience[data-rotate="true"] .experience-fish-controls,
+.experience[data-rotate="true"] .experience-follow-card { display: none; }
+@media (max-height: 520px) and (orientation: landscape) {
+ /* Short landscape: the entry card shrinks to a corner card so the map keeps
+    the middle of the screen, and the reference study scrolls instead of
+    spilling under the bottom controls. */
+ .experience-map-intro { top: auto; left: 16px; right: auto; bottom: calc(64px + max(6px, env(safe-area-inset-bottom))); width: min(300px, 42vw); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 8px; padding: 10px 12px; border: 1px solid #537060; border-radius: 12px; background: var(--panel); text-shadow: none; }
+ .experience-map-intro h1 { grid-column: 1 / -1; font-size: 1.35rem; margin: 0; }
+ .experience-map-intro .experience-eyebrow, .experience-map-intro > p:not(.experience-readiness) { display: none; }
+ .experience-river-label { grid-column: 1; margin: 0; min-width: 0; font-size: 0; }
+ .experience-river-select { width: 100%; min-width: 0; font-size: .8rem; }
+ .experience-enter { grid-column: 2; margin: 0; }
+ .experience-readiness { grid-column: 1 / -1; margin: 0 !important; font-size: .6rem !important; }
+ .experience-controls { bottom: max(6px, env(safe-area-inset-bottom)); padding: 4px 6px; font-size: .6rem; }
+ .experience-map-disclaimer { display: none; }
+ .experience-header { top: max(8px, env(safe-area-inset-top)); }
+ .experience-fish-controls { bottom: 68px; }
+ .experience[data-phase="following"] .experience-fish-controls,
+ .experience[data-phase="story"] .experience-fish-controls { display: none; }
+ .experience-follow-card { top: 56px; right: 12px; width: min(300px, 40vw); padding: 14px; max-height: calc(100dvh - 124px); overflow-y: auto; }
+ .experience-follow-card h2 { font-size: 1.3rem; }
+ .experience-follow-card .fish-preview { height: 120px !important; }
+ .experience-rotate h2 { font-size: 1.2rem; }
+ .experience-rotate svg { width: 44px; height: 44px; }
+}
 /* P1 mobile UX */
 @media (pointer: coarse) { .experience-controls button, .experience-controls select, .experience-fish-controls button, .experience-fish-controls select, .experience-enter { min-height: 44px; min-width: 44px; padding: .6rem .8rem; } }
 @media (max-width: 480px) { .experience-follow-card { top: auto; bottom: 170px; right: 12px; left: 12px; width: auto; max-width: none; } }

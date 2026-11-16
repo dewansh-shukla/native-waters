@@ -157,7 +157,7 @@ export function ExperienceUI(props: ExperienceUIProps) {
     <nav className="experience-controls" aria-label="Experience controls">
       <button aria-pressed={paused} onClick={() => props.onPausedChange(!paused)}>{paused ? "Resume" : "Pause"}</button>
       <button aria-pressed={audio.enabled} onClick={audio.enabled ? audio.disable : audio.enable}>{audio.enabled ? "Sound off" : "Sound on"}</button>
-      <label>Quality <select value={quality} onChange={event => props.onQualityChange(event.target.value as QualityPreference)}>
+      <label><span className="experience-control-label">Quality </span><select value={quality} onChange={event => props.onQualityChange(event.target.value as QualityPreference)}>
         <option>AUTO</option><option>HIGH</option><option>LOW</option>
       </select></label>
       <label><input type="checkbox" checked={batterySaver} onChange={e => onBatterySaverChange?.(e.target.checked)} /> Battery saver</label>

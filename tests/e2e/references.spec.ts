@@ -42,7 +42,7 @@ test('responsive split, linked records and optional illustrative preview', async
     expect(panel!.x).toBeCloseTo(visual!.width, 0);
   } else {
     expect(panel!.y).toBeCloseTo(visual!.height, 0);
-    expect(visual!.height).toBeCloseTo(page.viewportSize()!.height / 2, 0);
+    expect(visual!.height).toBeCloseTo(page.viewportSize()!.height, 0);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('reference-layout.png') });
