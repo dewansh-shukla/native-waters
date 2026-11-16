@@ -16,6 +16,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@next/third-parties": "^16.4.6",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.1",
     "@vercel/analytics": "^2.0.1",
