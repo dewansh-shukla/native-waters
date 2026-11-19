@@ -16,10 +16,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified,
     images: [`${SITE_ORIGIN}/basins/${river.id}/opengraph-image`],
   }));
-  const speciesRoutes: MetadataRoute.Sitemap = catalog.species.map(species => ({
-    url: `${SITE_ORIGIN}/species/${species.id}`,
-    lastModified,
-    images: [`${SITE_ORIGIN}/species/${species.id}/opengraph-image`],
-  }));
+  const speciesPlateFiles: Record<string, string> = {
+    'labeo-rohita': 'labeo-rohita-1807-1822-print-iconographia-zoologica.jpg',
+    'labeo-calbasu': 'labeo-calbasu-day-mintern-126.jpg',
+    'dawkinsia-arulius': 'barbus-arulius-mintern-142.jpg',
+  };
+  const speciesRoutes: MetadataRoute.Sitemap = catalog.species.map(species => {
+    const plate = speciesPlateFiles[species.id];
+    const image = plate
+      ? `${SITE_ORIGIN}/atlas/${plate}`
+      : `${SITE_ORIGIN}/species/${species.id}/opengraph-image`;
+    return {
+      url: `${SITE_ORIGIN}/species/${species.id}`,
+      lastModified,
+      images: [image],
+    };
+  });
   return [...staticRoutes, ...riverRoutes, ...speciesRoutes];
 }
