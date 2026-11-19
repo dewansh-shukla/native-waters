@@ -16,7 +16,7 @@ export function generateStaticParams() { return catalog.species.map(species => (
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
   const species = getSpecies((await params).slug);
-  return referenceMetadata(species.commonName === species.scientificName ? species.scientificName : `${species.commonName} (${species.scientificName})`, species.summary, `/species/${species.id}`, { imagePath: `/species/${species.id}/opengraph-image` });
+  return referenceMetadata(species.commonName === species.scientificName ? species.scientificName : `${species.commonName} (${species.scientificName})`, species.summary, `/species/${species.id}`, { imagePath: `/species/${species.id}/opengraph-image`, openGraphType: 'article' });
 }
 export default async function SpeciesPage({ params }: Props) {
   const species = getSpecies((await params).slug);

@@ -30,8 +30,9 @@ describe('crawlable freshwater guide', () => {
   });
   it('lists only real routes in discovery metadata', () => {
     expect(metadata.alternates?.canonical).toBe(`${SITE_ORIGIN}/field-guide`);
-    // eight static routes (/, /field-guide, /experience, 3 per-river experience, /privacy, /method) + rivers + species
-    expect(sitemap()).toHaveLength(8 + catalog.rivers.length + catalog.species.length);
+    // four static routes (/, /field-guide, /method, /privacy) + rivers + species;
+    // /experience* is excluded because those pages are noindex
+    expect(sitemap()).toHaveLength(4 + catalog.rivers.length + catalog.species.length);
     const urls = sitemap().map(entry => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
     for (const river of catalog.rivers) expect(urls).toContain(`${SITE_ORIGIN}/basins/${river.id}`);

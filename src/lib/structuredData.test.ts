@@ -7,12 +7,13 @@ import {
   definedTermSetSchema,
   faqSchema,
   fieldGuideSchema,
+  organizationSchema,
   taxonSchema,
   webApplicationSchema,
   websiteSchema,
 } from './structuredData';
 import { freshwaterCatalog as catalog } from './catalog';
-import { SITE_ORIGIN } from './reference';
+import { CONTENT_UPDATED_AT, SITE_ORIGIN } from './reference';
 
 const river = catalog.rivers.find(r => r.id === 'ganga')!;
 const species = catalog.species.find(s => s.id === 'labeo-rohita')!;
@@ -174,5 +175,37 @@ describe('structured data', () => {
     const schema = bodyOfWaterSchema(river);
     const sameAs = schema.sameAs as string[];
     expect(sameAs).toContain('https://en.wikipedia.org/wiki/Ganges');
+  });
+
+  it('describes the publisher as a first-class Organization with a 512px PNG logo', () => {
+    const schema = organizationSchema();
+    expect(schema['@type']).toBe('Organization');
+    expect(schema.name).toBe('Native Waters');
+    expect(schema.url).toBe(`${SITE_ORIGIN}/`);
+    const logo = schema.logo as { url: string; width: number; height: number };
+    expect(logo.url.endsWith('/logo-512.png')).toBe(true);
+    expect(logo.width).toBe(512);
+    expect(logo.height).toBe(512);
+  });
+
+  it('publishes the same Organization @id from the site node and the publisher reference', () => {
+    const publisher = websiteSchema().publisher as { '@id': string };
+    expect(organizationSchema()['@id']).toBe(publisher['@id']);
+    expect(organizationSchema()['@id']).toBe(`${SITE_ORIGIN}/#organization`);
+    expect(publisher['@id']).toBe(`${SITE_ORIGIN}/#organization`);
+  });
+
+  it('dates the Dataset from the shared content review date', () => {
+    const schema = datasetSchema();
+    expect(schema.dateModified).toBe(CONTENT_UPDATED_AT.toISOString());
+  });
+
+  it('exposes verified Wikidata and FishBase identifiers on the taxon', () => {
+    const identifiers = taxonSchema(species).identifier as { '@type': string; propertyID: string; value: string }[];
+    expect(identifiers).toEqual(
+      expect.arrayContaining([
+        { '@type': 'PropertyValue', propertyID: 'Wikidata', value: 'Q311727' },
+      ]),
+    );
   });
 });

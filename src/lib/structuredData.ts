@@ -1,6 +1,6 @@
 import { freshwaterCatalog } from './catalog';
 import type { River, Species } from './catalog';
-import { SITE_NAME, SITE_ORIGIN } from './reference';
+import { CONTENT_UPDATED_AT, SITE_NAME, SITE_ORIGIN } from './reference';
 import { RIVER_EXTERNAL_IDS, SPECIES_EXTERNAL_IDS } from './externalIds';
 
 type Schema = Record<string, unknown>;
@@ -8,13 +8,29 @@ export type Crumb = { name: string; path: string };
 export type LonLat = readonly [longitude: number, latitude: number];
 
 const absolute = (path: string) => `${SITE_ORIGIN}${path}`;
+
+export const ORGANIZATION_ID = `${SITE_ORIGIN}/#organization`;
+
+const organizationLogo = {
+  '@type': 'ImageObject',
+  url: absolute('/logo-512.png'),
+  width: 512,
+  height: 512,
+};
+
 const publisher = {
+  '@id': ORGANIZATION_ID,
   '@type': 'Organization',
   name: SITE_NAME,
   url: `${SITE_ORIGIN}/`,
-  logo: { '@type': 'ImageObject', url: absolute('/icon.svg') },
-  sameAs: 'https://github.com/dewansh-shukla/native-waters',
+  logo: organizationLogo,
+  sameAs: ['https://github.com/dewansh-shukla/native-waters'],
 };
+
+/** Site-level entity, emitted once from the root layout beside the WebSite node. */
+export function organizationSchema(): Schema {
+  return { '@context': 'https://schema.org', ...publisher };
+}
 
 /** Site-level entity, emitted once from the root layout. */
 export function websiteSchema(): Schema {
@@ -87,6 +103,10 @@ export function taxonSchema(species: Species): Schema {
     if (ids.wikidata) sameAs.push(`https://www.wikidata.org/wiki/${ids.wikidata}`);
   }
   if (sameAs.length > 0) schema.sameAs = sameAs;
+  const identifiers: Schema[] = [];
+  if (ids?.wikidata) identifiers.push({ '@type': 'PropertyValue', propertyID: 'Wikidata', value: ids.wikidata });
+  if (ids?.fishbase) identifiers.push({ '@type': 'PropertyValue', propertyID: 'FishBase', value: ids.fishbase });
+  if (identifiers.length > 0) schema.identifier = identifiers;
   return schema;
 }
 
@@ -127,6 +147,7 @@ export function datasetSchema(): Schema {
     description: 'Sourced reference records for native freshwater fishes of five Indian river systems, with basin-specific native status.',
     url: absolute('/field-guide'),
     creator: publisher,
+    dateModified: CONTENT_UPDATED_AT.toISOString(),
     inLanguage: 'en',
     spatialCoverage: { '@type': 'Place', name: 'India' },
   };

@@ -5,9 +5,11 @@ import { Analytics } from "@vercel/analytics/next";
 import { ConsentGate } from "@/components/analytics/ConsentGate";
 import { SITE_ORIGIN } from "@/lib/reference";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { websiteSchema } from "@/lib/structuredData";
+import { organizationSchema, websiteSchema } from "@/lib/structuredData";
 import "./globals.css";
 
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
+const SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
 const SITE_TITLE = "Native Waters — Indian rivers and native freshwater fishes";
 const SITE_DESCRIPTION =
   "Explore sourced native freshwater fish records for five Indian river systems — Ganga, Brahmaputra, Cauvery, Krishna and Godavari — with an interactive underwater experience and an evidence-based field guide.";
@@ -30,9 +32,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: SITE_VERIFICATION ? { google: SITE_VERIFICATION } : undefined,
   openGraph: {
     type: "website",
     locale: "en",
@@ -67,12 +67,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <JsonLd data={websiteSchema()} />
+        <JsonLd data={[websiteSchema(), organizationSchema()]} />
         {children}
         {process.env.VERCEL === "1" ? <Analytics /> : null}
-        {process.env.NEXT_PUBLIC_GA_ID ? (
-          <ConsentGate gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        ) : null}
+        {GA_ID ? <ConsentGate gaId={GA_ID} /> : null}
       </body>
     </html>
   );
