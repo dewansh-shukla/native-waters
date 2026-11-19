@@ -37,7 +37,17 @@ export default async function BasinPage({ params }: Props) {
     <section aria-labelledby='basin-roster'>
       <h2 id='basin-roster'>The basin record</h2>
       {roster.evidencePeriods.length > 0 && <p>Evidence periods in the records: {roster.evidencePeriods.join('; ')}.</p>}
+      <p>The {river.name} basin record in this guide covers {roster.total} species: {roster.native} recorded as native, {roster.introduced} as introduced, {roster.uncertain} with uncertain native status, and {roster.endemic} as basin-endemic. These counts come from the cited associations; they are not a complete basin checklist.</p>
       <p>Read the <Link href={`/field-guide#${river.id}`}>full {river.name} entries in the field guide</Link>, or browse the individual records below.</p>
+    </section>
+    <section aria-labelledby='basin-questions'>
+      <h2 id='basin-questions'>Questions this basin record raises</h2>
+      <h3>Which fish are recorded as native to the {river.name}?</h3>
+      <p>{roster.native === 0 ? 'No species in this record is marked native.' : `The records mark ${roster.species.filter(s => s.associations.find(a => a.riverId === river.id)?.status === 'native').map(s => s.commonName).join(', ')} as native to the ${river.name} basin.`} Native status here follows the cited sources and does not imply presence throughout the basin.</p>
+      <h3>Is this a complete list of {river.name} fishes?</h3>
+      <p>No. This is a selected starting point, not a complete basin checklist. Records describe particular places and dates from cited surveys; they do not establish presence throughout the basin or current abundance.</p>
+      <h3>What does basin-endemic mean in this record?</h3>
+      <p>A basin-endemic species is recorded as restricted to the {river.name} basin in the cited sources. {roster.endemic === 0 ? 'No species in this record is marked basin-endemic.' : `${roster.endemic} ${roster.endemic === 1 ? 'species is' : 'species are'} marked basin-endemic.`} Endemism is a separate claim from native status.</p>
     </section>
     <h2 id="basin-species">Freshwater fish records</h2><p>A selected starting point, not a complete basin checklist.</p>
     <ul>{species.map(s => <li key={s.id}><Link href={`/species/${s.id}`}>{s.commonName}</Link>{s.commonName !== s.scientificName && <> (<i>{s.scientificName}</i>)</>}<p>{s.summary}</p></li>)}</ul>
