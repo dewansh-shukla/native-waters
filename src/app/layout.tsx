@@ -9,7 +9,8 @@ import { organizationSchema, websiteSchema } from "@/lib/structuredData";
 import "./globals.css";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
-const SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+const SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
+  || 'xkQ3RE8JHqlyb0L0KlRUiAyzbn3q7in0IY1tdw3icU0';
 const SITE_TITLE = "Native Waters — Indian rivers and native freshwater fishes";
 const SITE_DESCRIPTION =
   "Explore sourced native freshwater fish records for five Indian river systems — Ganga, Brahmaputra, Cauvery, Krishna and Godavari — with an interactive underwater experience and an evidence-based field guide.";
