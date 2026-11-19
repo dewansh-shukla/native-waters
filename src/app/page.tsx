@@ -11,7 +11,7 @@ import { RiverSelector } from '@/components/home/RiverSelector';
 export const metadata = {
   title: "Indian Freshwater Fishes & River Exploration | Native Waters",
   description: "Explore five Indian river basins in 3D and discover native freshwater fishes through sourced species profiles, distribution records and a crawlable field guide.",
-  alternates: { canonical: '/' },
+  alternates: { canonical: SITE_ORIGIN },
   openGraph: {
     title: "Indian Freshwater Fishes & River Exploration | Native Waters",
     description: "Explore five Indian river basins in 3D and discover native freshwater fishes through sourced species profiles, distribution records and a field guide.",

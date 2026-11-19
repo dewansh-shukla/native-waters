@@ -20,7 +20,7 @@ export function referenceMetadata(
   title: string,
   description: string,
   path: string,
-  options: { imagePath?: string; absoluteTitle?: boolean } = {},
+  options: { imagePath?: string; absoluteTitle?: boolean; robots?: Metadata['robots']; openGraphType?: 'website' | 'article' } = {},
 ): Metadata {
   const url = `${SITE_ORIGIN}${path}`;
   const image = options.imagePath ?? DEFAULT_SHARE_IMAGE;
@@ -29,9 +29,10 @@ export function referenceMetadata(
     description,
     alternates: { canonical: url },
     openGraph: {
-      title, description, url, type: 'website', siteName: SITE_NAME, locale: 'en',
+      title, description, url, type: options.openGraphType ?? 'website', siteName: SITE_NAME, locale: 'en',
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [image] },
+    ...(options.robots ? { robots: options.robots } : {}),
   };
 }

@@ -16,7 +16,7 @@ export function generateStaticParams() { return catalog.rivers.map(river => ({ s
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
   const river = getRiver((await params).slug);
-  return referenceMetadata(`${river.name} river basin and freshwater fishes`, river.summary, `/basins/${river.id}`, { imagePath: `/basins/${river.id}/opengraph-image` });
+  return referenceMetadata(`${river.name} river basin and freshwater fishes`, river.summary, `/basins/${river.id}`, { imagePath: `/basins/${river.id}/opengraph-image`, openGraphType: 'article' });
 }
 export default async function BasinPage({ params }: Props) {
   const river = getRiver((await params).slug);

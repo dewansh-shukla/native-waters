@@ -21,6 +21,18 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // The duplicated host below is the Vercel deployment alias; the destination
+      // mirrors SITE_ORIGIN in src/lib/reference.ts.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'native-waters.vercel.app' }],
+        destination: 'https://www.discovernativewaters.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
