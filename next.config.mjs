@@ -19,6 +19,14 @@ const nextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      {
+        source: '/:path*/opengraph-image',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
+      {
+        source: '/opengraph-image',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
     ];
   },
   async redirects() {
