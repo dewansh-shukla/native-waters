@@ -1,0 +1,86 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+}
+
+.panel {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+  max-width: 380px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  background: rgba(16, 28, 30, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(90, 176, 224, 0.25);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #e8f0f2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.panelToggle {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #8fd4f5;
+  list-style: none;
+  user-select: none;
+}
+
+.panelToggle::-webkit-details-marker {
+  display: none;
+}
+
+.panelToggle::before {
+  content: '▸ ';
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.panel[open] .panelToggle::before {
+  transform: rotate(90deg);
+}
+
+.panelBody {
+  margin-top: 0.75rem;
+}
+
+.panelBody h1 {
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
+  color: #cfe8ff;
+}
+
+.panelBody p {
+  margin: 0 0 0.6rem;
+}
+
+.panelBody ul {
+  margin: 0 0 0.6rem;
+  padding-left: 1.2rem;
+}
+
+.panelBody a {
+  color: #8fd4f5;
+}
+
+.entry {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #8fd4f5;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .panel {
+    top: auto;
+    bottom: 1rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+    max-height: 40vh;
+  }
+}
