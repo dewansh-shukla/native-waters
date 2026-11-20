@@ -1,0 +1,122 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 16px;
+  margin: 32px 0 8px;
+}
+
+.stat {
+  border: 1px solid var(--secondary-ink);
+  padding: 16px 18px;
+}
+
+.statValue {
+  font-family: "Archivo", Arial, sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.statLabel {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondary-ink);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin: 24px 0 12px;
+  border: 1px solid var(--secondary-ink);
+}
+
+.table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.table caption {
+  caption-side: bottom;
+  padding: 12px 14px;
+  font-size: 14px;
+  text-align: left;
+  color: var(--secondary-ink);
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(66, 94, 84, 0.35);
+}
+
+.table thead th {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary-ink);
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.numeric {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.chipCR { color: #8c1d18; }
+.chipEN { color: #8a4a12; }
+.chipVU { color: #6b5a12; }
+.chipNT { color: #2f5d3a; }
+.chipLC { color: #2f5d3a; }
+.chipDD { color: #4a4a4a; }
+.chipNE { color: #555; }
+
+.threatList {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: grid;
+  gap: 20px;
+}
+
+.threatItem {
+  border-top: 1px solid var(--secondary-ink);
+  padding-top: 18px;
+}
+
+.threatName {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+}
+
+.threatItem p {
+  margin: 6px 0;
+}
+
+.note {
+  font-size: 15px;
+  color: var(--secondary-ink);
+}

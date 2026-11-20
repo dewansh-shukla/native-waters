@@ -9,6 +9,7 @@ export function SiteHeader() {
       <nav className="atlas-nav" aria-label="Main navigation">
         <Link href="/#rivers">Rivers</Link>
         <Link href="/field-guide">Field guide</Link>
+        <Link href="/conservation">Conservation</Link>
         <Link href="/experience" prefetch={false}>Explore in 3D</Link>
       </nav>
     </header>
@@ -18,7 +19,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return <footer className="atlas-footer">
     <div><Link className="atlas-brand" href="/">Native Waters</Link>
-      <nav aria-label="Footer navigation"><Link href="/field-guide">Field guide</Link><Link href="/method">Our method</Link><Link href="/privacy">Privacy</Link></nav>
+      <nav aria-label="Footer navigation"><Link href="/field-guide">Field guide</Link><Link href="/conservation">Conservation</Link><Link href="/method">Our method</Link><Link href="/privacy">Privacy</Link></nav>
     </div>
     <p>A growing reference to India’s freshwater life. The 3D habitats are illustrative, not verified reconstructions. River records remain readable without JavaScript or WebGL.</p>
     <nav aria-label="3D river entry points"><Link href="/experience" prefetch={false}>Cauvery in 3D</Link><Link href="/experience/ganga" prefetch={false}>Ganga in 3D</Link><Link href="/experience/godavari" prefetch={false}>Godavari in 3D</Link><Link href="/experience/brahmaputra" prefetch={false}>Brahmaputra in 3D</Link><Link href="/basins/krishna#river-experience">Krishna in 3D</Link></nav>

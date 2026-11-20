@@ -7,6 +7,7 @@ import NextImage from 'next/image';
 import { SiteHeader, SiteFooter } from '@/components/reference/SiteNavigation';
 import { SpeciesPlate } from '@/components/reference/SpeciesPlate';
 import { RiverSelector } from '@/components/home/RiverSelector';
+import { conservationSummary } from '@/lib/conservation';
 
 export const metadata = {
   title: "Indian Freshwater Fishes & River Exploration | Native Waters",
@@ -32,6 +33,7 @@ const FEATURED = ['labeo-rohita', 'dawkinsia-arulius', 'labeo-calbasu'];
 
 export default function HomePage() {
   const featured = FEATURED.map(id => catalog.species.find(species => species.id === id)!);
+  const conservation = conservationSummary();
   return <div className={`public-page ${styles.page}`}>
     <SiteHeader />
     <main id="main-content">
@@ -75,6 +77,19 @@ export default function HomePage() {
             <p>{species.summary}</p>
           </article>)}
         </div>
+      </section>
+
+      <section className={styles.conservation} aria-labelledby="conservation-title">
+        <div>
+          <h2 id="conservation-title">{conservation.threatened} of {conservation.total} are threatened</h2>
+          <p>{conservation.criticallyEndangered} Critically Endangered and {conservation.endangered} Endangered species share these rivers with {conservation.leastConcern} assessed as Least Concern. Every record carries its Red List category and assessment date.</p>
+          <Link href="/conservation" className="atlas-button">See conservation status <span aria-hidden="true">→</span></Link>
+        </div>
+        <dl className={styles.conservationStats}>
+          <div className={styles.conservationStat}><strong>{conservation.criticallyEndangered}</strong><span>Critically Endangered</span></div>
+          <div className={styles.conservationStat}><strong>{conservation.endangered}</strong><span>Endangered</span></div>
+          <div className={styles.conservationStat}><strong>{conservation.notEvaluated}</strong><span>Not Evaluated</span></div>
+        </dl>
       </section>
 
       <section className={styles.search} aria-labelledby="search-title">

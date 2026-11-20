@@ -6,9 +6,31 @@ export type Association = {
   riverId: string; status: 'native' | 'introduced' | 'uncertain'; basinEndemic: boolean;
   locality: string; evidencePeriod: string; sourceIds: string[]; note: string;
 };
+export type IucnCode = 'LC' | 'NT' | 'VU' | 'EN' | 'CR' | 'EW' | 'EX' | 'DD' | 'NE';
+export type LengthType = 'TL' | 'FL' | 'SL';
+export const IUCN_CODES: readonly IucnCode[] = ['LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX', 'DD', 'NE'];
+export const LENGTH_TYPES: readonly LengthType[] = ['TL', 'FL', 'SL'];
+export type Conservation = {
+  /** IUCN Red List category. 'NE' means the taxon has not been assessed. */
+  code: IucnCode;
+  label: string;
+  /** ISO date of the assessment; null when the taxon is Not Evaluated. */
+  assessed: string | null;
+  scope: string;
+  version: string;
+};
+export type SpeciesFacts = {
+  maxLengthCm: number;
+  lengthType: LengthType;
+  maxWeightKg: number | null;
+  environment: string;
+  distribution: string;
+  conservation: Conservation;
+  sourceId: string;
+};
 export type Species = {
   id: string; scientificName: string; commonName: string; aliases: string[];
-  summary: string; associations: Association[];
+  summary: string; facts: SpeciesFacts; associations: Association[];
 };
 export type Catalog = { sources: Source[]; rivers: River[]; species: Species[] };
 
@@ -53,6 +75,18 @@ export function validateCatalog(catalog: Catalog): Catalog {
   for (const species of catalog.species) {
     aliases(species.scientificName, species.aliases, 'species');
     if (![species.commonName, species.summary].every(text) || !species.associations.length) fail('species context required');
+    const facts = species.facts;
+    if (!facts) fail('species facts required');
+    if (!Number.isFinite(facts.maxLengthCm) || facts.maxLengthCm <= 0) fail('invalid maximum length');
+    if (!LENGTH_TYPES.includes(facts.lengthType)) fail('invalid length type');
+    if (facts.maxWeightKg !== null && (!Number.isFinite(facts.maxWeightKg) || facts.maxWeightKg <= 0)) fail('invalid maximum weight');
+    if (![facts.environment, facts.distribution].every(text)) fail('species ecology required');
+    if (!sources.has(facts.sourceId)) fail('invalid facts citation');
+    const conservation = facts.conservation;
+    if (!conservation || !IUCN_CODES.includes(conservation.code)) fail('invalid conservation code');
+    if (![conservation.label, conservation.scope, conservation.version].every(text)) fail('conservation context required');
+    if ((conservation.code === 'NE') !== (conservation.assessed === null)) fail('conservation assessment date mismatch');
+    if (conservation.assessed !== null && (!/^\d{4}-\d{2}-\d{2}$/.test(conservation.assessed) || Number.isNaN(Date.parse(conservation.assessed)))) fail('invalid conservation assessment date');
     const associations = new Set<string>();
     for (const association of species.associations) {
       if (!rivers.has(association.riverId) || associations.has(association.riverId)) fail('invalid or duplicate river association');

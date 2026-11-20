@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_ORIGIN, lastModified },
     { url: `${SITE_ORIGIN}/field-guide`, lastModified },
+    { url: `${SITE_ORIGIN}/conservation`, lastModified },
     { url: `${SITE_ORIGIN}/method`, lastModified },
     { url: `${SITE_ORIGIN}/privacy`, lastModified },
   ];

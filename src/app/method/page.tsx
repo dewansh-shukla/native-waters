@@ -27,12 +27,12 @@ const DESCRIPTION = 'How Native Waters selects, reads and presents its sourced f
 export default function MethodPage() {
   return (
     <div className="public-page"><SiteHeader /><main id="main-content" className="atlas-prose">
-      <JsonLd data={articleSchema({ title: 'Method and evidence policy', description: DESCRIPTION, url: `${SITE_ORIGIN}/method`, dateModified: '2026-11-16' })} />
+      <JsonLd data={articleSchema({ title: 'Method and evidence policy', description: DESCRIPTION, url: `${SITE_ORIGIN}/method`, dateModified: '2026-11-20' })} />
       <nav aria-label="Breadcrumb" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
         <Link href="/">Home</Link> / Method
       </nav>
       <h1>Method and evidence policy</h1>
-      <p><em>Last reviewed: 16 November 2026.</em></p>
+      <p><em>Last reviewed: 20 November 2026.</em></p>
 
       <h2>How records are selected</h2>
       <p>Records are drawn from cited publications; each river and species page lists its sources. This is a selected reference, not a complete checklist or a current population survey, and occurrence records describe places and dates rather than new sightings.</p>
@@ -49,8 +49,11 @@ export default function MethodPage() {
       <h2>No collection directions</h2>
       <p>We do not publish collection directions or guidance for locating, capturing or handling fish.</p>
 
+      <h2>Conservation categories</h2>
+      <p>Red List categories come from the IUCN Red List as mirrored by FishBase (version 2025-2) and are cited on each species page. A category is a global extinction-risk assessment: it is not a local population count, and Not Evaluated is not a finding of safety.</p>
+
       <h2>Citations and review</h2>
-      <p>Names follow the cited publications; further taxonomic review may change names or distribution limits. Historical threat categories are omitted pending a current assessment check.</p>
+      <p>Names follow the cited publications; further taxonomic review may change names or distribution limits.</p>
     </main><SiteFooter /></div>
   );
 }

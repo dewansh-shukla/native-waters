@@ -5,6 +5,7 @@ import { Evidence, EvidencePolicy } from '@/components/reference/Evidence';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { loadPipelineFixture } from '@/lib/content';
 import { siblingSpecies } from '@/lib/catalogSummary';
+import { conservationSentence, formatAssessed, formatLength, isThreatened, sizeSentence } from '@/lib/conservation';
 import { getSpecies, referenceMetadata, SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Breadcrumbs } from '@/components/reference/Breadcrumbs';
@@ -16,7 +17,9 @@ export function generateStaticParams() { return catalog.species.map(species => (
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
   const species = getSpecies((await params).slug);
-  return referenceMetadata(species.commonName === species.scientificName ? species.scientificName : `${species.commonName} (${species.scientificName})`, species.summary, `/species/${species.id}`, { imagePath: `/species/${species.id}/opengraph-image`, openGraphType: 'article' });
+  const conservation = species.facts.conservation;
+  const description = `${species.commonName} (${species.scientificName}): ${species.summary} IUCN Red List status: ${conservation.label}${conservation.assessed ? `, assessed ${formatAssessed(conservation.assessed)}` : ''}.`;
+  return referenceMetadata(species.commonName === species.scientificName ? species.scientificName : `${species.commonName} (${species.scientificName})`, description, `/species/${species.id}`, { imagePath: `/species/${species.id}/opengraph-image`, openGraphType: 'article' });
 }
 export default async function SpeciesPage({ params }: Props) {
   const species = getSpecies((await params).slug);
@@ -25,9 +28,14 @@ export default async function SpeciesPage({ params }: Props) {
   const association = species.associations[0];
   const basinRiver = association ? catalog.rivers.find(r => r.id === association.riverId) : undefined;
   const statusWord = association?.status === 'uncertain' ? 'with uncertain native status' : association?.status === 'introduced' ? 'as introduced' : 'as native';
+  const { conservation } = species.facts;
+  const conservationClause = conservation.code === 'NE'
+    ? 'It has not been assessed on the IUCN Red List.'
+    : `The IUCN Red List lists it as ${conservation.label}.`;
   const tldr = basinRiver
-    ? `${species.commonName} is recorded ${statusWord} in the ${basinRiver.name} basin, per the cited evidence.`
-    : species.summary;
+    ? `${species.commonName} is recorded ${statusWord} in the ${basinRiver.name} basin, per the cited evidence. ${conservationClause}`
+    : `${species.summary} ${conservationClause}`;
+  const factsSource = catalog.sources.find(source => source.id === species.facts.sourceId);
   const reviewed = CONTENT_UPDATED_AT.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const reviewedIso = CONTENT_UPDATED_AT.toISOString();
   return <ReferenceLayout visual={<ScenePreview fixture={loadPipelineFixture()} river={basinRiver?.id} />}>
@@ -46,14 +54,26 @@ export default async function SpeciesPage({ params }: Props) {
         <dt>Scientific name</dt><dd><i>{species.scientificName}</i></dd>
         <dt>Common name</dt><dd>{species.commonName}</dd>
         {species.aliases.length > 0 && <><dt>Also called</dt><dd>{species.aliases.join(', ')}</dd></>}
+        <dt>IUCN Red List status</dt>
+        <dd>{conservation.label}{conservation.assessed ? ` (assessed ${formatAssessed(conservation.assessed)})` : ''} — <Link href="/conservation">compare all species</Link></dd>
+        <dt>Maximum recorded length</dt><dd>{formatLength(species)}</dd>
+        {species.facts.maxWeightKg !== null && <><dt>Maximum published weight</dt><dd>{species.facts.maxWeightKg} kg</dd></>}
+        <dt>Environment</dt><dd>{species.facts.environment}</dd>
+        <dt>Distribution</dt><dd>{species.facts.distribution}</dd>
         {species.associations.map(a => {
           const r = catalog.rivers.find(river => river.id === a.riverId);
           return r ? <><dt>{r.name} basin status</dt><dd>{a.status === 'uncertain' ? 'Native status uncertain' : a.status === 'introduced' ? 'Introduced' : 'Native'}{a.basinEndemic ? ' (basin endemic)' : ''}</dd><dt>Record area</dt><dd>{a.locality}</dd><dt>Evidence period</dt><dd>{a.evidencePeriod}</dd></> : null;
         })}
       </dl>
+      {factsSource && <p><small>Size, environment, distribution and Red List data: <a href={factsSource.url}>{factsSource.title}</a>. Accessed {factsSource.accessed}.</small></p>}
+    </section>
+    <section aria-labelledby="conservation">
+      <h2 id="conservation">Conservation status</h2>
+      <p>{conservationSentence(species)} {sizeSentence(species)} A Red List category is a global extinction-risk assessment, not a count of fish in this basin.</p>
+      {isThreatened(species) && <p>This species is in a threatened category. <Link href="/conservation">See the conservation overview</Link> for every species in this guide.</p>}
     </section>
     {species.associations.map(a => <Evidence key={a.riverId} association={a} />)}
-    <h2>Habitat &amp; range limits</h2><p>The record areas above identify the geographic context supported by the sources. They do not establish a species-specific substrate, flow preference or water-chemistry range. We leave those details unstated until species-level references are available.</p>
+    <h2>Habitat &amp; range limits</h2><p>The record areas above identify the geographic context supported by the sources. FishBase adds the broad environment and distribution shown in the record facts. Neither source establishes a substrate, flow preference or water-chemistry requirement for this population, so we leave those details unstated.</p>
     {siblings.length > 0 && <section aria-labelledby='related-species'>
       <h2 id='related-species'>From the same basin</h2>
       <ul>{siblings.map(sibling => <li key={sibling.id}><Link href={`/species/${sibling.id}`}>{sibling.commonName}</Link>{sibling.commonName !== sibling.scientificName && <> (<i>{sibling.scientificName}</i>)</>}</li>)}</ul>

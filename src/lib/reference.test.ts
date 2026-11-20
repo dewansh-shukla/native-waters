@@ -23,7 +23,7 @@ describe('reference routing', () => {
   it('publishes only canonical routes and every catalog record in the sitemap', () => {
     const urls = sitemap().map(entry => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
-    expect(urls).toHaveLength(22);
+    expect(urls).toHaveLength(23);
     expect(urls.some(url => url.includes('/experience'))).toBe(false);
     expect(urls.filter(url => url.includes('/basins/'))).toHaveLength(5);
     expect(urls.filter(url => url.includes('/species/'))).toHaveLength(13);

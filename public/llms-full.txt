@@ -59,6 +59,24 @@ Species records: 1
 
 - Blue perch (Badis badis): status uncertain; basin endemic: no
 
+## Conservation status
+
+6 of 13 recorded species are listed in an IUCN threatened category. Categories come from FishBase's mirror of the IUCN Red List (version 2025-2). Not Evaluated means unassessed, not safe.
+
+- Rohu (Labeo rohita): Least Concern (LC)
+- Calbasu (Labeo calbasu): Least Concern (LC)
+- Hump-backed mahseer (Tor remadevii): Critically Endangered (CR)
+- Arulius barb (Dawkinsia arulius): Endangered (EN)
+- Labeo kontius (Labeo kontius): Least Concern (LC)
+- Hemibagrus punctatus (Hemibagrus punctatus): Critically Endangered (CR)
+- Glyptothorax poonaensis (Glyptothorax poonaensis): Endangered (EN)
+- Blue perch (Badis badis): Least Concern (LC)
+- Badis blosyrus (Badis blosyrus): Least Concern (LC)
+- Dawkinsia rubrotinctus (Dawkinsia rubrotinctus): Not Evaluated (NE)
+- Hypselobarbus dubius (Hypselobarbus dubius): Endangered (EN)
+- Hypselobarbus micropogon (Hypselobarbus micropogon): Endangered (EN)
+- Kantaka brevidorsalis (Kantaka brevidorsalis): Least Concern (LC)
+
 ## Species
 
 ### Rohu (Labeo rohita)
@@ -66,6 +84,14 @@ Species records: 1
 Aliases: none
 
 An indigenous Gangetic carp represented in ICAR-CIFRI’s riverine germplasm programme.
+
+IUCN Red List: Least Concern (LC); assessed: 2010-03-20; list version: 2025-2 (Global).
+
+Maximum recorded length: 200 cm TL; maximum published weight: 45 kg.
+
+Environment: Freshwater; brackish; benthopelagic; potamodromous
+
+Distribution: Asia: Pakistan, India, Bangladesh, Myanmar and Nepal.
 
 - River: Ganga
   - Status: native
@@ -81,6 +107,14 @@ Aliases: none
 
 One of four commercially significant carps selected for the Ganga germplasm programme.
 
+IUCN Red List: Least Concern (LC); assessed: 2010-03-21; list version: 2025-2 (Global).
+
+Maximum recorded length: 90 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; brackish; demersal; potamodromous
+
+Distribution: Asia: Pakistan, India, Bangladesh, Myanmar, Nepal, Thailand and south-western China; reported as introduced to China.
+
 - River: Ganga
   - Status: native
   - Basin endemic: no
@@ -91,9 +125,17 @@ One of four commercially significant carps selected for the Ganga germplasm prog
 
 ### Hump-backed mahseer (Tor remadevii)
 
-Aliases: none
+Aliases: orange-finned mahseer, Tor remadeviae
 
 The survey identifies the hump-backed mahseer and distinguishes it from unresolved mahseer morphotypes.
+
+IUCN Red List: Critically Endangered (CR); assessed: 2018-04-19; list version: 2025-2 (Global).
+
+Maximum recorded length: 175 cm FL; maximum published weight: 54 kg.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: India.
 
 - River: Cauvery
   - Status: native
@@ -109,6 +151,14 @@ Aliases: none
 
 A barb listed among the Cauvery-system endemics in the sanctuary survey.
 
+IUCN Red List: Endangered (EN); assessed: 2010-06-25; list version: 2025-2 (Global).
+
+Maximum recorded length: 12 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: Cauvery basin in India.
+
 - River: Cauvery
   - Status: native
   - Basin endemic: yes
@@ -119,9 +169,17 @@ A barb listed among the Cauvery-system endemics in the sanctuary survey.
 
 ### Labeo kontius (Labeo kontius)
 
-Aliases: none
+Aliases: pigmouth carp
 
 A carp documented among the survey’s Cauvery-system endemics.
+
+IUCN Red List: Least Concern (LC); assessed: 2010-10-03; list version: 2025-2 (Global).
+
+Maximum recorded length: 61 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic; potamodromous
+
+Distribution: Asia: Cauvery river system in Tamil Nadu and Karnataka, India.
 
 - River: Cauvery
   - Status: native
@@ -133,9 +191,17 @@ A carp documented among the survey’s Cauvery-system endemics.
 
 ### Hemibagrus punctatus (Hemibagrus punctatus)
 
-Aliases: none
+Aliases: Nilgiri mystus
 
 A catfish included among the Cauvery-system endemics.
+
+IUCN Red List: Critically Endangered (CR); assessed: 2010-06-27; list version: 2025-2 (Global).
+
+Maximum recorded length: 45 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; demersal
+
+Distribution: Asia: Cauvery river drainage in southern India.
 
 - River: Cauvery
   - Status: native
@@ -151,6 +217,14 @@ Aliases: none
 
 A sisorid catfish for which the Krishna study reports a range extension.
 
+IUCN Red List: Endangered (EN); assessed: 2010-08-22; list version: 2025-2 (Global).
+
+Maximum recorded length: 8 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: Mula Mutha river at Pune, Maharashtra, India.
+
 - River: Krishna
   - Status: native
   - Basin endemic: no
@@ -161,9 +235,17 @@ A sisorid catfish for which the Krishna study reports a range extension.
 
 ### Blue perch (Badis badis)
 
-Aliases: Chameleon fish
+Aliases: Chameleon fish, Blue badis
 
 A freshwater fish recorded in tributary streams of the Godavari basin.
+
+IUCN Red List: Least Concern (LC); assessed: 2010-03-26; list version: 2025-2 (Global).
+
+Maximum recorded length: 7.1 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: Ganges River drainage in India, Bangladesh and Nepal, from Himachal Pradesh (Yamuna River) to the estuary; also the Mahanadi drainage and Assam lowlands near the Brahmaputra.
 
 - River: Godavari
   - Status: uncertain
@@ -179,6 +261,14 @@ Aliases: none
 
 A valid badid species whose catalog distribution includes the upper Brahmaputra drainage in northeastern India.
 
+IUCN Red List: Least Concern (LC); assessed: 2010-03-26; list version: 2025-2 (Global).
+
+Maximum recorded length: 4.2 cm SL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: India.
+
 - River: Brahmaputra
   - Status: native
   - Basin endemic: no
@@ -193,6 +283,14 @@ Aliases: none
 
 Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
 
+IUCN Red List: Not Evaluated (NE); assessed: not assessed; list version: 2025-2 (Global).
+
+Maximum recorded length: 8.6 cm SL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: Cauvery and its tributaries across Karnataka, Kerala and Tamil Nadu, India.
+
 - River: Cauvery
   - Status: native
   - Basin endemic: yes
@@ -203,9 +301,17 @@ Listed among the Cauvery-system endemic freshwater fishes in the sanctuary surve
 
 ### Hypselobarbus dubius (Hypselobarbus dubius)
 
-Aliases: none
+Aliases: Nilgiris barb, cock fish
 
 Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+IUCN Red List: Endangered (EN); assessed: 2010-06-21; list version: 2025-2 (Global).
+
+Maximum recorded length: 25 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic; potamodromous
+
+Distribution: Asia: India.
 
 - River: Cauvery
   - Status: native
@@ -217,9 +323,17 @@ Listed among the Cauvery-system endemic freshwater fishes in the sanctuary surve
 
 ### Hypselobarbus micropogon (Hypselobarbus micropogon)
 
-Aliases: none
+Aliases: Korhi barb
 
 Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+IUCN Red List: Endangered (EN); assessed: 2021-03-06; list version: 2025-2 (Global).
+
+Maximum recorded length: 90 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic; potamodromous
+
+Distribution: Asia: headwaters of the Cauvery in the Nilgiris, Wayanad and Karnataka, India.
 
 - River: Cauvery
   - Status: native
@@ -234,6 +348,14 @@ Listed among the Cauvery-system endemic freshwater fishes in the sanctuary surve
 Aliases: none
 
 Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.
+
+IUCN Red List: Least Concern (LC); assessed: 2010-08-10; list version: 2025-2 (Global).
+
+Maximum recorded length: 15 cm TL; maximum published weight: not stated.
+
+Environment: Freshwater; benthopelagic
+
+Distribution: Asia: endemic to India.
 
 - River: Cauvery
   - Status: native
@@ -250,3 +372,16 @@ Listed among the Cauvery-system endemic freshwater fishes in the sanctuary surve
 - Kumbar & Lad (2014) — Catfish fauna of the Krishna River, Sangli District — https://doi.org/10.11609/JoTT.o3394.5362-7 — published: 2014-01-26; accessed: 2026-10-23
 - Prasad & Srinivasulu (2019) — New record of Badis badis from the Godavari basin — https://doi.org/10.11609/jott.4820.11.9.14212-14215 — published: 2019-07-26; accessed: 2026-10-23
 - Eschmeyer’s Catalog of Fishes — Badis blosyrus — https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=67204 — published: not stated; accessed: 2026-10-23
+- FishBase — Labeo rohita — https://www.fishbase.se/summary/Labeo-rohita.html — published: not stated; accessed: 2026-11-20
+- FishBase — Labeo calbasu — https://www.fishbase.se/summary/Labeo-calbasu.html — published: not stated; accessed: 2026-11-20
+- FishBase — Tor remadevii — https://www.fishbase.se/summary/Tor-remadevii.html — published: not stated; accessed: 2026-11-20
+- FishBase — Dawkinsia arulius — https://www.fishbase.se/summary/Dawkinsia-arulius.html — published: not stated; accessed: 2026-11-20
+- FishBase — Labeo kontius — https://www.fishbase.se/summary/Labeo-kontius.html — published: not stated; accessed: 2026-11-20
+- FishBase — Hemibagrus punctatus — https://www.fishbase.se/summary/Hemibagrus-punctatus.html — published: not stated; accessed: 2026-11-20
+- FishBase — Glyptothorax poonaensis — https://www.fishbase.se/summary/Glyptothorax-poonaensis.html — published: not stated; accessed: 2026-11-20
+- FishBase — Badis badis — https://www.fishbase.se/summary/Badis-badis.html — published: not stated; accessed: 2026-11-20
+- FishBase — Badis blosyrus — https://www.fishbase.se/summary/Badis-blosyrus.html — published: not stated; accessed: 2026-11-20
+- FishBase — Dawkinsia rubrotinctus — https://www.fishbase.se/summary/Dawkinsia-rubrotinctus.html — published: not stated; accessed: 2026-11-20
+- FishBase — Hypselobarbus dubius — https://www.fishbase.se/summary/Hypselobarbus-dubius.html — published: not stated; accessed: 2026-11-20
+- FishBase — Hypselobarbus micropogon — https://www.fishbase.se/summary/Hypselobarbus-micropogon.html — published: not stated; accessed: 2026-11-20
+- FishBase — Kantaka brevidorsalis — https://www.fishbase.se/summary/Kantaka-brevidorsalis.html — published: not stated; accessed: 2026-11-20

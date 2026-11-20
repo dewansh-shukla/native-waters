@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { freshwaterCatalog } from './catalog';
 export const SITE_ORIGIN = 'https://www.discovernativewaters.com';
 export const SITE_NAME = 'Native Waters';
-export const CONTENT_UPDATED_AT = new Date('2026-11-16T00:00:00.000Z');
+export const CONTENT_UPDATED_AT = new Date('2026-11-20T00:00:00.000Z');
 const DEFAULT_SHARE_IMAGE = '/opengraph-image';
 export function getRiver(slug: string) {
   return freshwaterCatalog.rivers.find(river => river.id === slug) ?? notFound();
