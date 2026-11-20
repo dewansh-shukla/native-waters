@@ -1,7 +1,13 @@
 .plate { margin: 32px 0; }
 .plate img { display: block; width: 100%; height: auto; max-height: 460px; object-fit: contain; background: #fff; }
+.plate.photograph img { background: transparent; }
 .plate figcaption { margin-top: 14px; font-size: 14px; line-height: 1.5; }
+.caption { display: block; }
+.credit { display: block; margin-top: 6px; font-size: 12px; color: var(--secondary-ink); }
+.credit a { color: inherit; }
 .compact { margin: 0 0 24px; }
 .compact img { height: 230px; object-fit: contain; }
 .compact figcaption { max-width: 44ch; }
+.compact .caption { font-size: 13px; }
+.compact .credit { margin-top: 4px; font-size: 11px; }
 @media (max-width: 700px) { .compact img { height: 200px; } }

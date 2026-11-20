@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { freshwaterCatalog as catalog } from '@/lib/catalog';
+import { atlasImage } from '@/lib/atlasImages';
 import { SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -18,20 +19,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified,
     images: [`${SITE_ORIGIN}/basins/${river.id}/opengraph-image`],
   }));
-  const speciesPlateFiles: Record<string, string> = {
-    'labeo-rohita': 'labeo-rohita-1807-1822-print-iconographia-zoologica.jpg',
-    'labeo-calbasu': 'labeo-calbasu-day-mintern-126.jpg',
-    'dawkinsia-arulius': 'barbus-arulius-mintern-142.jpg',
-  };
   const speciesRoutes: MetadataRoute.Sitemap = catalog.species.map(species => {
-    const plate = speciesPlateFiles[species.id];
-    const image = plate
-      ? `${SITE_ORIGIN}/atlas/${plate}`
-      : `${SITE_ORIGIN}/species/${species.id}/opengraph-image`;
+    const image = atlasImage(species.id);
     return {
       url: `${SITE_ORIGIN}/species/${species.id}`,
       lastModified,
-      images: [image],
+      images: [image ? `${SITE_ORIGIN}${image.file}` : `${SITE_ORIGIN}/species/${species.id}/opengraph-image`],
     };
   });
   return [...staticRoutes, ...riverRoutes, ...speciesRoutes];
