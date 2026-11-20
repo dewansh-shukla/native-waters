@@ -12,7 +12,7 @@ export default function ExperiencePage() {
     <JsonLd data={webApplicationSchema('Illustrative underwater experience', 'An interactive, illustrative underwater experience of the Cauvery basin, paired with sourced freshwater fish records from the Native Waters reference.', '/experience')} />
     <Experience fixture={loadPipelineFixture()} species={DEFAULT_SPECIES} />
     <details className={styles.panel}>
-      <summary className={styles.panelToggle}>About this exhibit</summary>
+      <summary className={styles.panelToggle}>ℹ Info</summary>
       <div className={styles.panelBody}>
         <h2>Illustrative underwater experience</h2>
         <p>This page hosts an interactive, illustrative underwater scene of the Cauvery basin. The 3D habitat is an artistic reconstruction, not a verified survey: it exists to help you picture the setting behind the sourced fish records on this site.</p>
