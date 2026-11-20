@@ -31,6 +31,14 @@ describe('freshwater catalog evidence', () => {
     ['duplicate taxon aliases', (c: Catalog) => { c.species[1].aliases.push(c.species[0].scientificName); }],
     ['unsupported endemism', (c: Catalog) => { c.species[7].associations[0].basinEndemic = true; }],
     ['missing context', (c: Catalog) => { c.species[0].associations[0].locality = ''; }],
+    ['missing species facts', (c: Catalog) => { delete (c.species[0] as { facts?: unknown }).facts; }],
+    ['unknown facts citation', (c: Catalog) => { c.species[0].facts.sourceId = 'missing'; }],
+    ['invalid maximum length', (c: Catalog) => { c.species[0].facts.maxLengthCm = 0; }],
+    ['invalid length type', (c: Catalog) => { (c.species[0].facts as { lengthType: string }).lengthType = 'XX'; }],
+    ['invalid conservation code', (c: Catalog) => { (c.species[0].facts.conservation as { code: string }).code = 'XX'; }],
+    ['assessed code without a date', (c: Catalog) => { c.species[0].facts.conservation.assessed = null; }],
+    ['unassessed code with a date', (c: Catalog) => { c.species[9].facts.conservation.assessed = '2010-03-26'; }],
+    ['impossible assessment date', (c: Catalog) => { c.species[0].facts.conservation.assessed = '2010-13-40'; }],
   ] as const)('rejects %s', (_, mutate) => {
     const catalog = copy(); mutate(catalog);
     expect(() => validateCatalog(catalog)).toThrow();

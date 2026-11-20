@@ -48,6 +48,18 @@ for (const river of rivers) {
   lines.push('');
 }
 
+lines.push('## Conservation status');
+lines.push('');
+const threatened = species.filter((sp) => ['CR', 'EN', 'VU'].includes(sp.facts.conservation.code));
+lines.push(
+  `${threatened.length} of ${species.length} recorded species are listed in an IUCN threatened category. Categories come from FishBase's mirror of the IUCN Red List (version ${species[0].facts.conservation.version}). Not Evaluated means unassessed, not safe.`
+);
+lines.push('');
+for (const sp of species) {
+  lines.push(`- ${sp.commonName} (${sp.scientificName}): ${sp.facts.conservation.label} (${sp.facts.conservation.code})`);
+}
+lines.push('');
+
 lines.push('## Species');
 lines.push('');
 for (const sp of species) {
@@ -57,6 +69,16 @@ for (const sp of species) {
   lines.push(`Aliases: ${aliases}`);
   lines.push('');
   lines.push(sp.summary);
+  lines.push('');
+  const facts = sp.facts;
+  const conservation = facts.conservation;
+  lines.push(`IUCN Red List: ${conservation.label} (${conservation.code}); assessed: ${conservation.assessed ?? 'not assessed'}; list version: ${conservation.version} (${conservation.scope}).`);
+  lines.push('');
+  lines.push(`Maximum recorded length: ${facts.maxLengthCm} cm ${facts.lengthType}; maximum published weight: ${facts.maxWeightKg === null ? 'not stated' : `${facts.maxWeightKg} kg`}.`);
+  lines.push('');
+  lines.push(`Environment: ${facts.environment}`);
+  lines.push('');
+  lines.push(`Distribution: ${facts.distribution}`);
   lines.push('');
   for (const assoc of sp.associations) {
     const river = riverById.get(assoc.riverId);

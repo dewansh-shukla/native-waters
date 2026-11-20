@@ -7,6 +7,7 @@ Native Waters is a sourced reference for native freshwater fishes of five Indian
 ## Key pages
 - [Home](/)
 - [Field guide](/field-guide)
+- [Conservation status](/conservation)
 - [Ganga](/basins/ganga)
 - [Brahmaputra](/basins/brahmaputra)
 - [Cauvery](/basins/cauvery)
@@ -30,6 +31,9 @@ Native Waters is a sourced reference for native freshwater fishes of five Indian
 
 ## Citation policy
 Data is derived from cited publications; each page lists its sources. Species names follow the cited sources, and basin-native status is only claimed where the cited evidence supports it.
+
+## Conservation data
+IUCN Red List categories, assessment dates, maximum recorded length, environment and distribution come from FishBase species summaries (IUCN Red List version 2025-2). Six of the thirteen recorded species are listed as threatened. Not Evaluated means unassessed, not safe.
 
 ## Optional
 - [Full reference (llms-full.txt)](/llms-full.txt)

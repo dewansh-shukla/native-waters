@@ -21,6 +21,14 @@
 .speciesShelf p { margin: 8px 0; max-width: 42ch; }
 .search { margin: 100px var(--page-gutter) 0; padding: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; background: var(--surface); align-items: center; }
 .search h2 { margin: 0; }
+.conservation { margin: 100px var(--page-gutter) 0; padding: 48px 40px; background: var(--deep); color: var(--paper); display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+.conservation h2 { margin: 0 0 16px; color: var(--paper); font-size: clamp(28px, 3.2vw, 44px); }
+.conservation p { max-width: 48ch; margin: 0 0 20px; }
+.conservation :global(.atlas-button) { background: var(--paper); color: var(--deep) !important; }
+.conservationStats { display: flex; flex-wrap: wrap; gap: 28px 40px; justify-content: flex-end; margin: 0; }
+.conservationStat { margin: 0; }
+.conservationStat strong { display: block; font-size: 52px; line-height: 1; letter-spacing: -.05em; }
+.conservationStat span { display: block; margin-top: 8px; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; }
 .evidence { padding: 120px var(--page-gutter); display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; align-items: center; }
 .evidence figure { margin: 0; }
 .evidence img { width: 100%; height: auto; display: block; aspect-ratio: 5 / 4; object-fit: cover; }
@@ -64,6 +72,9 @@
   .speciesShelf { grid-template-columns: 1fr; gap: 40px; }
   .search { margin-top: 64px; padding: 24px; grid-template-columns: 1fr; gap: 24px; }
   .search h2 { font-size: 28px; }
+  .conservation { margin-top: 64px; padding: 28px 24px; grid-template-columns: 1fr; gap: 28px; }
+  .conservationStats { justify-content: flex-start; gap: 24px 32px; }
+  .conservationStat strong { font-size: 40px; }
   .evidence { padding-block: 72px; grid-template-columns: 1fr; gap: 32px; }
   .evidence h2 { margin-bottom: 24px; }
 }

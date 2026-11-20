@@ -19,6 +19,8 @@
 .species h3 { margin: 0; overflow-wrap: anywhere; }
 .scientific { margin-top: 8px; }
 .status { font-weight: 700; }
+.iucn { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid currentColor; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .04em; vertical-align: middle; }
+.iucnThreat { color: #8c1d18; }
 .species dt { font-weight: 700; margin-top: 16px; }
 .species dd { margin: 8px 0 0; }
 .species summary { cursor: pointer; min-height: 44px; padding-block: 12px; text-decoration: underline; text-underline-offset: 4px; }

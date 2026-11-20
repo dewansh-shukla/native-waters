@@ -94,6 +94,7 @@ export function taxonSchema(species: Species): Schema {
     description: species.summary,
     url: absolute(`/species/${species.id}`),
     mainEntityOfPage: absolute(`/species/${species.id}`),
+    conservationStatus: species.facts.conservation.label,
   };
   const ids = SPECIES_EXTERNAL_IDS[species.id];
   const sameAs: string[] = [];

@@ -34,6 +34,97 @@
       "url": "https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=67204",
       "published": null,
       "accessed": "2026-10-23"
+    },
+    {
+      "id": "fishbase-labeo-rohita",
+      "title": "FishBase — Labeo rohita",
+      "url": "https://www.fishbase.se/summary/Labeo-rohita.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-labeo-calbasu",
+      "title": "FishBase — Labeo calbasu",
+      "url": "https://www.fishbase.se/summary/Labeo-calbasu.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-tor-remadevii",
+      "title": "FishBase — Tor remadevii",
+      "url": "https://www.fishbase.se/summary/Tor-remadevii.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-dawkinsia-arulius",
+      "title": "FishBase — Dawkinsia arulius",
+      "url": "https://www.fishbase.se/summary/Dawkinsia-arulius.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-labeo-kontius",
+      "title": "FishBase — Labeo kontius",
+      "url": "https://www.fishbase.se/summary/Labeo-kontius.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-hemibagrus-punctatus",
+      "title": "FishBase — Hemibagrus punctatus",
+      "url": "https://www.fishbase.se/summary/Hemibagrus-punctatus.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-glyptothorax-poonaensis",
+      "title": "FishBase — Glyptothorax poonaensis",
+      "url": "https://www.fishbase.se/summary/Glyptothorax-poonaensis.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-badis-badis",
+      "title": "FishBase — Badis badis",
+      "url": "https://www.fishbase.se/summary/Badis-badis.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-badis-blosyrus",
+      "title": "FishBase — Badis blosyrus",
+      "url": "https://www.fishbase.se/summary/Badis-blosyrus.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-dawkinsia-rubrotinctus",
+      "title": "FishBase — Dawkinsia rubrotinctus",
+      "url": "https://www.fishbase.se/summary/Dawkinsia-rubrotinctus.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-hypselobarbus-dubius",
+      "title": "FishBase — Hypselobarbus dubius",
+      "url": "https://www.fishbase.se/summary/Hypselobarbus-dubius.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-hypselobarbus-micropogon",
+      "title": "FishBase — Hypselobarbus micropogon",
+      "url": "https://www.fishbase.se/summary/Hypselobarbus-micropogon.html",
+      "published": null,
+      "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-kantaka-brevidorsalis",
+      "title": "FishBase — Kantaka brevidorsalis",
+      "url": "https://www.fishbase.se/summary/Kantaka-brevidorsalis.html",
+      "published": null,
+      "accessed": "2026-11-20"
     }
   ],
   "rivers": [
@@ -99,6 +190,21 @@
       "commonName": "Rohu",
       "aliases": [],
       "summary": "An indigenous Gangetic carp represented in ICAR-CIFRI’s riverine germplasm programme.",
+      "facts": {
+        "maxLengthCm": 200,
+        "lengthType": "TL",
+        "maxWeightKg": 45,
+        "environment": "Freshwater; brackish; benthopelagic; potamodromous",
+        "distribution": "Asia: Pakistan, India, Bangladesh, Myanmar and Nepal.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-20",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-rohita"
+      },
       "associations": [
         {
           "riverId": "ganga",
@@ -119,6 +225,21 @@
       "commonName": "Calbasu",
       "aliases": [],
       "summary": "One of four commercially significant carps selected for the Ganga germplasm programme.",
+      "facts": {
+        "maxLengthCm": 90,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; demersal; potamodromous",
+        "distribution": "Asia: Pakistan, India, Bangladesh, Myanmar, Nepal, Thailand and south-western China; reported as introduced to China.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-21",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-calbasu"
+      },
       "associations": [
         {
           "riverId": "ganga",
@@ -137,8 +258,26 @@
       "id": "tor-remadevii",
       "scientificName": "Tor remadevii",
       "commonName": "Hump-backed mahseer",
-      "aliases": [],
+      "aliases": [
+        "orange-finned mahseer",
+        "Tor remadeviae"
+      ],
       "summary": "The survey identifies the hump-backed mahseer and distinguishes it from unresolved mahseer morphotypes.",
+      "facts": {
+        "maxLengthCm": 175,
+        "lengthType": "FL",
+        "maxWeightKg": 54,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "CR",
+          "label": "Critically Endangered",
+          "assessed": "2018-04-19",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-tor-remadevii"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -159,6 +298,21 @@
       "commonName": "Arulius barb",
       "aliases": [],
       "summary": "A barb listed among the Cauvery-system endemics in the sanctuary survey.",
+      "facts": {
+        "maxLengthCm": 12,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Cauvery basin in India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-06-25",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-dawkinsia-arulius"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -177,8 +331,25 @@
       "id": "labeo-kontius",
       "scientificName": "Labeo kontius",
       "commonName": "Labeo kontius",
-      "aliases": [],
+      "aliases": [
+        "pigmouth carp"
+      ],
       "summary": "A carp documented among the survey’s Cauvery-system endemics.",
+      "facts": {
+        "maxLengthCm": 61,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: Cauvery river system in Tamil Nadu and Karnataka, India.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-10-03",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-kontius"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -197,8 +368,25 @@
       "id": "hemibagrus-punctatus",
       "scientificName": "Hemibagrus punctatus",
       "commonName": "Hemibagrus punctatus",
-      "aliases": [],
+      "aliases": [
+        "Nilgiri mystus"
+      ],
       "summary": "A catfish included among the Cauvery-system endemics.",
+      "facts": {
+        "maxLengthCm": 45,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; demersal",
+        "distribution": "Asia: Cauvery river drainage in southern India.",
+        "conservation": {
+          "code": "CR",
+          "label": "Critically Endangered",
+          "assessed": "2010-06-27",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hemibagrus-punctatus"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -219,6 +407,21 @@
       "commonName": "Glyptothorax poonaensis",
       "aliases": [],
       "summary": "A sisorid catfish for which the Krishna study reports a range extension.",
+      "facts": {
+        "maxLengthCm": 8,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Mula Mutha river at Pune, Maharashtra, India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-08-22",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-glyptothorax-poonaensis"
+      },
       "associations": [
         {
           "riverId": "krishna",
@@ -238,9 +441,25 @@
       "scientificName": "Badis badis",
       "commonName": "Blue perch",
       "aliases": [
-        "Chameleon fish"
+        "Chameleon fish",
+        "Blue badis"
       ],
       "summary": "A freshwater fish recorded in tributary streams of the Godavari basin.",
+      "facts": {
+        "maxLengthCm": 7.1,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Ganges River drainage in India, Bangladesh and Nepal, from Himachal Pradesh (Yamuna River) to the estuary; also the Mahanadi drainage and Assam lowlands near the Brahmaputra.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-26",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-badis-badis"
+      },
       "associations": [
         {
           "riverId": "godavari",
@@ -261,6 +480,21 @@
       "commonName": "Badis blosyrus",
       "aliases": [],
       "summary": "A valid badid species whose catalog distribution includes the upper Brahmaputra drainage in northeastern India.",
+      "facts": {
+        "maxLengthCm": 4.2,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-26",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-badis-blosyrus"
+      },
       "associations": [
         {
           "riverId": "brahmaputra",
@@ -281,6 +515,21 @@
       "commonName": "Dawkinsia rubrotinctus",
       "aliases": [],
       "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "facts": {
+        "maxLengthCm": 8.6,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Cauvery and its tributaries across Karnataka, Kerala and Tamil Nadu, India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-dawkinsia-rubrotinctus"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -299,8 +548,26 @@
       "id": "hypselobarbus-dubius",
       "scientificName": "Hypselobarbus dubius",
       "commonName": "Hypselobarbus dubius",
-      "aliases": [],
+      "aliases": [
+        "Nilgiris barb",
+        "cock fish"
+      ],
       "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "facts": {
+        "maxLengthCm": 25,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-06-21",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hypselobarbus-dubius"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -319,8 +586,25 @@
       "id": "hypselobarbus-micropogon",
       "scientificName": "Hypselobarbus micropogon",
       "commonName": "Hypselobarbus micropogon",
-      "aliases": [],
+      "aliases": [
+        "Korhi barb"
+      ],
       "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "facts": {
+        "maxLengthCm": 90,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: headwaters of the Cauvery in the Nilgiris, Wayanad and Karnataka, India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2021-03-06",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hypselobarbus-micropogon"
+      },
       "associations": [
         {
           "riverId": "cauvery",
@@ -341,6 +625,21 @@
       "commonName": "Kantaka brevidorsalis",
       "aliases": [],
       "summary": "Listed among the Cauvery-system endemic freshwater fishes in the sanctuary survey.",
+      "facts": {
+        "maxLengthCm": 15,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: endemic to India.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-08-10",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-kantaka-brevidorsalis"
+      },
       "associations": [
         {
           "riverId": "cauvery",
