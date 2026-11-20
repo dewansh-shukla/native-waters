@@ -1,17 +1,20 @@
 import Image from 'next/image';
+import { atlasImage, imageKindLabel } from '@/lib/atlasImages';
 import styles from './SpeciesPlate.module.css';
 
-const PLATES: Record<string, { file: string; alt: string; caption: string; width: number; height: number }> = {
-  'labeo-rohita': { file: 'labeo-rohita-1807-1822-print-iconographia-zoologica.jpg', alt: 'Historical drawing catalogued as Labeo rohita in Iconographia Zoologica', caption: 'Rohu, an archival drawing from 1807–1822. Not a modern identification photograph.', width: 1920, height: 1467 },
-  'labeo-calbasu': { file: 'labeo-calbasu-day-mintern-126.jpg', alt: 'Historical plate labelled Labeo calbasu by Day and Mintern', caption: 'Labeo calbasu, an 1878 plate. Original naming retained; identity needs taxonomic review.', width: 1726, height: 973 },
-  'dawkinsia-arulius': { file: 'barbus-arulius-mintern-142.jpg', alt: 'Historical plate labelled Barbus arulius, showing the fish in profile', caption: 'Barbus arulius, an 1878 plate. Original naming retained; identity needs taxonomic review.', width: 1455, height: 789 },
-};
-
 export function SpeciesPlate({ id, compact = false }: { id: string; compact?: boolean }) {
-  const plate = PLATES[id];
+  const plate = atlasImage(id);
   if (!plate) return null;
-  return <figure className={`${styles.plate} ${compact ? styles.compact : ''}`}>
-    <Image src={`/atlas/${plate.file}`} alt={plate.alt} width={plate.width} height={plate.height} loading={compact ? 'lazy' : 'eager'} fetchPriority={compact ? undefined : 'high'} sizes={compact ? '(max-width: 700px) 90vw, 33vw' : '(max-width: 900px) 90vw, 60vw'} />
-    <figcaption>{plate.caption}</figcaption>
+  const kindClass = plate.kind === 'photograph' ? styles.photograph : '';
+  return <figure className={`${styles.plate} ${kindClass} ${compact ? styles.compact : ''}`.trim()}>
+    <Image src={plate.file} alt={plate.alt} width={plate.width} height={plate.height} loading={compact ? 'lazy' : 'eager'} fetchPriority={compact ? undefined : 'high'} sizes={compact ? '(max-width: 700px) 90vw, 33vw' : '(max-width: 900px) 90vw, 60vw'} />
+    <figcaption>
+      <span className={styles.caption}>{plate.caption}</span>
+      <span className={styles.credit}>
+        {imageKindLabel(plate)}: {plate.creator ?? 'creator not recorded'}, {plate.dateLabel}.{' '}
+        <a href={plate.licenseUrl} rel="license">{plate.license}</a>{' '}
+        <a href={plate.page}>Source file</a>.
+      </span>
+    </figcaption>
   </figure>;
 }

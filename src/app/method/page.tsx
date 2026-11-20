@@ -52,6 +52,9 @@ export default function MethodPage() {
       <h2>Conservation categories</h2>
       <p>Red List categories come from the IUCN Red List as mirrored by FishBase (version 2025-2) and are cited on each species page. A category is a global extinction-risk assessment: it is not a local population count, and Not Evaluated is not a finding of safety.</p>
 
+      <h2>Images</h2>
+      <p>Species images come from Wikimedia Commons and are either photographs of live fish or nineteenth-century plates. Each caption names the creator, the date and the licence, and links to the source file; the footer and the <a href="/atlas/credits.json">machine-readable credit record</a> list every image used. Where no suitably licensed image exists, a record shows none rather than a stand-in. Some originals carry a photographer’s watermark, which we keep rather than edit.</p>
+
       <h2>Citations and review</h2>
       <p>Names follow the cited publications; further taxonomic review may change names or distribution limits.</p>
     </main><SiteFooter /></div>

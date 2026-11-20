@@ -23,8 +23,10 @@ describe('reference routing', () => {
   it('publishes only canonical routes and every catalog record in the sitemap', () => {
     const urls = sitemap().map(entry => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
-    expect(urls).toHaveLength(23);
-    expect(urls.some(url => url.includes('/experience'))).toBe(false);
+    expect(urls).toHaveLength(24);
+    expect(urls.some(url => url.includes('/experience/ganga'))).toBe(false);
+    expect(urls.some(url => url.includes('/experience/godavari'))).toBe(false);
+    expect(urls.some(url => url.includes('/experience/brahmaputra'))).toBe(false);
     expect(urls.filter(url => url.includes('/basins/'))).toHaveLength(5);
     expect(urls.filter(url => url.includes('/species/'))).toHaveLength(13);
     for (const river of catalog.rivers) expect(urls).toContain(`https://www.discovernativewaters.com/basins/${river.id}`);
@@ -42,14 +44,17 @@ describe('reference routing', () => {
     expect(gated.robots).toEqual({ index: false, follow: true });
     expect(referenceMetadata('Cauvery', 'Basin reference', '/basins/cauvery').robots).toBeUndefined();
   });
-  it('marks all four experience pages noindex, follow', async () => {
+  it('marks the three river experience pages noindex, follow', async () => {
     const pages = await Promise.all([
-      import('@/app/experience/page'),
       import('@/app/experience/ganga/page'),
       import('@/app/experience/godavari/page'),
       import('@/app/experience/brahmaputra/page'),
     ]);
-    expect(pages).toHaveLength(4);
+    expect(pages).toHaveLength(3);
     for (const page of pages) expect(page.metadata.robots).toEqual({ index: false, follow: true });
+  });
+  it('indexes the main experience page', async () => {
+    const page = await import('@/app/experience/page');
+    expect(page.metadata.robots).toBeUndefined();
   });
 });

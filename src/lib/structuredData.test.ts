@@ -208,4 +208,24 @@ describe('structured data', () => {
       ]),
     );
   });
+
+  it('credits the taxon image with its licence and source page', () => {
+    const image = taxonSchema(species).image as {
+      '@type': string; contentUrl: string; license: string; creditText: string;
+      acquireLicensePage: string; width: number; height: number; encodingFormat: string;
+    };
+    expect(image['@type']).toBe('ImageObject');
+    expect(image.contentUrl).toBe(`${SITE_ORIGIN}/atlas/labeo-rohita-griesbach-plate.jpg`);
+    expect(image.license).toBe('https://creativecommons.org/publicdomain/mark/1.0/');
+    expect(image.acquireLicensePage).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+    expect(image.encodingFormat).toBe('image/jpeg');
+    expect(image.width).toBe(1920);
+    expect(image.height).toBe(687);
+    expect(image.creditText).toBe('Archival plate: C.L. Griesbach');
+  });
+
+  it('omits the image node when no licensed image exists', () => {
+    const unillustrated = catalog.species.find(entry => entry.id === 'glyptothorax-poonaensis')!;
+    expect(taxonSchema(unillustrated)).not.toHaveProperty('image');
+  });
 });

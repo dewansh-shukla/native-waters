@@ -2,6 +2,7 @@ import { freshwaterCatalog } from './catalog';
 import type { River, Species } from './catalog';
 import { CONTENT_UPDATED_AT, SITE_NAME, SITE_ORIGIN } from './reference';
 import { RIVER_EXTERNAL_IDS, SPECIES_EXTERNAL_IDS } from './externalIds';
+import { atlasImage, imageKindLabel } from './atlasImages';
 
 type Schema = Record<string, unknown>;
 export type Crumb = { name: string; path: string };
@@ -108,6 +109,20 @@ export function taxonSchema(species: Species): Schema {
   if (ids?.wikidata) identifiers.push({ '@type': 'PropertyValue', propertyID: 'Wikidata', value: ids.wikidata });
   if (ids?.fishbase) identifiers.push({ '@type': 'PropertyValue', propertyID: 'FishBase', value: ids.fishbase });
   if (identifiers.length > 0) schema.identifier = identifiers;
+  const image = atlasImage(species.id);
+  if (image) {
+    schema.image = {
+      '@type': 'ImageObject',
+      contentUrl: absolute(image.file),
+      width: image.width,
+      height: image.height,
+      encodingFormat: image.file.endsWith('.png') ? 'image/png' : 'image/jpeg',
+      caption: image.caption,
+      creditText: image.creator ? `${imageKindLabel(image)}: ${image.creator}` : imageKindLabel(image),
+      license: image.licenseUrl,
+      acquireLicensePage: image.page,
+    };
+  }
   return schema;
 }
 
