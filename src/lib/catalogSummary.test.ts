@@ -13,6 +13,23 @@ describe('catalog summary', () => {
     expect(roster.species.map(s => s.id)).toContain('tor-remadevii');
   });
 
+  it('counts Krishna basin endemics from the Sangli survey separately', () => {
+    const roster = basinRoster('krishna');
+    expect(roster.total).toBe(7);
+    expect(roster.native).toBe(7);
+    expect(roster.endemic).toBe(2);
+    expect(roster.uncertain).toBe(0);
+    expect(roster.evidencePeriods).toEqual(['June 2009–July 2012', '2013–2017']);
+  });
+
+  it.each([
+    ['ganga', 4],
+    ['brahmaputra', 3],
+    ['godavari', 3],
+  ])('counts new records in the %s basin', (riverId, total) => {
+    expect(basinRoster(riverId).total).toBe(total);
+  });
+
   it('writes a factual sentence from the roster', () => {
     const sentence = basinSummarySentence(catalog.rivers.find(r => r.id === 'cauvery')!, basinRoster('cauvery'));
     expect(sentence).toContain('16 sourced species records');

@@ -73,6 +73,24 @@ describe('atlas images', () => {
     expect(atlasImage('oryzias-carnaticus')).toBeUndefined();
   });
 
+  it('uses the verified zebra loach photograph and leaves other new Krishna taxa unillustrated', () => {
+    expect(atlasImage('botia-striata')?.kind).toBe('photograph');
+    expect(atlasImage('schismatorhynchos-nukta')).toBeUndefined();
+    expect(atlasImage('hypselobarbus-mussullah')).toBeUndefined();
+    expect(atlasImage('labeo-potail')).toBeUndefined();
+    expect(atlasImage('parapsilorhynchus-discophorus')).toBeUndefined();
+    expect(atlasImage('garra-bicornuta')).toBeUndefined();
+  });
+
+  it('maps only verified species-matched images for the final six records', () => {
+    expect(atlasImage('tor-putitora')?.kind).toBe('photograph');
+    expect(atlasImage('clupisoma-garua')?.kind).toBe('photograph');
+    expect(atlasImage('mastacembelus-armatus')?.kind).toBe('photograph');
+    expect(atlasImage('garra-arupi')).toBeUndefined();
+    expect(atlasImage('rita-bakalu')).toBeUndefined();
+    expect(atlasImage('corica-soborna')).toBeUndefined();
+  });
+
   it('states the year when the source records a full date', () => {
     expect(atlasImage('tor-remadevii')?.dateLabel).toBe('2016');
     expect(atlasImage('labeo-rohita')?.dateLabel).toBe('1878');

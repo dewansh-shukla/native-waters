@@ -44,27 +44,36 @@ describe('conservation facts', () => {
     expect(summary.threatened).toBe(summary.criticallyEndangered + summary.endangered + summary.vulnerable);
     expect(summary.threatened + summary.nearThreatened + summary.leastConcern + summary.dataDeficient + summary.notEvaluated).toBe(summary.total);
     expect(summary.criticallyEndangered).toBe(2);
-    expect(summary.endangered).toBe(5);
-    expect(summary.vulnerable).toBe(2);
-    expect(summary.notEvaluated).toBe(3);
-    expect(summary.threatened).toBe(9);
+    expect(summary.endangered).toBe(10);
+    expect(summary.vulnerable).toBe(3);
+    expect(summary.nearThreatened).toBe(1);
+    expect(summary.dataDeficient).toBe(1);
+    expect(summary.leastConcern).toBe(12);
+    expect(summary.notEvaluated).toBe(4);
+    expect(summary.threatened).toBe(15);
   });
 
   it('orders threatened species by severity, then name', () => {
     const threatened = threatenedSpecies();
     expect(threatened.every(isThreatened)).toBe(true);
     expect(threatened.map(species => species.facts.conservation.code)).toEqual([
-      'CR', 'CR', 'EN', 'EN', 'EN', 'EN', 'EN', 'VU', 'VU',
+      'CR', 'CR', 'EN', 'EN', 'EN', 'EN', 'EN', 'EN', 'EN', 'EN', 'EN', 'EN', 'VU', 'VU', 'VU',
     ]);
   });
 
   it('labels Not Evaluated as unassessed rather than safe', () => {
     const unassessed = speciesByStatus('NE');
     expect(unassessed.map(species => species.id)).toEqual([
-      'dawkinsia-rubrotinctus', 'macrognathus-malabaricus', 'channa-pseudomarulius',
+      'dawkinsia-rubrotinctus', 'garra-arupi', 'macrognathus-malabaricus', 'channa-pseudomarulius',
     ]);
     expect(conservationSentence(unassessed[0])).toContain('has not been assessed');
     expect(formatAssessed(unassessed[0].facts.conservation.assessed)).toBe('Not assessed');
+  });
+
+  it('keeps Data Deficient distinct from Not Evaluated', () => {
+    const dataDeficient = speciesByStatus('DD');
+    expect(dataDeficient.map(species => species.id)).toEqual(['rita-bakalu']);
+    expect(dataDeficient[0].facts.conservation.assessed).toBe('2020-09-19');
   });
 
   it('spells out length types and sizes', () => {

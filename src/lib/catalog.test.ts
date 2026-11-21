@@ -3,9 +3,9 @@ import { freshwaterCatalog, validateCatalog, type Catalog } from './catalog';
 const copy = (): Catalog => structuredClone(freshwaterCatalog);
 
 describe('freshwater catalog evidence', () => {
-  it('publishes five rivers and twenty-one species separately from illustrative fixtures', () => {
+  it('publishes five rivers and thirty-three species separately from illustrative fixtures', () => {
     expect(freshwaterCatalog.rivers).toHaveLength(5);
-    expect(freshwaterCatalog.species).toHaveLength(21);
+    expect(freshwaterCatalog.species).toHaveLength(33);
     expect(freshwaterCatalog.species.some(s => s.id.includes('parrot'))).toBe(false);
   });
   it('includes eight newly surveyed Cauvery taxa with cited basin associations', () => {
@@ -30,6 +30,68 @@ describe('freshwater catalog evidence', () => {
         sourceIds: ['cauvery-survey'],
       }));
     }
+  });
+  it('includes six Sangli survey taxa and keeps Western Ghats endemism distinct from basin endemism', () => {
+    const expected = {
+      'botia-striata': true,
+      'schismatorhynchos-nukta': false,
+      'hypselobarbus-mussullah': false,
+      'labeo-potail': false,
+      'parapsilorhynchus-discophorus': false,
+      'garra-bicornuta': true,
+    };
+    const additions = freshwaterCatalog.species.filter(s => Object.hasOwn(expected, s.id));
+    expect(additions.map(s => s.id).sort()).toEqual(Object.keys(expected).sort());
+    for (const species of additions) {
+      expect(species.associations).toContainEqual(expect.objectContaining({
+        riverId: 'krishna',
+        status: 'native',
+        basinEndemic: expected[species.id as keyof typeof expected],
+        sourceIds: ['krishna-fish-survey'],
+      }));
+    }
+    expect(freshwaterCatalog.species.find(s => s.id === 'schismatorhynchos-nukta')?.aliases).toContain('Bangana nukta');
+  });
+  it('includes the six planned Ganga, Brahmaputra and Godavari records with basin-specific evidence', () => {
+    const expected = {
+      'tor-putitora': { riverId: 'ganga', status: 'native', sourceIds: ['ganga-fish-review'] },
+      'clupisoma-garua': { riverId: 'ganga', status: 'native', sourceIds: ['ganga-fish-review'] },
+      'garra-arupi': { riverId: 'brahmaputra', status: 'native', sourceIds: ['brahmaputra-fish-survey', 'fishbase-garra-arupi'] },
+      'mastacembelus-armatus': { riverId: 'brahmaputra', status: 'native', sourceIds: ['brahmaputra-fish-survey', 'fishbase-mastacembelus-armatus'] },
+      'rita-bakalu': { riverId: 'godavari', status: 'native', sourceIds: ['godavari-rita-description'] },
+      'corica-soborna': { riverId: 'godavari', status: 'uncertain', sourceIds: ['godavari-corica-record'] },
+    } as const;
+    const additions = freshwaterCatalog.species.filter(s => Object.hasOwn(expected, s.id));
+    expect(additions.map(s => s.id).sort()).toEqual(Object.keys(expected).sort());
+    for (const species of additions) {
+      expect(species.associations).toContainEqual(expect.objectContaining({
+        riverId: expected[species.id as keyof typeof expected].riverId,
+        status: expected[species.id as keyof typeof expected].status,
+        basinEndemic: false,
+        sourceIds: expected[species.id as keyof typeof expected].sourceIds,
+      }));
+      if (expected[species.id as keyof typeof expected].riverId === 'brahmaputra') {
+        const association = species.associations.find(entry => entry.riverId === 'brahmaputra')!;
+        expect(association.locality).toContain('species-level stream not specified');
+      }
+    }
+  });
+  it('updates basin summaries and scope for the newly cited reaches', () => {
+    const ganga = freshwaterCatalog.rivers.find(r => r.id === 'ganga')!;
+    const brahmaputra = freshwaterCatalog.rivers.find(r => r.id === 'brahmaputra')!;
+    const krishna = freshwaterCatalog.rivers.find(r => r.id === 'krishna')!;
+    const godavari = freshwaterCatalog.rivers.find(r => r.id === 'godavari')!;
+    expect(ganga.summary).toContain('upper, middle and lower Ganga zones');
+    expect(ganga.scope).toContain('literature review');
+    expect(ganga.sourceIds).toContain('ganga-fish-review');
+    expect(brahmaputra.scope).toContain('Siang and Dibang');
+    expect(brahmaputra.scope).toContain('five sampled localities');
+    expect(brahmaputra.sourceIds).toContain('brahmaputra-fish-survey');
+    expect(krishna.scope).toContain('2013–2017');
+    expect(krishna.sourceIds).toContain('krishna-fish-survey');
+    expect(godavari.summary).toContain('Pranahita');
+    expect(godavari.scope).toContain('Talai Village');
+    expect(godavari.sourceIds).toEqual(expect.arrayContaining(['godavari-rita-description', 'godavari-corica-record']));
   });
   it('does not treat Indian-native as native to every basin', () => {
     const rohu = freshwaterCatalog.species.find(s => s.id === 'labeo-rohita')!;

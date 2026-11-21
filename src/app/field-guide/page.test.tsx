@@ -22,7 +22,9 @@ describe('crawlable freshwater guide', () => {
         expect(article).toHaveTextContent(a.note);
         for (const id of a.sourceIds) {
           const source = catalog.sources.find(s => s.id === id)!;
-          expect(within(article).getByRole('link', { name: source.title })).toHaveAttribute('href', source.url);
+          const citationLinks = within(article).getAllByRole('link', { name: source.title });
+          expect(citationLinks.length).toBeGreaterThan(0);
+          expect(citationLinks.every(link => link.getAttribute('href') === source.url)).toBe(true);
         }
       }
     }
