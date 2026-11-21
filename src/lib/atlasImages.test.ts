@@ -62,6 +62,17 @@ describe('atlas images', () => {
     expect(atlasImage('not-a-species')).toBeUndefined();
   });
 
+  it('uses species-matched, licensed visuals for the new Cauvery records where available', () => {
+    expect(atlasImage('silonia-childreni')?.kind).toBe('plate');
+    expect(atlasImage('hyporhamphus-xanthopterus')?.kind).toBe('photograph');
+    expect(atlasImage('wallago-attu')?.kind).toBe('photograph');
+    expect(atlasImage('opsarius-gatensis')).toBeUndefined();
+    expect(atlasImage('labeo-dyocheilus')).toBeUndefined();
+    expect(atlasImage('channa-pseudomarulius')).toBeUndefined();
+    expect(atlasImage('macrognathus-malabaricus')).toBeUndefined();
+    expect(atlasImage('oryzias-carnaticus')).toBeUndefined();
+  });
+
   it('states the year when the source records a full date', () => {
     expect(atlasImage('tor-remadevii')?.dateLabel).toBe('2016');
     expect(atlasImage('labeo-rohita')?.dateLabel).toBe('1878');

@@ -3,10 +3,33 @@ import { freshwaterCatalog, validateCatalog, type Catalog } from './catalog';
 const copy = (): Catalog => structuredClone(freshwaterCatalog);
 
 describe('freshwater catalog evidence', () => {
-  it('publishes five rivers and thirteen species separately from illustrative fixtures', () => {
+  it('publishes five rivers and twenty-one species separately from illustrative fixtures', () => {
     expect(freshwaterCatalog.rivers).toHaveLength(5);
-    expect(freshwaterCatalog.species).toHaveLength(13);
+    expect(freshwaterCatalog.species).toHaveLength(21);
     expect(freshwaterCatalog.species.some(s => s.id.includes('parrot'))).toBe(false);
+  });
+  it('includes eight newly surveyed Cauvery taxa with cited basin associations', () => {
+    const expectedIds = [
+      'silonia-childreni',
+      'hyporhamphus-xanthopterus',
+      'wallago-attu',
+      'opsarius-gatensis',
+      'channa-pseudomarulius',
+      'labeo-dyocheilus',
+      'macrognathus-malabaricus',
+      'oryzias-carnaticus',
+    ];
+    const additions = freshwaterCatalog.species.filter(s => expectedIds.includes(s.id));
+    expect(additions.map(s => s.id).sort()).toEqual([...expectedIds].sort());
+    for (const species of additions) {
+      const association = species.associations.find(entry => entry.riverId === 'cauvery');
+      expect(association).toEqual(expect.objectContaining({
+        riverId: 'cauvery',
+        status: species.id === 'oryzias-carnaticus' ? 'uncertain' : 'native',
+        basinEndemic: false,
+        sourceIds: ['cauvery-survey'],
+      }));
+    }
   });
   it('does not treat Indian-native as native to every basin', () => {
     const rohu = freshwaterCatalog.species.find(s => s.id === 'labeo-rohita')!;

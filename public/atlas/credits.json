@@ -297,6 +297,80 @@
   "notes": [
    "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
   ],
-  "saved": "2026-11-16T21:03:04.353Z"
- }
+   "saved": "2026-11-16T21:03:04.353Z"
+  },
+  {
+   "file": "/atlas/silonia-childreni-sykes.jpg",
+   "media": "image",
+   "ref": "commons:39299451",
+   "title": "Silonia childreni Sykes",
+   "creator": "J. Swaine",
+   "creatorUrl": null,
+   "date": "1839",
+   "license": "public domain",
+   "licenseCode": "pd",
+   "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+   "creditRequired": false,
+   "page": "https://commons.wikimedia.org/wiki/File:Silonia_childreni_Sykes.jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Silonia_childreni_Sykes.jpg/1280px-Silonia_childreni_Sykes.jpg",
+   "width": 1280,
+   "height": 632,
+   "bytes": 73757,
+   "credit": "\"Silonia childreni Sykes\" by J. Swaine, public domain, via Wikimedia Commons",
+   "notes": [
+    "Illustration from Transactions of the Zoological Society of London, volume 2 (1839).",
+    "Archival illustration, not a modern photograph."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  },
+  {
+   "file": "/atlas/hyporhamphus-xanthopterus-siva-naturewild.jpg",
+   "media": "image",
+   "ref": "commons:167252437",
+   "title": "Red-tipped Halfbeak",
+   "creator": "Siva Naturewild",
+   "creatorUrl": "https://www.inaturalist.org/people/sivanaturewild",
+   "date": "2022-08",
+   "license": "CC BY 4.0",
+   "licenseCode": "by",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Red-tipped_Halfbeak.jpg",
+   "via": "Wikimedia Commons (from iNaturalist)",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Red-tipped_Halfbeak.jpg/500px-Red-tipped_Halfbeak.jpg",
+   "width": 500,
+   "height": 889,
+   "bytes": 96674,
+   "credit": "\"Red-tipped Halfbeak\" by Siva Naturewild, CC BY 4.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in hand; this is not a depiction of the fish in its habitat.",
+    "The source obscures the observation location at 31.2 km accuracy."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  },
+  {
+   "file": "/atlas/wallago-attu-rejoice-gassah.jpg",
+   "media": "image",
+   "ref": "commons:126737830",
+   "title": "Wallago attu 71095517",
+   "creator": "Rejoice Gassah",
+   "creatorUrl": "https://www.inaturalist.org/users/506512",
+   "date": "2019-11-08",
+   "license": "CC BY 4.0",
+   "licenseCode": "by",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Wallago_attu_71095517.jpg",
+   "via": "Wikimedia Commons (from iNaturalist)",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Wallago_attu_71095517.jpg/1280px-Wallago_attu_71095517.jpg",
+   "width": 1280,
+   "height": 798,
+   "bytes": 299589,
+   "credit": "\"Wallago attu 71095517\" by Rejoice Gassah, CC BY 4.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in hand; this is not a depiction of the fish in its habitat."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  }
 ]

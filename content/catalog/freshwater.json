@@ -125,6 +125,62 @@
       "url": "https://www.fishbase.se/summary/Kantaka-brevidorsalis.html",
       "published": null,
       "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-silonia-childreni",
+      "title": "FishBase — Silonia childreni",
+      "url": "https://www.fishbase.se/summary/Silonia-childreni.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-hyporhamphus-xanthopterus",
+      "title": "FishBase — Hyporhamphus xanthopterus",
+      "url": "https://www.fishbase.se/summary/Hyporhamphus-xanthopterus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-wallago-attu",
+      "title": "FishBase — Wallago attu",
+      "url": "https://www.fishbase.se/summary/Wallago-attu.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-opsarius-gatensis",
+      "title": "FishBase — Opsarius gatensis",
+      "url": "https://www.fishbase.se/summary/Opsarius-gatensis.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-channa-pseudomarulius",
+      "title": "FishBase — Channa pseudomarulius",
+      "url": "https://www.fishbase.se/summary/Channa-pseudomarulius.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-labeo-dyocheilus",
+      "title": "FishBase — Labeo dyocheilus",
+      "url": "https://www.fishbase.se/summary/Labeo-dyocheilus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-macrognathus-malabaricus",
+      "title": "FishBase — Macrognathus malabaricus",
+      "url": "https://www.fishbase.se/summary/Macrognathus-malabaricus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-oryzias-carnaticus",
+      "title": "FishBase — Oryzias carnaticus",
+      "url": "https://www.fishbase.se/summary/Oryzias-carnaticus.html",
+      "published": null,
+      "accessed": "2026-11-21"
     }
   ],
   "rivers": [
@@ -651,6 +707,270 @@
             "cauvery-survey"
           ],
           "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
+        }
+      ]
+    },
+    {
+      "id": "silonia-childreni",
+      "scientificName": "Silonia childreni",
+      "commonName": "Silonia childreni",
+      "aliases": [],
+      "summary": "FishBase records Silonia childreni as a demersal, potamodromous freshwater catfish; the Cauvery sanctuary inventory also records the species.",
+      "facts": {
+        "maxLengthCm": 48,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; demersal; potamodromous",
+        "distribution": "Asia: Krishna, Godavari and Cauvery river systems in the Western Ghats of peninsular India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-10-14",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-silonia-childreni"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "hyporhamphus-xanthopterus",
+      "scientificName": "Hyporhamphus xanthopterus",
+      "commonName": "Red-tipped halfbeak",
+      "aliases": [],
+      "summary": "FishBase lists the red-tipped halfbeak from Kerala and across marine, brackish and freshwater environments; it also appears in the Cauvery sanctuary inventory.",
+      "facts": {
+        "maxLengthCm": 29.6,
+        "lengthType": "TL",
+        "maxWeightKg": 0.074,
+        "environment": "Marine; freshwater; brackish; pelagic-neritic",
+        "distribution": "Western Indian Ocean: Kerala, India.",
+        "conservation": {
+          "code": "VU",
+          "label": "Vulnerable",
+          "assessed": "2010-10-14",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hyporhamphus-xanthopterus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "wallago-attu",
+      "scientificName": "Wallago attu",
+      "commonName": "Wallago",
+      "aliases": [],
+      "summary": "FishBase describes Wallago attu as a large, elongated freshwater and brackish-water catfish; the Cauvery survey records it in the sanctuary.",
+      "facts": {
+        "maxLengthCm": 240,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; demersal; potamodromous",
+        "distribution": "Asia: Pakistan to Viet Nam and Indonesia; also reported from Afghanistan.",
+        "conservation": {
+          "code": "VU",
+          "label": "Vulnerable",
+          "assessed": "2019-08-12",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-wallago-attu"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "opsarius-gatensis",
+      "scientificName": "Opsarius gatensis",
+      "commonName": "Malabar baril",
+      "aliases": [],
+      "summary": "The Cauvery survey names Opsarius gatensis as a Western Ghats endemic. FishBase describes it from clear hill streams with gravelly or rocky bottoms.",
+      "facts": {
+        "maxLengthCm": 15,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Western Ghats, India.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-06-29",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-opsarius-gatensis"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. Its sanctuary record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "channa-pseudomarulius",
+      "scientificName": "Channa pseudomarulius",
+      "commonName": "Orangespotted snakehead",
+      "aliases": [],
+      "summary": "FishBase places Channa pseudomarulius in the southern Western Ghats and lists it as Not Evaluated; the Cauvery survey marks it as a Western Ghats endemic.",
+      "facts": {
+        "maxLengthCm": 57.8,
+        "lengthType": "TL",
+        "maxWeightKg": 1.4,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Southern Western Ghats, peninsular India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-channa-pseudomarulius"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. Its sanctuary record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "labeo-dyocheilus",
+      "scientificName": "Labeo dyocheilus",
+      "commonName": "Brahmaputra labeo",
+      "aliases": [],
+      "summary": "FishBase describes adult Labeo dyocheilus in clear, active currents of large rivers and gives it a broad South Asian range; the Cauvery survey also records the species.",
+      "facts": {
+        "maxLengthCm": 90,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: Pakistan, India, Bangladesh and Nepal; also recorded in the Maeklong, Salween, Chao Phraya and Mekong basins.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-18",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-dyocheilus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The table does not mark this species as Cauvery-endemic. The record is historical and site-specific."
+        }
+      ]
+    },
+    {
+      "id": "macrognathus-malabaricus",
+      "scientificName": "Macrognathus malabaricus",
+      "commonName": "Malabar spiny eel",
+      "aliases": ["Mastacembelus malabaricus"],
+      "summary": "The Cauvery survey’s figure caption calls Macrognathus malabaricus the Malabar spiny eel; FishBase describes it from coastal rivers, streams, inundated ponds and paddy fields.",
+      "facts": {
+        "maxLengthCm": 26,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-macrognathus-malabaricus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "oryzias-carnaticus",
+      "scientificName": "Oryzias carnaticus",
+      "commonName": "Spotted ricefish",
+      "aliases": [],
+      "summary": "FishBase reports the spotted ricefish from eastern India and Bangladesh and notes fresh and brackish coastal habitats; the Cauvery survey records it at the sanctuary, but its native status there is unresolved.",
+      "facts": {
+        "maxLengthCm": 3,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; benthopelagic",
+        "distribution": "Asia: eastern India and Bangladesh.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2019-08-11",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-oryzias-carnaticus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "uncertain",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey records this species at the sanctuary, while the FishBase distribution summary available here gives eastern India and Bangladesh. Occurrence is documented, but the cited records do not settle native origin in the Cauvery."
         }
       ]
     }
