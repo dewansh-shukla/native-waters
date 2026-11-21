@@ -131,6 +131,10 @@ export default function ConservationPage() {
       answer: `Categories were read from FishBase's mirror of the IUCN Red List, version ${version}, on 20 November 2026. The underlying assessments date from ${formatAssessed(firstAssessment)} to ${formatAssessed(lastAssessment)}.`,
     },
     {
+      question: 'Why are so many threatened records from the Cauvery basin?',
+      answer: `Eight of the ${summary.total} records in this guide come from the Cauvery basin, and most of the threatened ones are basin-endemic. A small natural range is one of the criteria the IUCN Red List uses to classify a species as threatened, so fish found in a single basin are more likely to qualify.`,
+    },
+    {
       question: 'Does a basin record mean the species is threatened in that river?',
       answer: 'No. The basin association describes where the species is recorded in the cited survey. The Red List category is a global assessment of extinction risk and is not measured per river.',
     },
@@ -154,6 +158,7 @@ export default function ConservationPage() {
       <Breadcrumbs items={CRUMBS} />
       <h1>Conservation status of Indian freshwater fish</h1>
       <p className="atlas-summary" data-speakable>{headline}</p>
+      <p>Each category is a global extinction-risk assessment from the IUCN Red List. The basin shown is where this guide records the species, drawn from a separate published survey. {cauveryThreatened} of the {summary.threatened} threatened records come from the <Link href="/basins/cauvery">Cauvery basin</Link>.</p>
 
       <div className={styles.stats}>
         <div className={styles.stat}><span className={styles.statValue}>{summary.criticallyEndangered}</span><span className={styles.statLabel}>Critically Endangered</span></div>
