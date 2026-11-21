@@ -6,6 +6,7 @@ import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { loadPipelineFixture } from '@/lib/content';
 import { getRiver, referenceMetadata, SITE_ORIGIN, CONTENT_UPDATED_AT } from '@/lib/reference';
 import { basinRoster, basinSummarySentence } from '@/lib/catalogSummary';
+import { isThreatened } from '@/lib/conservation';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Breadcrumbs } from '@/components/reference/Breadcrumbs';
 import { bodyOfWaterSchema, breadcrumbSchema, articleSchema } from '@/lib/structuredData';
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function BasinPage({ params }: Props) {
   const river = getRiver((await params).slug);
   const species = catalog.species.filter(s => s.associations.some(a => a.riverId === river.id));
+  const threatenedCount = species.filter(s => isThreatened(s)).length;
   const crumbs: Crumb[] = [{ name: 'Home', path: '/' }, { name: 'Field guide', path: '/field-guide' }, { name: river.name, path: `/basins/${river.id}` }];
   const point = RIVER_LABELS.find(label => label.name === river.name)?.point;
   const roster = basinRoster(river.id);
@@ -40,6 +42,10 @@ export default async function BasinPage({ params }: Props) {
       <p>The {river.name} basin record in this guide covers {roster.total} species: {roster.native} recorded as native, {roster.introduced} as introduced, {roster.uncertain} with uncertain native status, and {roster.endemic} as basin-endemic. These counts come from the cited associations; they are not a complete basin checklist.</p>
       <p>Read the <Link href={`/field-guide#${river.id}`}>full {river.name} entries in the field guide</Link>, or browse the individual records below.</p>
     </section>
+    <section aria-labelledby='basin-conservation'>
+      <h2 id='basin-conservation'>Conservation in this basin</h2>
+      <p>Of the {roster.total} records in this guide, {threatenedCount === 0 ? 'none fall' : threatenedCount === 1 ? 'one falls' : `${threatenedCount} fall`} in a threatened IUCN Red List category. The category is a global extinction-risk assessment, not a measure of abundance in this river. See the <Link href="/conservation">conservation overview</Link> for every species, or the <Link href="/method">method page</Link> for how records are read.</p>
+    </section>
     <section aria-labelledby='basin-questions'>
       <h2 id='basin-questions'>Questions this basin record raises</h2>
       <h3>Which fish are recorded as native to the {river.name}?</h3>
@@ -48,8 +54,9 @@ export default async function BasinPage({ params }: Props) {
       <p>No. This is a selected starting point, not a complete basin checklist. Records describe particular places and dates from cited surveys; they do not establish presence throughout the basin or current abundance.</p>
       <h3>What does basin-endemic mean in this record?</h3>
       <p>A basin-endemic species is recorded as restricted to the {river.name} basin in the cited sources. {roster.endemic === 0 ? 'No species in this record is marked basin-endemic.' : `${roster.endemic} ${roster.endemic === 1 ? 'species is' : 'species are'} marked basin-endemic.`} Endemism is a separate claim from native status.</p>
-    </section>
-    <h2 id="basin-species">Freshwater fish records</h2><p>A selected starting point, not a complete basin checklist.</p>
+      <h3>How many of the recorded species are threatened?</h3>
+      <p>{threatenedCount === 0 ? `None of the ${roster.total} records in this guide fall in a threatened IUCN Red List category.` : `${threatenedCount} of the ${roster.total} records in this guide fall in a threatened IUCN Red List category.`} The category is a global assessment, not a local population count; see the <Link href="/conservation">conservation overview</Link>.</p>
+    </section><p>A selected starting point, not a complete basin checklist.</p>
     <ul>{species.map(s => <li key={s.id}><Link href={`/species/${s.id}`}>{s.commonName}</Link>{s.commonName !== s.scientificName && <> (<i>{s.scientificName}</i>)</>}<p>{s.summary}</p></li>)}</ul>
     <EvidencePolicy />
     <h2>Explore other rivers</h2><ul>{catalog.rivers.filter(r => r.id !== river.id).map(r => <li key={r.id}><Link href={`/basins/${r.id}`}>{r.name}</Link></li>)}</ul>
