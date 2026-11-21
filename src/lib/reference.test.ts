@@ -23,12 +23,12 @@ describe('reference routing', () => {
   it('publishes only canonical routes and every catalog record in the sitemap', () => {
     const urls = sitemap().map(entry => entry.url);
     expect(new Set(urls).size).toBe(urls.length);
-    expect(urls).toHaveLength(24);
+    expect(urls).toHaveLength(44);
     expect(urls.some(url => url.includes('/experience/ganga'))).toBe(false);
     expect(urls.some(url => url.includes('/experience/godavari'))).toBe(false);
     expect(urls.some(url => url.includes('/experience/brahmaputra'))).toBe(false);
     expect(urls.filter(url => url.includes('/basins/'))).toHaveLength(5);
-    expect(urls.filter(url => url.includes('/species/'))).toHaveLength(13);
+    expect(urls.filter(url => url.includes('/species/'))).toHaveLength(33);
     for (const river of catalog.rivers) expect(urls).toContain(`https://www.discovernativewaters.com/basins/${river.id}`);
     for (const species of catalog.species) expect(urls).toContain(`https://www.discovernativewaters.com/species/${species.id}`);
     expect(urls).toContain(SITE_ORIGIN);

@@ -85,8 +85,8 @@ describe('production SEO validator', () => {
     try {
       const result = await audit(`http://127.0.0.1:${server.address().port}`);
       expect(result.passed).toBe(false);
-      expect(result.expectedPages).toBe(26);
-      expect(result.checkedRequests).toBe(31);
+      expect(result.expectedPages).toBe(46);
+      expect(result.checkedRequests).toBe(51);
       expect(result.failures).toContainEqual({ path: '/species/labeo-rohita', issue: 'Expected 200, received 503' });
       expect(result.failures).toContainEqual({ path: '/basins/__seo_unknown_basin__', issue: 'Unknown URL must return 404, received 200' });
     } finally {

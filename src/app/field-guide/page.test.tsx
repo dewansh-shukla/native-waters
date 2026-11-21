@@ -7,6 +7,16 @@ import { freshwaterCatalog as catalog } from '@/lib/catalog';
 import { SITE_ORIGIN } from '@/lib/reference';
 
 describe('crawlable freshwater guide', () => {
+  it('shows the river-and-fish tagline in the guide intro', () => {
+    render(<FieldGuide />);
+    expect(screen.getByText('Indian rivers and native freshwater fishes')).toBeVisible();
+  });
+
+  it('shows the current catalog total in the guide intro', () => {
+    render(<FieldGuide />);
+    expect(screen.getByText(new RegExp(`${catalog.species.length} sourced freshwater fish records`))).toBeVisible();
+  });
+
   it('renders every river, taxon, evidence limitation and citation as DOM text', () => {
     render(<FieldGuide />);
     for (const river of catalog.rivers) {
@@ -22,7 +32,9 @@ describe('crawlable freshwater guide', () => {
         expect(article).toHaveTextContent(a.note);
         for (const id of a.sourceIds) {
           const source = catalog.sources.find(s => s.id === id)!;
-          expect(within(article).getByRole('link', { name: source.title })).toHaveAttribute('href', source.url);
+          const citationLinks = within(article).getAllByRole('link', { name: source.title });
+          expect(citationLinks.length).toBeGreaterThan(0);
+          expect(citationLinks.every(link => link.getAttribute('href') === source.url)).toBe(true);
         }
       }
     }

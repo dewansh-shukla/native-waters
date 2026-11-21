@@ -125,6 +125,181 @@
       "url": "https://www.fishbase.se/summary/Kantaka-brevidorsalis.html",
       "published": null,
       "accessed": "2026-11-20"
+    },
+    {
+      "id": "fishbase-silonia-childreni",
+      "title": "FishBase — Silonia childreni",
+      "url": "https://www.fishbase.se/summary/Silonia-childreni.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-hyporhamphus-xanthopterus",
+      "title": "FishBase — Hyporhamphus xanthopterus",
+      "url": "https://www.fishbase.se/summary/Hyporhamphus-xanthopterus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-wallago-attu",
+      "title": "FishBase — Wallago attu",
+      "url": "https://www.fishbase.se/summary/Wallago-attu.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-opsarius-gatensis",
+      "title": "FishBase — Opsarius gatensis",
+      "url": "https://www.fishbase.se/summary/Opsarius-gatensis.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-channa-pseudomarulius",
+      "title": "FishBase — Channa pseudomarulius",
+      "url": "https://www.fishbase.se/summary/Channa-pseudomarulius.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-labeo-dyocheilus",
+      "title": "FishBase — Labeo dyocheilus",
+      "url": "https://www.fishbase.se/summary/Labeo-dyocheilus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-macrognathus-malabaricus",
+      "title": "FishBase — Macrognathus malabaricus",
+      "url": "https://www.fishbase.se/summary/Macrognathus-malabaricus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-oryzias-carnaticus",
+      "title": "FishBase — Oryzias carnaticus",
+      "url": "https://www.fishbase.se/summary/Oryzias-carnaticus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "krishna-fish-survey",
+      "title": "Kumbar et al. (2021) — Freshwater fish fauna of the Krishna River, Sangli District",
+      "url": "https://doi.org/10.11609/jott.6281.13.8.19093-19101",
+      "published": "2021-07-26",
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-schismatorhynchos-nukta",
+      "title": "FishBase — Schismatorhynchos nukta",
+      "url": "https://www.fishbase.se/summary/Schismatorhynchos-nukta.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-botia-striata",
+      "title": "FishBase — Botia striata",
+      "url": "https://www.fishbase.se/summary/Botia-striata.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-hypselobarbus-mussullah",
+      "title": "FishBase — Hypselobarbus mussullah",
+      "url": "https://www.fishbase.se/summary/Hypselobarbus-mussullah.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-labeo-potail",
+      "title": "FishBase — Labeo potail",
+      "url": "https://www.fishbase.se/summary/Labeo-potail.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-parapsilorhynchus-discophorus",
+      "title": "FishBase — Parapsilorhynchus discophorus",
+      "url": "https://www.fishbase.se/summary/Parapsilorhynchus-discophorus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-garra-bicornuta",
+      "title": "FishBase — Garra bicornuta",
+      "url": "https://www.fishbase.se/summary/Garra-bicornuta.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "ganga-fish-review",
+      "title": "Sarkar et al. (2012) — Freshwater fish biodiversity in the River Ganga: changing pattern, threats and conservation perspectives",
+      "url": "https://doi.org/10.1007/s11160-011-9218-6",
+      "published": "2011-05-13",
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "brahmaputra-fish-survey",
+      "title": "Kundu et al. (2019) — DNA barcoding of freshwater fishes from Brahmaputra River in Eastern Himalaya biodiversity hotspot",
+      "url": "https://doi.org/10.1080/23802359.2019.1637290",
+      "published": "2019-07-15",
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "godavari-rita-description",
+      "title": "Lal et al. (2017) — A new Bagrid catfish species, Rita bakalu, from the Godavari River basin, India",
+      "url": "https://doi.org/10.1007/s10750-016-3019-9",
+      "published": "2016-10-27",
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "godavari-corica-record",
+      "title": "Prasad, Younus & Srinivasulu (2020) — Occurrence of Corica soborna in the Godavari basin, India",
+      "url": "https://doi.org/10.11609/jott.5983.12.17.17361-17365",
+      "published": "2020-12-26",
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-tor-putitora",
+      "title": "FishBase — Tor putitora",
+      "url": "https://www.fishbase.se/summary/Tor-putitora.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-clupisoma-garua",
+      "title": "FishBase — Clupisoma garua",
+      "url": "https://www.fishbase.se/summary/Clupisoma-garua.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-garra-arupi",
+      "title": "FishBase — Garra arupi",
+      "url": "https://www.fishbase.se/summary/Garra-arupi.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-mastacembelus-armatus",
+      "title": "FishBase — Mastacembelus armatus",
+      "url": "https://www.fishbase.se/summary/Mastacembelus-armatus.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-rita-bakalu",
+      "title": "FishBase — Rita bakalu",
+      "url": "https://www.fishbase.se/summary/Rita-bakalu.html",
+      "published": null,
+      "accessed": "2026-11-21"
+    },
+    {
+      "id": "fishbase-corica-soborna",
+      "title": "FishBase — Corica soborna",
+      "url": "https://www.fishbase.se/summary/Corica-soborna.html",
+      "published": null,
+      "accessed": "2026-11-21"
     }
   ],
   "rivers": [
@@ -134,20 +309,22 @@
       "aliases": [
         "Ganges"
       ],
-      "summary": "Riverine germplasm connects freshwater biodiversity with restoration. ICAR-CIFRI documents indigenous carps used in its Ganga breeding and ranching programme.",
-      "scope": "Ganga river system; no reach-specific occurrence inferred.",
+      "summary": "A review compiles fish records across the upper, middle and lower Ganga zones, while ICAR-CIFRI documents riverine germplasm used in restoration.",
+      "scope": "Ganga River zones in a literature review; these compiled records are not a current survey.",
       "sourceIds": [
-        "cifri-ganga"
+        "cifri-ganga",
+        "ganga-fish-review"
       ]
     },
     {
       "id": "brahmaputra",
       "name": "Brahmaputra",
       "aliases": [],
-      "summary": "The upper drainage supports small freshwater fishes as well as the life of the main river. Catalog distribution records provide a starting point without implying that every tributary shares the same fauna.",
-      "scope": "Upper Brahmaputra drainage in Assam and Arunachal Pradesh; no precise collection localities published here.",
+      "summary": "The upper drainage supports small freshwater fishes as well as the life of the main river. A DNA-barcoding study sampled Siang and Dibang tributaries; this does not imply that every tributary shares the same fauna.",
+      "scope": "Siang and Dibang tributaries, East Siang and Lower Dibang Valley, Arunachal Pradesh; five sampled localities.",
       "sourceIds": [
-        "cas-badis-blosyrus"
+        "cas-badis-blosyrus",
+        "brahmaputra-fish-survey"
       ]
     },
     {
@@ -167,19 +344,22 @@
       "name": "Krishna",
       "aliases": [],
       "summary": "Catfish surveys reveal diversity that can be overlooked in familiar river landscapes. This reference covers a studied Maharashtra stretch, rather than the entire basin.",
-      "scope": "Krishna River, Sangli region, Maharashtra; survey from June 2009 to July 2012.",
+      "scope": "Krishna River, Sangli region, Maharashtra; surveys from June 2009–July 2012 and 2013–2017.",
       "sourceIds": [
-        "krishna-survey"
+        "krishna-survey",
+        "krishna-fish-survey"
       ]
     },
     {
       "id": "godavari",
       "name": "Godavari",
       "aliases": [],
-      "summary": "Small tributary streams contribute to basin diversity. A published Blue perch record comes from two sub-basins and does not establish presence throughout the main river.",
-      "scope": "Manjeera and Wardha sub-basin streams in Telangana.",
+      "summary": "Published records span Manjeera and Wardha sub-basin streams, the Godavari description of Rita bakalu, and a single Corica soborna record from the Pranahita sub-basin.",
+      "scope": "Manjeera and Wardha sub-basin streams and a Pranahita stream near Talai Village, Telangana; records remain locality-specific.",
       "sourceIds": [
-        "godavari-record"
+        "godavari-record",
+        "godavari-rita-description",
+        "godavari-corica-record"
       ]
     }
   ],
@@ -651,6 +831,666 @@
             "cauvery-survey"
           ],
           "note": "The cited survey establishes a historical record and reports basin endemism; it does not establish present abundance, a current threat category or a specific microhabitat."
+        }
+      ]
+    },
+    {
+      "id": "silonia-childreni",
+      "scientificName": "Silonia childreni",
+      "commonName": "Silonia childreni",
+      "aliases": [],
+      "summary": "FishBase records Silonia childreni as a demersal, potamodromous freshwater catfish; the Cauvery sanctuary inventory also records the species.",
+      "facts": {
+        "maxLengthCm": 48,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; demersal; potamodromous",
+        "distribution": "Asia: Krishna, Godavari and Cauvery river systems in the Western Ghats of peninsular India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-10-14",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-silonia-childreni"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "hyporhamphus-xanthopterus",
+      "scientificName": "Hyporhamphus xanthopterus",
+      "commonName": "Red-tipped halfbeak",
+      "aliases": [],
+      "summary": "FishBase lists the red-tipped halfbeak from Kerala and across marine, brackish and freshwater environments; it also appears in the Cauvery sanctuary inventory.",
+      "facts": {
+        "maxLengthCm": 29.6,
+        "lengthType": "TL",
+        "maxWeightKg": 0.074,
+        "environment": "Marine; freshwater; brackish; pelagic-neritic",
+        "distribution": "Western Indian Ocean: Kerala, India.",
+        "conservation": {
+          "code": "VU",
+          "label": "Vulnerable",
+          "assessed": "2010-10-14",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hyporhamphus-xanthopterus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "wallago-attu",
+      "scientificName": "Wallago attu",
+      "commonName": "Wallago",
+      "aliases": [],
+      "summary": "FishBase describes Wallago attu as a large, elongated freshwater and brackish-water catfish; the Cauvery survey records it in the sanctuary.",
+      "facts": {
+        "maxLengthCm": 240,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; demersal; potamodromous",
+        "distribution": "Asia: Pakistan to Viet Nam and Indonesia; also reported from Afghanistan.",
+        "conservation": {
+          "code": "VU",
+          "label": "Vulnerable",
+          "assessed": "2019-08-12",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-wallago-attu"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "opsarius-gatensis",
+      "scientificName": "Opsarius gatensis",
+      "commonName": "Malabar baril",
+      "aliases": [],
+      "summary": "The Cauvery survey names Opsarius gatensis as a Western Ghats endemic. FishBase describes it from clear hill streams with gravelly or rocky bottoms.",
+      "facts": {
+        "maxLengthCm": 15,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Western Ghats, India.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-06-29",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-opsarius-gatensis"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. Its sanctuary record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "channa-pseudomarulius",
+      "scientificName": "Channa pseudomarulius",
+      "commonName": "Orangespotted snakehead",
+      "aliases": [],
+      "summary": "FishBase places Channa pseudomarulius in the southern Western Ghats and lists it as Not Evaluated; the Cauvery survey marks it as a Western Ghats endemic.",
+      "facts": {
+        "maxLengthCm": 57.8,
+        "lengthType": "TL",
+        "maxWeightKg": 1.4,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Southern Western Ghats, peninsular India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-channa-pseudomarulius"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. Its sanctuary record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "labeo-dyocheilus",
+      "scientificName": "Labeo dyocheilus",
+      "commonName": "Brahmaputra labeo",
+      "aliases": [],
+      "summary": "FishBase describes adult Labeo dyocheilus in clear, active currents of large rivers and gives it a broad South Asian range; the Cauvery survey also records the species.",
+      "facts": {
+        "maxLengthCm": 90,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: Pakistan, India, Bangladesh and Nepal; also recorded in the Maeklong, Salween, Chao Phraya and Mekong basins.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2010-03-18",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-dyocheilus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey table uses a dagger to mark non-native (transplanted or introduced) taxa; this row is unmarked. The table does not mark this species as Cauvery-endemic. The record is historical and site-specific."
+        }
+      ]
+    },
+    {
+      "id": "macrognathus-malabaricus",
+      "scientificName": "Macrognathus malabaricus",
+      "commonName": "Malabar spiny eel",
+      "aliases": ["Mastacembelus malabaricus"],
+      "summary": "The Cauvery survey’s figure caption calls Macrognathus malabaricus the Malabar spiny eel; FishBase describes it from coastal rivers, streams, inundated ponds and paddy fields.",
+      "facts": {
+        "maxLengthCm": 26,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-macrognathus-malabaricus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey marks this species as endemic to the Western Ghats, not to the Cauvery basin. The record is historical and site-specific, not evidence of current abundance or presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "oryzias-carnaticus",
+      "scientificName": "Oryzias carnaticus",
+      "commonName": "Spotted ricefish",
+      "aliases": [],
+      "summary": "FishBase reports the spotted ricefish from eastern India and Bangladesh and notes fresh and brackish coastal habitats; the Cauvery survey records it at the sanctuary, but its native status there is unresolved.",
+      "facts": {
+        "maxLengthCm": 3,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; benthopelagic",
+        "distribution": "Asia: eastern India and Bangladesh.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2019-08-11",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-oryzias-carnaticus"
+      },
+      "associations": [
+        {
+          "riverId": "cauvery",
+          "status": "uncertain",
+          "basinEndemic": false,
+          "locality": "Cauvery Wildlife Sanctuary, Karnataka",
+          "evidencePeriod": "2015–2019",
+          "sourceIds": ["cauvery-survey"],
+          "note": "The survey records this species at the sanctuary, while the FishBase distribution summary available here gives eastern India and Bangladesh. Occurrence is documented, but the cited records do not settle native origin in the Cauvery."
+        }
+      ]
+    },
+    {
+      "id": "schismatorhynchos-nukta",
+      "scientificName": "Schismatorhynchos nukta",
+      "commonName": "Nukta",
+      "aliases": ["Bangana nukta"],
+      "summary": "The Sangli survey lists this Endangered, Western Ghats-endemic fish as Bangana nukta; FishBase currently records the name Schismatorhynchos nukta.",
+      "facts": {
+        "maxLengthCm": 30,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Maharashtra and Karnataka, India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-09-16",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-schismatorhynchos-nukta"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The paper's table names this taxon Bangana nukta and marks it Western Ghats-endemic, but not Krishna River-endemic. FishBase currently uses Schismatorhynchos nukta; its taxonomy follows Fricke et al. (2020) separately from the paper's 2013–2017 occurrence record."
+        }
+      ]
+    },
+    {
+      "id": "botia-striata",
+      "scientificName": "Botia striata",
+      "commonName": "Zebra loach",
+      "aliases": [],
+      "summary": "The Sangli survey recorded zebra loaches as abundant and marked them endemic to both the Western Ghats and Krishna River system; FishBase associates the species with clear mountain streams.",
+      "facts": {
+        "maxLengthCm": 7.8,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; demersal",
+        "distribution": "Asia: Western Ghats and Maharashtra, India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2011-03-19",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-botia-striata"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The Sangli survey marks Botia striata as endemic to the Western Ghats and Krishna River system. It recorded the species at Bahe, Borgaon and Islampur; the record is limited to the studied reach, not the whole basin."
+        }
+      ]
+    },
+    {
+      "id": "hypselobarbus-mussullah",
+      "scientificName": "Hypselobarbus mussullah",
+      "commonName": "Mussullah barb",
+      "aliases": [],
+      "summary": "FishBase describes the mussullah barb as a potamodromous freshwater fish of clear, fast-flowing upland rivers; the Sangli survey records it in the Krishna reach and lists it as Endangered.",
+      "facts": {
+        "maxLengthCm": 150,
+        "lengthType": "TL",
+        "maxWeightKg": 90,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2010-10-03",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-hypselobarbus-mussullah"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The survey marks this species as Western Ghats-endemic, not Krishna River-endemic. The paper also reports collecting it near Bahe; this dated, site-specific record does not establish current abundance throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "labeo-potail",
+      "scientificName": "Labeo potail",
+      "commonName": "Labeo potail",
+      "aliases": [],
+      "summary": "The Sangli survey records Labeo potail near Palus and Sangli and reports declining numbers in the study reach; FishBase lists the species as Endangered.",
+      "facts": {
+        "maxLengthCm": 30,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Maharashtra, the Deccan and the Cauvery river system in India.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2011-03-27",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-labeo-potail"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The Sangli survey marks this species as Western Ghats-endemic, not Krishna River-endemic. It reports records near Palus and Sangli and concerns about declining numbers in the study area; this does not quantify a present population."
+        }
+      ]
+    },
+    {
+      "id": "parapsilorhynchus-discophorus",
+      "scientificName": "Parapsilorhynchus discophorus",
+      "commonName": "Ratnagiri minnow",
+      "aliases": [],
+      "summary": "The Sangli survey records this rare, Western Ghats-endemic minnow in the Krishna reach; FishBase reports a maximum recorded length of 3.8 cm and a Vulnerable assessment.",
+      "facts": {
+        "maxLengthCm": 3.8,
+        "lengthType": "TL",
+        "maxWeightKg": 0.00066,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "VU",
+          "label": "Vulnerable",
+          "assessed": "2010-09-26",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-parapsilorhynchus-discophorus"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The survey marks this species as Western Ghats-endemic, not Krishna River-endemic. Its presence is documented in the dated Sangli study, which does not establish current abundance throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "garra-bicornuta",
+      "scientificName": "Garra bicornuta",
+      "commonName": "Garra bicornuta",
+      "aliases": [],
+      "summary": "The Sangli survey marks Garra bicornuta as endemic to both the Western Ghats and Krishna River system; FishBase records it from the Thunga system and Kolhapur, Maharashtra.",
+      "facts": {
+        "maxLengthCm": 13.9,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: Thunga river system in Karnataka and Kolhapur in Maharashtra.",
+        "conservation": {
+          "code": "NT",
+          "label": "Near Threatened",
+          "assessed": "2010-09-15",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-garra-bicornuta"
+      },
+      "associations": [
+        {
+          "riverId": "krishna",
+          "status": "native",
+          "basinEndemic": true,
+          "locality": "Krishna River, Sangli District, Maharashtra; five-site study reach",
+          "evidencePeriod": "2013–2017",
+          "sourceIds": ["krishna-fish-survey"],
+          "note": "The Sangli survey marks Garra bicornuta as endemic to the Western Ghats and Krishna River system. This association is limited to the studied reach, not evidence of presence throughout the basin."
+        }
+      ]
+    },
+    {
+      "id": "tor-putitora",
+      "scientificName": "Tor putitora",
+      "commonName": "Golden mahseer",
+      "aliases": ["Putitor mahseer"],
+      "summary": "The Ganga review records golden mahseer in upper-zone reaches. FishBase describes a large, potamodromous Himalayan fish and lists it as Endangered.",
+      "facts": {
+        "maxLengthCm": 275,
+        "lengthType": "TL",
+        "maxWeightKg": 54,
+        "environment": "Freshwater; benthopelagic; potamodromous",
+        "distribution": "Asia: Afghanistan, Pakistan, India, Nepal, Bangladesh, Bhutan and Myanmar.",
+        "conservation": {
+          "code": "EN",
+          "label": "Endangered",
+          "assessed": "2018-08-05",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-tor-putitora"
+      },
+      "associations": [
+        {
+          "riverId": "ganga",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Ganga River, upper-zone reaches in the review's zonal table",
+          "evidencePeriod": "Zonal records compiled in 2012 review",
+          "sourceIds": ["ganga-fish-review"],
+          "note": "Table 5 lists Tor putitora in upper Ganga zones. The review compiles historical distribution records rather than a new survey, and this zonal listing does not establish present abundance throughout the river."
+        }
+      ]
+    },
+    {
+      "id": "clupisoma-garua",
+      "scientificName": "Clupisoma garua",
+      "commonName": "Garua bachcha",
+      "aliases": ["Garua bacha"],
+      "summary": "FishBase describes Garua bachcha from large freshwater and tidal rivers; the Ganga review lists it in middle- and lower-zone reaches.",
+      "facts": {
+        "maxLengthCm": 60.9,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; brackish; demersal; potamodromous",
+        "distribution": "Asia: Pakistan, India, Bangladesh and Nepal.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2009-10-13",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-clupisoma-garua"
+      },
+      "associations": [
+        {
+          "riverId": "ganga",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Ganga River, middle- and lower-zone reaches in the review's zonal table",
+          "evidencePeriod": "Zonal records compiled in 2012 review",
+          "sourceIds": ["ganga-fish-review"],
+          "note": "Table 5 lists Clupisoma garua in middle and lower zones and marks a new zonal distribution record. This is a literature compilation, not a contemporary basin-wide survey."
+        }
+      ]
+    },
+    {
+      "id": "garra-arupi",
+      "scientificName": "Garra arupi",
+      "commonName": "Garra arupi",
+      "aliases": [],
+      "summary": "Described from the upper Brahmaputra basin in Arunachal Pradesh, Garra arupi was also included among the fishes sampled from Brahmaputra tributaries in a DNA-barcoding study; FishBase lists it as Not Evaluated.",
+      "facts": {
+        "maxLengthCm": 7.2,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; benthopelagic",
+        "distribution": "Asia: upper Brahmaputra basin in Arunachal Pradesh, India.",
+        "conservation": {
+          "code": "NE",
+          "label": "Not Evaluated",
+          "assessed": null,
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-garra-arupi"
+      },
+      "associations": [
+        {
+          "riverId": "brahmaputra",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Siang–Dibang tributary study area, East Siang and Lower Dibang Valley, Arunachal Pradesh; species-level stream not specified",
+          "evidencePeriod": "Sampled in the 2019 study; collection dates not stated",
+          "sourceIds": ["brahmaputra-fish-survey", "fishbase-garra-arupi"],
+          "note": "The survey includes Garra arupi among fish sampled across five localities in the Siang–Dibang study area, but does not identify a stream-level site for this species. FishBase gives its distribution as the upper Brahmaputra basin; the entry is not marked basin-endemic because the cited records do not establish its full range."
+        }
+      ]
+    },
+    {
+      "id": "mastacembelus-armatus",
+      "scientificName": "Mastacembelus armatus",
+      "commonName": "Zig-zag eel",
+      "aliases": ["Tiretrack eel"],
+      "summary": "The widespread zig-zag eel is recorded in a DNA-barcoding survey of Brahmaputra tributaries. FishBase describes it from freshwater and brackish habitats and lists it as Least Concern.",
+      "facts": {
+        "maxLengthCm": 90,
+        "lengthType": "TL",
+        "maxWeightKg": 0.5,
+        "environment": "Freshwater; brackish; demersal; potamodromous",
+        "distribution": "Asia: Pakistan to Viet Nam and Indonesia.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2019-08-11",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-mastacembelus-armatus"
+      },
+      "associations": [
+        {
+          "riverId": "brahmaputra",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Siang–Dibang tributary study area, East Siang and Lower Dibang Valley, Arunachal Pradesh; species-level stream not specified",
+          "evidencePeriod": "Sampled in the 2019 study; collection dates not stated",
+          "sourceIds": ["brahmaputra-fish-survey", "fishbase-mastacembelus-armatus"],
+          "note": "The survey includes this species among fish sampled across five localities in the Siang–Dibang study area, but does not identify a stream-level site for this species. FishBase records a broad South and Southeast Asian range; this dated study record does not establish present abundance throughout the Brahmaputra basin."
+        }
+      ]
+    },
+    {
+      "id": "rita-bakalu",
+      "scientificName": "Rita bakalu",
+      "commonName": "Rita bakalu",
+      "aliases": [],
+      "summary": "Rita bakalu was described as a new species from the Godavari river system. FishBase reports a maximum recorded length of 11.1 cm standard length and a Data Deficient assessment.",
+      "facts": {
+        "maxLengthCm": 11.1,
+        "lengthType": "SL",
+        "maxWeightKg": null,
+        "environment": "Freshwater; demersal",
+        "distribution": "Asia: India.",
+        "conservation": {
+          "code": "DD",
+          "label": "Data Deficient",
+          "assessed": "2020-09-19",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-rita-bakalu"
+      },
+      "associations": [
+        {
+          "riverId": "godavari",
+          "status": "native",
+          "basinEndemic": false,
+          "locality": "Godavari river system, India",
+          "evidencePeriod": "Description published 2017; collection dates not stated in the abstract",
+          "sourceIds": ["godavari-rita-description"],
+          "note": "The species was described from the Godavari system. The cited description establishes its type-basin record but is not evidence that the species is confined to the Godavari basin. Data Deficient is not equivalent to a low-risk assessment."
+        }
+      ]
+    },
+    {
+      "id": "corica-soborna",
+      "scientificName": "Corica soborna",
+      "commonName": "Ganges river sprat",
+      "aliases": ["Kachki fish"],
+      "summary": "A 2020 communication reports one Corica soborna specimen from a stream in the Pranahita sub-basin of the Godavari. The first-basin-record paper documents occurrence, not whether the species is native there.",
+      "facts": {
+        "maxLengthCm": 5.3,
+        "lengthType": "TL",
+        "maxWeightKg": null,
+        "environment": "Marine; freshwater; brackish; pelagic-neritic",
+        "distribution": "Asia: India, Indonesia, Brunei and Malaysia; records from Bangladesh and parts of Southeast Asia require confirmation in FishBase.",
+        "conservation": {
+          "code": "LC",
+          "label": "Least Concern",
+          "assessed": "2009-10-06",
+          "scope": "Global",
+          "version": "2025-2"
+        },
+        "sourceId": "fishbase-corica-soborna"
+      },
+      "associations": [
+        {
+          "riverId": "godavari",
+          "status": "uncertain",
+          "basinEndemic": false,
+          "locality": "Stream near Talai Village, Pranahita River sub-basin, Telangana",
+          "evidencePeriod": "Single-specimen record published 2020; collection date not stated in the abstract",
+          "sourceIds": ["godavari-corica-record"],
+          "note": "The source reports this as the first Godavari-basin record, based on one specimen. Occurrence is documented, but the cited literature does not determine whether the fish is native to the basin."
         }
       ]
     }

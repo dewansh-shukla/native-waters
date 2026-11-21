@@ -103,6 +103,48 @@ const USAGE: Record<string, Usage & { file: string }> = {
     alt: '1878 lithograph of a small cyprinid in profile, labelled Scaphiodon brevidorsalis',
     caption: 'Kantaka brevidorsalis, a plate from The Fishes of India (1878). The plate carries its original name, Scaphiodon brevidorsalis.',
   },
+  'silonia-childreni': {
+    file: '/atlas/silonia-childreni-sykes.jpg',
+    kind: 'plate',
+    alt: 'Archival 1839 illustration of Silonia childreni in profile',
+    caption: 'Silonia childreni, illustrated by J. Swaine in 1839. An archival illustration, not a modern photograph.',
+  },
+  'hyporhamphus-xanthopterus': {
+    file: '/atlas/hyporhamphus-xanthopterus-siva-naturewild.jpg',
+    kind: 'photograph',
+    alt: 'A red-tipped halfbeak held upright in a person’s hand',
+    caption: 'A red-tipped halfbeak photographed in hand by Siva Naturewild in August 2022; this is not a habitat image.',
+  },
+  'wallago-attu': {
+    file: '/atlas/wallago-attu-rejoice-gassah.jpg',
+    kind: 'photograph',
+    alt: 'A large Wallago catfish held horizontally above grass',
+    caption: 'Wallago attu photographed in hand by Rejoice Gassah in 2019; this is not a habitat image.',
+  },
+  'botia-striata': {
+    file: '/atlas/botia-striata-lerdsuwa.jpg',
+    kind: 'photograph',
+    alt: 'A zebra loach with dark vertical stripes resting on aquarium gravel',
+    caption: 'A zebra loach photographed in an aquarium by Lerdsuwa in 2007; this is not a habitat image.',
+  },
+  'tor-putitora': {
+    file: '/atlas/tor-putitora-charles-sharp.jpg',
+    kind: 'photograph',
+    alt: 'Golden mahseer swimming underwater in the Babai River, Nepal',
+    caption: 'Golden mahseer photographed in the Babai River, Nepal, by Charles J. Sharp in 2019; this is not a Ganga-basin image.',
+  },
+  'clupisoma-garua': {
+    file: '/atlas/clupisoma-garua-biswarup-ganguly.jpg',
+    kind: 'photograph',
+    alt: 'Several Garua bachcha catfish together, with one shown in side profile',
+    caption: 'Clupisoma garua photographed by Biswarup Ganguly in April 2002; the file does not specify a capture locality.',
+  },
+  'mastacembelus-armatus': {
+    file: '/atlas/mastacembelus-armatus-motu-purkait.jpg',
+    kind: 'photograph',
+    alt: 'Close view of the head and front of a zig-zag eel held upright in a hand',
+    caption: 'Close-up of a zig-zag eel photographed by Motu purkait in 2026; this is not a habitat image.',
+  },
 };
 
 const BY_FILE = new Map<string, CreditRecord>(creditsData.map(record => [record.file, record]));

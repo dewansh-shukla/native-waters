@@ -74,6 +74,7 @@ export default async function SpeciesPage({ params }: Props) {
     </section>
     {species.associations.map(a => <Evidence key={a.riverId} association={a} />)}
     <h2>Habitat &amp; range limits</h2><p>The record areas above identify the geographic context supported by the sources. FishBase adds the broad environment and distribution shown in the record facts. Neither source establishes a substrate, flow preference or water-chemistry requirement for this population, so we leave those details unstated.</p>
+    <h2 id="diet">Diet and behaviour</h2><p>The cited sources for this record do not document feeding habits, spawning behaviour or ecological role beyond the environment and distribution given above. Where FishBase lists a habitat descriptor such as potamodromous or benthopelagic, it is shown in the record facts and should be read as a broad habitat note rather than a behavioural account.</p>
     {siblings.length > 0 && <section aria-labelledby='related-species'>
       <h2 id='related-species'>From the same basin</h2>
       <ul>{siblings.map(sibling => <li key={sibling.id}><Link href={`/species/${sibling.id}`}>{sibling.commonName}</Link>{sibling.commonName !== sibling.scientificName && <> (<i>{sibling.scientificName}</i>)</>}</li>)}</ul>
@@ -96,6 +97,10 @@ export default async function SpeciesPage({ params }: Props) {
           <p>The record rests on {a.sourceIds.length === 1 ? 'one cited source' : `${a.sourceIds.length} cited sources`}: {a.sourceIds.map(id => catalog.sources.find(s => s.id === id)?.title).filter(Boolean).join('; ')}. The evidence period is {a.evidencePeriod} and the record area is {a.locality}.</p>
           <h3>What does this record not establish?</h3>
           <p>It does not establish presence throughout the {r.name} basin, abundance, habitat preference, or aquarium care requirements. Native status and basin endemism remain separate claims. See the evidence policy below.</p>
+          <h3>How large does {species.commonName} grow?</h3>
+          <p>FishBase records a maximum length of {formatLength(species)}{species.facts.maxWeightKg === null ? '' : ` and a maximum published weight of ${species.facts.maxWeightKg} kg`}. These are the largest recorded values, not typical sizes.</p>
+          <h3>Is {species.commonName} endangered?</h3>
+          <p>{conservation.code === 'NE' ? `${species.commonName} has not been assessed on the IUCN Red List, so no category exists yet.` : `${species.commonName} is listed as ${conservation.label} on the IUCN Red List${conservation.assessed ? `, assessed ${formatAssessed(conservation.assessed)}` : ''}.`} See the <Link href="/conservation">conservation overview</Link> for every species in this guide.</p>
         </div>;
       })}
     </section>

@@ -297,6 +297,179 @@
   "notes": [
    "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
   ],
-  "saved": "2026-11-16T21:03:04.353Z"
- }
+   "saved": "2026-11-16T21:03:04.353Z"
+  },
+  {
+   "file": "/atlas/silonia-childreni-sykes.jpg",
+   "media": "image",
+   "ref": "commons:39299451",
+   "title": "Silonia childreni Sykes",
+   "creator": "J. Swaine",
+   "creatorUrl": null,
+   "date": "1839",
+   "license": "public domain",
+   "licenseCode": "pd",
+   "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+   "creditRequired": false,
+   "page": "https://commons.wikimedia.org/wiki/File:Silonia_childreni_Sykes.jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Silonia_childreni_Sykes.jpg/1280px-Silonia_childreni_Sykes.jpg",
+   "width": 1280,
+   "height": 632,
+   "bytes": 73757,
+   "credit": "\"Silonia childreni Sykes\" by J. Swaine, public domain, via Wikimedia Commons",
+   "notes": [
+    "Illustration from Transactions of the Zoological Society of London, volume 2 (1839).",
+    "Archival illustration, not a modern photograph."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  },
+  {
+   "file": "/atlas/hyporhamphus-xanthopterus-siva-naturewild.jpg",
+   "media": "image",
+   "ref": "commons:167252437",
+   "title": "Red-tipped Halfbeak",
+   "creator": "Siva Naturewild",
+   "creatorUrl": "https://www.inaturalist.org/people/sivanaturewild",
+   "date": "2022-08",
+   "license": "CC BY 4.0",
+   "licenseCode": "by",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Red-tipped_Halfbeak.jpg",
+   "via": "Wikimedia Commons (from iNaturalist)",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Red-tipped_Halfbeak.jpg/500px-Red-tipped_Halfbeak.jpg",
+   "width": 500,
+   "height": 889,
+   "bytes": 96674,
+   "credit": "\"Red-tipped Halfbeak\" by Siva Naturewild, CC BY 4.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in hand; this is not a depiction of the fish in its habitat.",
+    "The source obscures the observation location at 31.2 km accuracy."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  },
+  {
+   "file": "/atlas/wallago-attu-rejoice-gassah.jpg",
+   "media": "image",
+   "ref": "commons:126737830",
+   "title": "Wallago attu 71095517",
+   "creator": "Rejoice Gassah",
+   "creatorUrl": "https://www.inaturalist.org/users/506512",
+   "date": "2019-11-08",
+   "license": "CC BY 4.0",
+   "licenseCode": "by",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Wallago_attu_71095517.jpg",
+   "via": "Wikimedia Commons (from iNaturalist)",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Wallago_attu_71095517.jpg/1280px-Wallago_attu_71095517.jpg",
+   "width": 1280,
+   "height": 798,
+   "bytes": 299589,
+   "credit": "\"Wallago attu 71095517\" by Rejoice Gassah, CC BY 4.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in hand; this is not a depiction of the fish in its habitat."
+   ],
+   "saved": "2026-11-21T13:40:00.000Z"
+  },
+  {
+   "file": "/atlas/botia-striata-lerdsuwa.jpg",
+   "media": "image",
+   "ref": "commons:468701",
+   "title": "Botia striata",
+   "creator": "Lerdsuwa",
+   "creatorUrl": "https://commons.wikimedia.org/wiki/User:Lerdsuwa",
+   "date": "2007-01-02",
+   "license": "CC BY-SA 3.0",
+   "licenseCode": "by-sa",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Botia_striata.jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Botia_striata.jpg/1280px-Botia_striata.jpg",
+   "width": 1280,
+   "height": 801,
+   "bytes": 206992,
+   "credit": "\"Botia striata\" by Lerdsuwa, CC BY-SA 3.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in an aquarium, not in its river habitat.",
+    "Share-alike: adapted versions must be shared under the same or a compatible licence."
+   ],
+   "saved": "2026-11-21T13:45:00.000Z"
+  },
+  {
+   "file": "/atlas/tor-putitora-charles-sharp.jpg",
+   "media": "image",
+   "ref": "commons:85867900",
+   "title": "Golden mahseer (Tor putitora) Babai River",
+   "creator": "Charles J. Sharp",
+   "creatorUrl": "https://www.sharpphotography.co.uk/",
+   "date": "2019-11-10",
+   "license": "CC BY-SA 4.0",
+   "licenseCode": "by-sa",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Golden_mahseer_(Tor_putitora)_Babai_River.jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Golden_mahseer_%28Tor_putitora%29_Babai_River.jpg/1280px-Golden_mahseer_%28Tor_putitora%29_Babai_River.jpg",
+   "width": 1280,
+   "height": 853,
+   "bytes": 290636,
+   "credit": "\"Golden mahseer (Tor putitora) Babai River\" by Charles J. Sharp, CC BY-SA 4.0, via Wikimedia Commons",
+   "notes": [
+    "Photographed in the Babai River, Nepal; this is not a Ganga-basin image.",
+    "Share-alike: adapted versions must be shared under the same or a compatible licence."
+   ],
+   "saved": "2026-11-21T20:05:00.000Z"
+  },
+  {
+   "file": "/atlas/clupisoma-garua-biswarup-ganguly.jpg",
+   "media": "image",
+   "ref": "commons:11884395",
+   "title": "Clupisoma garua 20020400",
+   "creator": "Biswarup Ganguly",
+   "creatorUrl": "https://commons.wikimedia.org/wiki/User:Gangulybiswarup",
+   "date": "2002-04",
+   "license": "CC BY 3.0",
+   "licenseCode": "by",
+   "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+   "creditRequired": true,
+   "page": "https://commons.wikimedia.org/wiki/File:Clupisoma_garua_20020400.jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Clupisoma_garua_20020400.jpg/1280px-Clupisoma_garua_20020400.jpg",
+   "width": 1280,
+   "height": 850,
+   "bytes": 296484,
+   "credit": "\"Clupisoma garua 20020400\" by Biswarup Ganguly, CC BY 3.0, via Wikimedia Commons",
+   "notes": [
+    "The photograph depicts Clupisoma garua; no capture locality is supplied in the file metadata."
+   ],
+   "saved": "2026-11-21T20:05:00.000Z"
+  },
+  {
+   "file": "/atlas/mastacembelus-armatus-motu-purkait.jpg",
+   "media": "image",
+   "ref": "commons:195299819",
+   "title": "Zig zag eel (Mastacembelus armatus) (61481)",
+   "creator": "Motu purkait",
+   "creatorUrl": "https://commons.wikimedia.org/wiki/User:Motu_purkait",
+   "date": "2026-06-07",
+   "license": "CC0",
+   "licenseCode": "cc0",
+   "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "creditRequired": false,
+   "page": "https://commons.wikimedia.org/wiki/File:Zig_zag_eel(Mastacembelus_armatus)_(61481).jpg",
+   "via": "Wikimedia Commons",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Zig_zag_eel%28Mastacembelus_armatus%29_%2861481%29.jpg/500px-Zig_zag_eel%28Mastacembelus_armatus%29_%2861481%29.jpg",
+   "width": 500,
+   "height": 667,
+   "bytes": 67855,
+   "credit": "\"Zig zag eel (Mastacembelus armatus) (61481)\" by Motu purkait, CC0, via Wikimedia Commons",
+   "notes": [
+    "Close-up of the head and front of the fish, held in a hand; not a habitat photograph.",
+    "File metadata lists West Bengal; it does not document a Brahmaputra location."
+   ],
+   "saved": "2026-11-21T20:05:00.000Z"
+  }
 ]
