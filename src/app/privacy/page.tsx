@@ -20,6 +20,7 @@ export default function PrivacyPage() {
       </nav>
       <h1>Privacy</h1>
       <p><em>Last reviewed: 16 November 2026.</em></p>
+      <p>In short: no accounts, no sign-in, no first-party cookies, and no personal data beyond what Google Analytics receives with your explicit consent.</p>
 
       <h2>What this site is</h2>
       <p>Native Waters is an open, sourced reference for native freshwater fishes of five Indian river systems, with an illustrative underwater experience. It is a static site with no accounts, no sign-in and no user-generated content.</p>
