@@ -33,7 +33,7 @@ export default function MethodPage() {
       </nav>
       <h1>Method and evidence policy</h1>
       <p><em>Last reviewed: 20 November 2026.</em></p>
-      <p>In plain terms: this page explains how Native Waters chooses its records, what "native" and "introduced" mean here, how to read dates and locations, where the conservation categories come from, and how images are credited. The technical policy follows each section.</p>
+      <p>In plain terms: this page explains how Native Waters chooses its records, what &quot;native&quot; and &quot;introduced&quot; mean here, how to read dates and locations, where the conservation categories come from, and how images are credited. The technical policy follows each section.</p>
 
       <h2>How records are selected</h2>
       <p>Records are drawn from cited publications; each river and species page lists its sources. This is a selected reference, not a complete checklist or a current population survey, and occurrence records describe places and dates rather than new sightings.</p>
