@@ -87,8 +87,9 @@ export default function FieldGuide() {
     <JsonLd data={[fieldGuideSchema(), datasetSchema(), definedTermSetSchema(DEFINED_TERMS), faqSchema(FAQ), breadcrumbSchema(BREADCRUMBS), articleSchema({ title: 'Freshwater fish of India: field guide', description: 'Sourced freshwater fish records from the Ganga, Brahmaputra, Cauvery, Krishna and Godavari, with habitat, distribution, maximum recorded size, basin-specific native status and survey context.', url: `${SITE_ORIGIN}/field-guide`, dateModified: CONTENT_UPDATED_AT.toISOString() })]} />
     <section className={styles.intro}>
       <div>
+        <p className={styles.eyebrow}>Indian rivers and native freshwater fishes</p>
         <h1>Freshwater<br />fish of India</h1>
-        <p>Five Indian river systems. Thirteen sourced freshwater fish records. Start with a river below, or search for a species by common or scientific name. Every entry links to a full profile with record facts, conservation status and citations. {summary.threatened} of the {summary.total} are listed as threatened on the IUCN Red List — <Link href="/conservation">see their conservation status</Link>.</p>
+        <p>Five Indian river systems. {catalog.species.length} sourced freshwater fish records. Start with a river below, or search for a species by common or scientific name. Every entry links to a full profile with record facts, conservation status and citations. {summary.threatened} of the {summary.total} are listed as threatened on the IUCN Red List — <Link href="/conservation">see their conservation status</Link>.</p>
         <nav aria-label='Rivers in the field guide'>{catalog.rivers.map(river => <a key={river.id} href={`#${river.id}`}>{river.name}</a>)}</nav>
         <a href="#reading-the-evidence">How to read this guide</a>
       </div>
